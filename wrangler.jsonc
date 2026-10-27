@@ -6,6 +6,8 @@
   "name": "cbes-admin-local",
   "main": "./worker/index.ts",
   "compatibility_date": "2026-10-01",
+  // Only reachable on the cbenvironments.com routes below, never on *.workers.dev.
+  "workers_dev": false,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
