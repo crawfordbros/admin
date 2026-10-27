@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { AuthenticateWithRedirectCallback, ClerkProvider } from "@clerk/clerk-react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { config } from "./config";
 import { RequireArea } from "./components/RequireArea";
@@ -25,7 +25,9 @@ function ClerkWithRouter({ children }: { children: ReactNode }) {
       routerPush={(to) => navigate(to)}
       routerReplace={(to) => navigate(to, { replace: true })}
       signInUrl="/portal/login"
+      signUpUrl="/portal/accept-invite"
       signInFallbackRedirectUrl="/portal"
+      taskUrls={{ "setup-mfa": "/portal/login" }}
       afterSignOutUrl="/portal/login"
     >
       {children}
@@ -48,6 +50,10 @@ export function App() {
       <ClerkWithRouter>
         <UserScopedQueries>
         <Routes>
+          <Route
+            path="/portal/login/sso-callback"
+            element={<AuthenticateWithRedirectCallback signInUrl="/portal/login" secondFactorUrl="/portal/login" transferable={false} />}
+          />
           <Route path="/portal/login/*" element={<LoginPage />} />
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
           <Route element={<Shell />}>

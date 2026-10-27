@@ -1,0 +1,24 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - link "CB Environment Solutions website" [ref=f4e5] [cursor=pointer]:
+      - /url: https://test.cbenvironments.com
+    - paragraph [ref=f4e6]: Aiming for excellence.
+  - main [ref=f4e7]:
+    - generic [ref=f4e8]:
+      - generic [ref=f4e9]:
+        - generic [ref=f4e12]:
+          - heading "Sign in to the CBES portal" [level=1] [ref=f4e13]
+          - paragraph [ref=f4e14]: For property managers, valets and the CBES team.
+        - generic [ref=f4e15]:
+          - alert [ref=f4e16]: No CBES portal account uses that email. Accounts are by invitation, so call (470) 585-2776 to get one.
+          - button "Continue with Google" [ref=f4e17]
+          - paragraph [ref=f4e23]: or use your email
+          - generic [ref=f4e24]:
+            - generic [ref=f4e25]:
+              - generic [ref=f4e26]: Email address
+              - textbox "Email address" [active] [ref=f4e27]: nobody-cbes-test@example.com
+            - button "Continue" [ref=f4e28]
+          - button "Sign in with a passkey" [ref=f4e29] [cursor=pointer]
+        - paragraph [ref=f4e30]: Accounts are by invitation from CBES. Need access? Call (470) 585-2776.
+      - link "Back to website" [ref=f4e11] [cursor=pointer]:
+        - /url: https://test.cbenvironments.com

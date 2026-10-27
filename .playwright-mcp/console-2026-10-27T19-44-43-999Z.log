@@ -1,0 +1,18 @@
+[      73ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom-BbWcvklL.js?v=98644dc5:17219
+[      85ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5174/@vite/client:367
+[      85ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5174/@vite/client:367
+[     181ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://localhost:5174/@vite/client:367
+[     241ms] [ERROR] WebSocket connection to 'wss://testadmin.cbenvironments.com/?token=LiCD2OdTSlym' failed: Error during WebSocket handshake: Unexpected response code: 403 @ http://localhost:5174/@vite/client:958
+[     241ms] [ERROR] [vite] failed to connect to websocket (Error: WebSocket closed without opened.).  @ http://localhost:5174/@vite/client:367
+[     241ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     241ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     241ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     241ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     241ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:384
+[     243ms] Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30)

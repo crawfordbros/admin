@@ -1,0 +1,10 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "CB Environment Solutions website" [ref=e5] [cursor=pointer]:
+      - /url: https://test.cbenvironments.com
+    - paragraph [ref=e6]: Aiming for excellence.
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - status [ref=e10]: Loading…
+      - link "Back to website" [ref=e11] [cursor=pointer]:
+        - /url: https://test.cbenvironments.com

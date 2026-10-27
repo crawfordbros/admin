@@ -1,0 +1,19 @@
+[      85ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5174/node_modules/.vite/deps/react-dom-BbWcvklL.js?v=98644dc5:17219
+[      94ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://localhost:5174/@vite/client:367
+[      95ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://localhost:5174/@vite/client:367
+[     180ms] [ERROR] WebSocket connection to 'wss://testadmin.cbenvironments.com/?token=LiCD2OdTSlym' failed: Error during WebSocket handshake: Unexpected response code: 403 @ http://localhost:5174/@vite/client:958
+[     180ms] [ERROR] [vite] failed to connect to websocket (Error: WebSocket closed without opened.).  @ http://localhost:5174/@vite/client:367
+[     181ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     181ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     181ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[     181ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:384
+[     182ms] Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30)
+[     192ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://localhost:5174/@vite/client:367
+[     194ms] [ERROR] Failed to send error to Vite server: Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (http://localhost:5174/@vite/client:236:30) @ http://localhost:5174/@vite/client:358
+[    2780ms] [ERROR] Failed to load resource: the server responded with a status of 422 () @ https://lucky-piranha-6517.clerk.accounts.dev/v1/client/sign_ins?__clerk_api_version=2025-11-10&_clerk_js_version=5.128.0&__clerk_db_jwt=dvb_3LI8WQtwk5z6QB34BxlVflaBPej:0

@@ -5,7 +5,7 @@ for (const path of ["/admin", "/admin/users", "/admin/properties", "/portal", "/
   test(`${path} sends signed-out visitors to sign in`, async ({ page }) => {
     await page.goto(path);
     await expect(page).toHaveURL(/\/portal\/login/);
-    await expect(page.getByRole("heading", { name: /Sign in to CB Environment Solutions/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign in to the CBES portal" })).toBeVisible();
   });
 }
 
