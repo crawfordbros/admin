@@ -1,0 +1,30 @@
+// CBES portal and admin app. Routes /portal* and /admin* on the same hostnames as the public site
+// (cbes-web serves everything else, cbes-api serves /api/*). Routes, not custom domains, so the most
+// specific pattern wins.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cbes-admin-local",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "env": {
+    "staging": {
+      "name": "cbes-admin-staging",
+      "routes": [
+        { "pattern": "staging.cbenvironments.com/portal*", "zone_name": "cbenvironments.com" },
+        { "pattern": "staging.cbenvironments.com/admin*", "zone_name": "cbenvironments.com" }
+      ]
+    },
+    "production": {
+      "name": "cbes-admin",
+      "routes": [
+        { "pattern": "cbenvironments.com/portal*", "zone_name": "cbenvironments.com" },
+        { "pattern": "cbenvironments.com/admin*", "zone_name": "cbenvironments.com" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* Brand tokens from docs/BUILD_BRIEF.md section 4. */
+@theme {
+  --color-navy: #272b84;
+  --color-navy-dark: #1a1c5e;
+  --color-navy-night: #12143f;
+  --color-navy-soft: #3a3e99;
+  --color-gold: #928064;
+  --color-gold-text: #7a6a50;
+  --color-gold-light: #c8bba5;
+  --color-ink: #1a1c3d;
+  --color-muted: #4a4c63;
+  --color-surface: #f8f8f8;
+  --color-tint: #f3f3fa;
+  --color-line: #e4e4ec;
+  --color-field: #c9cad6;
+  --color-on-navy: #e6e7f2;
+  --color-success: #1f6b3a;
+  --color-danger: #b42318;
+
+  --font-heading: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+    text-wrap: balance;
+  }
+  a {
+    @apply text-navy underline underline-offset-3;
+  }
+  a:hover {
+    @apply text-navy-dark;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+  [id] {
+    scroll-margin-top: 1rem;
+  }
+}
