@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { RedirectToSignIn, useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
-import { canAccess, roleFrom, type Area } from "../access";
+import { AREA_DENIED, canAccess, roleFrom, type Area } from "../access";
 
 /** Signed-out visitors go to the sign-in page; signed-in users without the right role see why. */
 export function RequireArea({ area, children }: { area: Area; children: ReactNode }) {
@@ -24,7 +24,7 @@ export function RequireArea({ area, children }: { area: Area; children: ReactNod
       <h1 className="mt-0 mb-3 text-2xl font-bold text-navy">{role ? "Not available for your role" : "Your account isn't set up yet"}</h1>
       <p className="mb-5 leading-relaxed text-muted">
         {role
-          ? "This area is for CBES admins."
+          ? AREA_DENIED[area]
           : "You're signed in, but CBES hasn't assigned your role or property yet. Ask Nick or Nigel to finish setting up your account."}
       </p>
       {role && (

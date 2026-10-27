@@ -1,4 +1,4 @@
-import type { ContractType, PropertyRole, ValetTimes } from "./api";
+import type { ContractType, InviteRole, PropertyRole, ValetTimes } from "./api";
 
 export const CONTRACT_LABELS: Record<ContractType, string> = {
   "12_month": "12-month",
@@ -9,6 +9,11 @@ export const CONTRACT_LABELS: Record<ContractType, string> = {
 export const PROPERTY_ROLE_LABELS: Record<PropertyRole, string> = {
   manager: "Property manager",
   director: "Management Director",
+};
+
+export const INVITE_ROLE_LABELS: Record<InviteRole, string> = {
+  representative: "Representative",
+  ...PROPERTY_ROLE_LABELS,
 };
 
 export const VALET_STATUS_TEXT: Record<Exclude<ValetTimes["status"], "ok">, string> = {

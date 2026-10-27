@@ -18,11 +18,11 @@ describe("roleFrom", () => {
 describe("canAccess", () => {
   it("lets only admins into the admin area", () => {
     expect(canAccess("admin", "admin")).toBe(true);
-    for (const role of ["lead", "valet", "director", "manager"] as const) expect(canAccess(role, "admin")).toBe(false);
+    for (const role of ["representative", "lead", "valet", "director", "manager"] as const) expect(canAccess(role, "admin")).toBe(false);
   });
 
   it("lets every staff role into the portal", () => {
-    for (const role of ["admin", "lead", "valet", "director", "manager"] as const) expect(canAccess(role, "portal")).toBe(true);
+    for (const role of ["admin", "representative", "lead", "valet", "director", "manager"] as const) expect(canAccess(role, "portal")).toBe(true);
   });
 
   it("splits valet and manager screens by role", () => {
@@ -31,6 +31,14 @@ describe("canAccess", () => {
     expect(canAccess("manager", "valet")).toBe(false);
     expect(canAccess("director", "manager")).toBe(true);
     expect(canAccess("valet", "manager")).toBe(false);
+  });
+
+  it("gives representatives their organization and its property pages", () => {
+    expect(roleFrom({ role: "representative" })).toBe("representative");
+    expect(canAccess("representative", "organization")).toBe(true);
+    expect(canAccess("representative", "manager")).toBe(true);
+    expect(canAccess("manager", "organization")).toBe(false);
+    expect(canAccess("director", "organization")).toBe(false);
   });
 
   it("denies signed-in users with no role yet", () => {

@@ -40,10 +40,13 @@ export function useApi() {
 export const errorMessage = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong. Please try again.");
 
 export type PropertyRole = "manager" | "director";
+export type InviteRole = "representative" | PropertyRole;
 
 export type Me = {
   user: { id: string; email: string; name: string | null; role: string };
-  properties: { id: string; name: string; slug: string; city: string | null; memberRole?: PropertyRole }[];
+  /** The organizations a representative manages (empty for everyone else). */
+  organizations: { id: string; name: string }[];
+  properties: { id: string; name: string; slug: string; city: string | null; memberRole?: PropertyRole | null }[];
 };
 
 export type ContractType = "12_month" | "36_month" | "month_to_month";
@@ -56,7 +59,8 @@ export type Property = {
   city: string | null;
   county: string | null;
   unitCount: number | null;
-  managementCompany: string | null;
+  organizationId: string | null;
+  organizationName: string | null;
   serviceStartDate: string | null;
   contractType: ContractType | null;
   status: "active" | "inactive";
@@ -67,6 +71,8 @@ export type ReportStatus = "new" | "assigned" | "in_progress" | "resolved" | "cl
 
 export type PropertyOverview = {
   property: Property;
+  /** True for the property's representatives and admins: they can edit the basics. */
+  canManage: boolean;
   buildings: number;
   units: number;
   openReports: number;
@@ -81,6 +87,8 @@ export type AdminPropertyRow = {
   status: "active" | "inactive";
   unitCount: number | null;
   connecteamJobId: string | null;
+  organizationId: string | null;
+  organizationName: string | null;
   members: number;
   pendingInvitations: number;
   openReports: number;
@@ -90,6 +98,31 @@ export type AdminPropertyDetail = {
   property: Property;
   members: { id: string; email: string; name: string | null; role: PropertyRole }[];
   invitations: { id: string; email: string; name: string | null; role: PropertyRole; createdAt: string }[];
+};
+
+export type OrganizationRow = {
+  id: string;
+  name: string;
+  properties: number;
+  representatives: number;
+  staff: number;
+  pendingInvitations: number;
+};
+
+export type OrganizationDetail = {
+  organization: { id: string; name: string; createdAt: string };
+  properties: { id: string; name: string; slug: string; city: string | null; status: "active" | "inactive"; unitCount: number | null; openReports: number }[];
+  representatives: { id: string; email: string; name: string | null; addedAt: string }[];
+  staff: { id: string; email: string; name: string | null; role: PropertyRole; propertyId: string; propertyName: string }[];
+  invitations: {
+    id: string;
+    email: string;
+    name: string | null;
+    role: InviteRole;
+    propertyId: string | null;
+    propertyName: string | null;
+    createdAt: string;
+  }[];
 };
 
 export type ValetTimes =

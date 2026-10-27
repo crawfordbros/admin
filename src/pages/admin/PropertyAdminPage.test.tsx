@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AdminPropertyDetail } from "../../lib/api";
@@ -14,7 +14,8 @@ const detail = (overrides: Partial<AdminPropertyDetail> = {}): AdminPropertyDeta
     city: "Clarkston",
     county: "DeKalb",
     unitCount: 30,
-    managementCompany: null,
+    organizationId: "org1",
+    organizationName: "Demo Management",
     serviceStartDate: null,
     contractType: "12_month",
     status: "active",
@@ -25,60 +26,48 @@ const detail = (overrides: Partial<AdminPropertyDetail> = {}): AdminPropertyDeta
   ...overrides,
 });
 
+const organizations = [
+  { id: "org1", name: "Demo Management", properties: 1, representatives: 0, staff: 1, pendingInvitations: 0 },
+  { id: "org2", name: "Elsewhere Living", properties: 0, representatives: 0, staff: 0, pendingInvitations: 0 },
+];
+
 afterEach(() => vi.unstubAllGlobals());
 
 describe("PropertyAdminPage", () => {
-  it("invites a manager and shows the invitation", async () => {
-    let invited = false;
-    const calls = mockFetch((_url, method) => {
-      if (method === "POST") {
-        invited = true;
-        return [201, { status: "invited" }];
-      }
-      return [
-        200,
-        detail(
-          invited ? { invitations: [{ id: "i1", email: "sam@demo-mgmt.com", name: "Sam", role: "director", createdAt: "2026-10-27T12:00:00Z" }] } : {},
-        ),
-      ];
-    });
+  it("lists who can see the property and points to its organization for invitations", async () => {
+    mockFetch((url) => (url === "/api/organizations" ? [200, { organizations }] : [200, detail()]));
     renderRoute("/admin/properties/:id", "/admin/properties/p1", <PropertyAdminPage />);
-
-    await userEvent.type(await screen.findByLabelText("Email"), "sam@demo-mgmt.com");
-    await userEvent.type(screen.getByLabelText(/^Name/), "Sam");
-    await userEvent.selectOptions(screen.getByLabelText("Role"), "director");
-    await userEvent.click(screen.getByRole("button", { name: "Send invitation" }));
-
-    expect(await screen.findByText(/Invitation sent to sam@demo-mgmt.com/)).toBeInTheDocument();
-    expect(calls.find((c) => c.method === "POST")).toMatchObject({
-      url: "/api/admin/properties/p1/invitations",
-      body: { email: "sam@demo-mgmt.com", name: "Sam", role: "director" },
-    });
-    expect(await screen.findByText("Invitation sent")).toBeInTheDocument();
-    expect(screen.getByLabelText("Email")).toHaveValue("");
+    expect(await screen.findByText("Pat Manager")).toBeInTheDocument();
+    for (const link of screen.getAllByRole("link", { name: "Demo Management" })) expect(link).toHaveAttribute("href", "/admin/organizations/org1");
+    expect(screen.queryByRole("button", { name: "Send invitation" })).not.toBeInTheDocument();
   });
 
-  it("shows field errors from the API", async () => {
-    mockFetch((_url, method) =>
-      method === "POST" ? [422, { error: "Please fix the highlighted fields.", fieldErrors: { email: "Enter a valid email address" } }] : [200, detail()],
+  it("asks for an organization before anyone can be invited", async () => {
+    const unassigned = detail();
+    unassigned.property = { ...unassigned.property, organizationId: null, organizationName: null };
+    mockFetch((url) => (url === "/api/organizations" ? [200, { organizations }] : [200, unassigned]));
+    renderRoute("/admin/properties/:id", "/admin/properties/p1", <PropertyAdminPage />);
+    expect(await screen.findByText(/Assign an organization/)).toBeInTheDocument();
+  });
+
+  it("moves the property to another organization", async () => {
+    const calls = mockFetch((url, method) =>
+      url === "/api/organizations" ? [200, { organizations }] : method === "PATCH" ? [200, { property: detail().property }] : [200, detail()],
     );
     renderRoute("/admin/properties/:id", "/admin/properties/p1", <PropertyAdminPage />);
-    await userEvent.type(await screen.findByLabelText("Email"), "nope");
-    await userEvent.click(screen.getByRole("button", { name: "Send invitation" }));
-    expect(await screen.findByText("Enter a valid email address")).toBeInTheDocument();
-  });
-
-  it("removes a manager's access after confirming", async () => {
-    vi.stubGlobal("confirm", () => true);
-    const calls = mockFetch((_url, method) => (method === "DELETE" ? [204, null] : [200, detail()]));
-    renderRoute("/admin/properties/:id", "/admin/properties/p1", <PropertyAdminPage />);
-    const row = (await screen.findByText("Pat Manager")).closest("li")!;
-    await userEvent.click(within(row).getByRole("button", { name: "Remove access" }));
-    expect(calls.find((c) => c.method === "DELETE")?.url).toBe("/api/admin/properties/p1/members/user_pm");
+    await userEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    const select = screen.getByLabelText(/^Organization/);
+    await waitFor(() => expect(select).toHaveValue("org1"));
+    await userEvent.selectOptions(select, "org2");
+    await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Property saved.")).toBeInTheDocument();
+    expect(calls.find((c) => c.method === "PATCH")?.body).toMatchObject({ organizationId: "org2" });
   });
 
   it("edits the Connecteam job", async () => {
-    const calls = mockFetch((_url, method) => (method === "PATCH" ? [200, { property: detail().property }] : [200, detail()]));
+    const calls = mockFetch((url, method) =>
+      url === "/api/organizations" ? [200, { organizations }] : method === "PATCH" ? [200, { property: detail().property }] : [200, detail()],
+    );
     renderRoute("/admin/properties/:id", "/admin/properties/p1", <PropertyAdminPage />);
     await userEvent.click(await screen.findByRole("button", { name: "Edit" }));
     const job = screen.getByLabelText(/Connecteam job ID/);
@@ -92,11 +81,11 @@ describe("PropertyAdminPage", () => {
 
 describe("NewPropertyPage", () => {
   it("creates the property and opens it", async () => {
-    const calls = mockFetch(() => [201, { property: { ...detail().property, id: "p9" } }]);
+    const calls = mockFetch((url) => (url === "/api/organizations" ? [200, { organizations }] : [201, { property: { ...detail().property, id: "p9" } }]));
     renderRoute("/admin/properties/new", "/admin/properties/new", <NewPropertyPage />);
     await userEvent.type(screen.getByLabelText("Property name"), "Sage Pointe");
     await userEvent.click(screen.getByRole("button", { name: "Add property" }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/properties/p9"));
-    expect(calls[0]).toMatchObject({ url: "/api/admin/properties", method: "POST", body: { name: "Sage Pointe" } });
+    expect(calls.find((c) => c.method === "POST")).toMatchObject({ url: "/api/admin/properties", body: { name: "Sage Pointe" } });
   });
 });

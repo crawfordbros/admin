@@ -12,6 +12,8 @@ import { ComingSoon } from "./pages/ComingSoon";
 import { ADMIN_SECTIONS } from "./pages/adminSections";
 import { AcceptInvitePage } from "./pages/AcceptInvitePage";
 import { PropertiesPage } from "./pages/admin/PropertiesPage";
+import { OrganizationAdminPage, OrganizationsPage } from "./pages/admin/OrganizationsPage";
+import { OrganizationPage } from "./pages/portal/OrganizationPage";
 import { NewPropertyPage, PropertyAdminPage } from "./pages/admin/PropertyAdminPage";
 import { PropertyPage } from "./pages/portal/PropertyPage";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
@@ -35,7 +37,7 @@ function ClerkWithRouter({ children }: { children: ReactNode }) {
   );
 }
 
-const BUILT = new Set(["/admin", "/admin/properties"]);
+const BUILT = new Set(["/admin", "/admin/organizations", "/admin/properties"]);
 
 export function App() {
   if (!config.clerkPublishableKey.startsWith("pk_")) {
@@ -58,9 +60,12 @@ export function App() {
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
           <Route element={<Shell />}>
             <Route path="/portal" element={<RequireArea area="portal"><PortalHome /></RequireArea>} />
+            <Route path="/portal/organizations/:id" element={<RequireArea area="organization"><OrganizationPage /></RequireArea>} />
             <Route path="/portal/properties/:id" element={<RequireArea area="manager"><PropertyPage /></RequireArea>} />
             <Route path="/portal/properties/:id/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
             <Route path="/admin" element={<RequireArea area="admin"><AdminHome /></RequireArea>} />
+            <Route path="/admin/organizations" element={<RequireArea area="admin"><OrganizationsPage /></RequireArea>} />
+            <Route path="/admin/organizations/:id" element={<RequireArea area="admin"><OrganizationAdminPage /></RequireArea>} />
             <Route path="/admin/properties" element={<RequireArea area="admin"><PropertiesPage /></RequireArea>} />
             <Route path="/admin/properties/new" element={<RequireArea area="admin"><NewPropertyPage /></RequireArea>} />
             <Route path="/admin/properties/:id" element={<RequireArea area="admin"><PropertyAdminPage /></RequireArea>} />

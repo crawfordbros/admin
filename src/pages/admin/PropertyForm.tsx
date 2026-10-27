@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { ApiError, errorMessage, type Property } from "../../lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { ApiError, errorMessage, useApi, type OrganizationRow, type Property } from "../../lib/api";
 import { CONTRACT_LABELS } from "../../lib/format";
 import { Alert, Button, SelectField, TextField } from "../../components/ui";
 import type { PropertyFormValues } from "./propertyPayload";
@@ -14,6 +15,11 @@ export function PropertyForm({
   submitLabel: string;
   onSubmit: (values: PropertyFormValues) => Promise<void>;
 }) {
+  const api = useApi();
+  const organizations = useQuery({
+    queryKey: ["organizations"],
+    queryFn: () => api<{ organizations: OrganizationRow[] }>("/organizations"),
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -41,7 +47,22 @@ export function PropertyForm({
       <TextField label="City" name="city" optional defaultValue={initial?.city ?? ""} error={errors.city} />
       <TextField label="County" name="county" optional defaultValue={initial?.county ?? ""} error={errors.county} />
       <TextField label="Number of units" name="unitCount" type="number" inputMode="numeric" min={1} optional defaultValue={initial?.unitCount ?? ""} error={errors.unitCount} />
-      <TextField label="Management company" name="managementCompany" optional defaultValue={initial?.managementCompany ?? ""} error={errors.managementCompany} />
+      <SelectField
+        // Remount once the list arrives so the saved organization is selected.
+        key={organizations.data ? "loaded" : "loading"}
+        label="Organization"
+        name="organizationId"
+        defaultValue={initial?.organizationId ?? ""}
+        error={errors.organizationId ?? (organizations.error ? errorMessage(organizations.error) : undefined)}
+        hint="The management company. Its representatives see and manage this property."
+      >
+        <option value="">Not assigned yet</option>
+        {organizations.data?.organizations.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.name}
+          </option>
+        ))}
+      </SelectField>
       <TextField label="Service start date" name="serviceStartDate" type="date" optional defaultValue={initial?.serviceStartDate ?? ""} error={errors.serviceStartDate} />
       <SelectField label="Contract" name="contractType" optional defaultValue={initial?.contractType ?? ""} error={errors.contractType}>
         <option value="">Not set</option>

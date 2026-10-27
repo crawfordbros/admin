@@ -15,10 +15,13 @@ export function PortalHome() {
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
 
-  const { user, properties } = data;
+  const { user, organizations, properties } = data;
   const isAdmin = user.role === "admin";
-  // A manager with a single property goes straight to it.
-  if (!isAdmin && properties.length === 1) return <Navigate to={`/portal/properties/${properties[0].id}`} replace />;
+  // A representative of one organization goes straight to it; a manager with one property, to that.
+  if (!isAdmin && organizations.length === 1) return <Navigate to={`/portal/organizations/${organizations[0].id}`} replace />;
+  if (!isAdmin && organizations.length === 0 && properties.length === 1) {
+    return <Navigate to={`/portal/properties/${properties[0].id}`} replace />;
+  }
 
   const role = roleFrom({ role: user.role });
   const firstName = user.name?.split(" ")[0];
@@ -33,6 +36,21 @@ export function PortalHome() {
             Go to the admin dashboard
           </Link>
         </p>
+      )}
+
+      {organizations.length > 0 && (
+        <>
+          <h2 className="mt-0 mb-3 text-xl">Your organizations</h2>
+          <ul className="m-0 mb-8 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
+            {organizations.map((o) => (
+              <li key={o.id} className="rounded-xl border border-line bg-white p-5">
+                <h3 className="m-0 text-lg">
+                  <Link to={`/portal/organizations/${o.id}`}>{o.name}</Link>
+                </h3>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {properties.length === 0 ? (

@@ -38,8 +38,15 @@ export function PropertiesPage() {
                 </h2>
                 {p.status !== "active" && <span className="rounded-full bg-surface px-2.5 py-0.5 text-[13px] font-semibold text-muted">Inactive</span>}
               </div>
-              <p className="mt-1 mb-3 text-[15px] text-muted">
+              <p className="mt-1 mb-1 text-[15px] text-muted">
                 {[p.city, p.unitCount ? `${p.unitCount} units` : null].filter(Boolean).join(" · ") || "No details yet"}
+              </p>
+              <p className="mt-0 mb-3 text-[15px]">
+                {p.organizationId ? (
+                  <Link to={`/admin/organizations/${p.organizationId}`}>{p.organizationName}</Link>
+                ) : (
+                  <span className="font-semibold text-gold-text">No organization yet</span>
+                )}
               </p>
               <dl className="m-0 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-lg bg-surface p-2">
