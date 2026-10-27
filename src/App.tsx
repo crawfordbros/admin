@@ -30,7 +30,7 @@ export function App() {
   if (!config.clerkPublishableKey.startsWith("pk_")) {
     return (
       <p role="alert" className="p-6 text-center text-danger">
-        The portal isn't configured yet: set the Clerk publishable key in src/config.ts.
+        The portal isn't configured yet: set VITE_CLERK_PUBLISHABLE_KEY in .env.local (see .env.example).
       </p>
     );
   }
