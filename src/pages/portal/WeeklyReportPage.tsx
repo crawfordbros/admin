@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { errorMessage, useApi, type WeeklyReport } from "../../lib/api";
-import { VALET_STATUS_TEXT, addDays, formatDay, hours } from "../../lib/format";
+import { VALET_STATUS_TEXT, addDays, autoClockOutNote, formatDay, hours, lastOut } from "../../lib/format";
 import { Alert, Button, Card, Loading, Stat } from "../../components/ui";
 
 const todayInNewYork = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
@@ -164,8 +164,9 @@ export function WeeklyReportPage() {
             </div>
             <Table
               head={["Night", "Valets", "First in", "Last out"]}
-              rows={v.nights.map((n) => [formatDay(n.date), n.valets, n.firstClockIn, n.lastClockOut ?? "Still clocked in"])}
+              rows={v.nights.map((n) => [formatDay(n.date), n.valets, n.firstClockIn, lastOut(n)])}
             />
+            {v.autoClockOuts > 0 && <p className="m-0 text-[14px] text-muted">{autoClockOutNote(v.autoClockOuts)}</p>}
           </div>
         )}
       </Card>

@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { ClerkProvider } from "@clerk/clerk-react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { config } from "./config";
 import { RequireArea } from "./components/RequireArea";
+import { UserScopedQueries } from "./components/UserScopedQueries";
 import { Shell } from "./components/Shell";
 import { LoginPage } from "./pages/LoginPage";
 import { PortalHome } from "./pages/PortalHome";
@@ -16,16 +16,6 @@ import { NewPropertyPage, PropertyAdminPage } from "./pages/admin/PropertyAdminP
 import { PropertyPage } from "./pages/portal/PropertyPage";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      refetchOnWindowFocus: false,
-      // 401/403/404 won't fix themselves on a retry.
-      retry: (count, err) => count < 2 && !(err instanceof Error && "status" in err && [401, 403, 404, 422].includes(err.status as number)),
-    },
-  },
-});
 
 function ClerkWithRouter({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -56,7 +46,7 @@ export function App() {
   return (
     <BrowserRouter>
       <ClerkWithRouter>
-        <QueryClientProvider client={queryClient}>
+        <UserScopedQueries>
         <Routes>
           <Route path="/portal/login/*" element={<LoginPage />} />
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
@@ -78,7 +68,7 @@ export function App() {
             <Route path="*" element={<Navigate to="/portal" replace />} />
           </Route>
         </Routes>
-        </QueryClientProvider>
+        </UserScopedQueries>
       </ClerkWithRouter>
     </BrowserRouter>
   );

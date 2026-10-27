@@ -3,7 +3,7 @@
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import type { WeeklyReport } from "./api";
-import { VALET_STATUS_TEXT, formatDay, hours } from "./format";
+import { VALET_STATUS_TEXT, autoClockOutNote, formatDay, hours, lastOut } from "./format";
 
 const NAVY: [number, number, number] = [39, 43, 132];
 const MUTED: [number, number, number] = [74, 76, 99];
@@ -83,8 +83,9 @@ export function buildReportPdf(r: WeeklyReport): jsPDF {
     );
     table(
       ["Night", "Valets", "First in", "Last out"],
-      v.nights.map((n) => [formatDay(n.date), n.valets, n.firstClockIn, n.lastClockOut ?? "Still clocked in"]),
+      v.nights.map((n) => [formatDay(n.date), n.valets, n.firstClockIn, lastOut(n)]),
     );
+    if (v.autoClockOuts) note(autoClockOutNote(v.autoClockOuts));
   }
 
   const pages = doc.getNumberOfPages();

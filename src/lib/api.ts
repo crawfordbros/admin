@@ -99,7 +99,8 @@ export type ValetTimes =
       avgClockIn: string | null;
       avgClockOut: string | null;
       autoClockOuts: number;
-      nights: { date: string; valets: number; firstClockIn: string; lastClockOut: string | null }[];
+      /** lastClockOut leaves out automatic clock-outs; null when nobody clocked out themselves. */
+      nights: { date: string; valets: number; firstClockIn: string; lastClockOut: string | null; stillClockedIn: boolean }[];
     }
   | { status: "not_configured" | "no_job" | "error" };
 

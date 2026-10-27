@@ -17,6 +17,12 @@ export const VALET_STATUS_TEXT: Record<Exclude<ValetTimes["status"], "ok">, stri
   error: "Valet clock-in times couldn't be loaded from Connecteam right now. Try again later.",
 };
 
+export const autoClockOutNote = (n: number) =>
+  `${n} automatic clock-out${n === 1 ? "" : "s"} (a valet forgot to clock out) left out of the clock-out times.`;
+
+export const lastOut = (n: { lastClockOut: string | null; stillClockedIn: boolean }) =>
+  n.stillClockedIn ? "Still clocked in" : (n.lastClockOut ?? "Automatic clock-out");
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 

@@ -21,7 +21,7 @@ const report: WeeklyReport = {
     avgClockIn: "8:00 PM",
     avgClockOut: "11:30 PM",
     autoClockOuts: 0,
-    nights: [{ date: "2026-10-18", valets: 1, firstClockIn: "8:00 PM", lastClockOut: "11:30 PM" }],
+    nights: [{ date: "2026-10-18", valets: 1, firstClockIn: "8:00 PM", lastClockOut: "11:30 PM", stillClockedIn: false }],
   },
 };
 

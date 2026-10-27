@@ -27,7 +27,7 @@ const report = (start: string, overrides: Partial<WeeklyReport> = {}): WeeklyRep
     avgClockIn: "8:15 PM",
     avgClockOut: "12:00 AM",
     autoClockOuts: 0,
-    nights: [{ date: "2026-10-18", valets: 1, firstClockIn: "8:00 PM", lastClockOut: "11:30 PM" }],
+    nights: [{ date: "2026-10-18", valets: 1, firstClockIn: "8:00 PM", lastClockOut: "11:30 PM", stillClockedIn: false }],
   },
   ...overrides,
 });
@@ -80,6 +80,29 @@ describe("WeeklyReportPage", () => {
     renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     await userEvent.click(await screen.findByRole("button", { name: "Print" }));
     expect(print).toHaveBeenCalled();
+  });
+
+  it("says how many automatic clock-outs were left out", async () => {
+    mockFetch(() => [
+      200,
+      report("2026-10-18", {
+        valetTimes: {
+          status: "ok",
+          shifts: 2,
+          avgClockIn: "8:00 PM",
+          avgClockOut: null,
+          autoClockOuts: 2,
+          nights: [
+            { date: "2026-10-18", valets: 1, firstClockIn: "8:00 PM", lastClockOut: null, stillClockedIn: false },
+            { date: "2026-10-19", valets: 1, firstClockIn: "8:00 PM", lastClockOut: null, stillClockedIn: true },
+          ],
+        },
+      }),
+    ]);
+    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    expect(await screen.findByText(/2 automatic clock-outs \(a valet forgot to clock out\) left out/)).toBeInTheDocument();
+    expect(screen.getByText("Automatic clock-out")).toBeInTheDocument();
+    expect(screen.getByText("Still clocked in")).toBeInTheDocument();
   });
 
   it("explains missing valet times instead of showing blanks", async () => {
