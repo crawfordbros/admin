@@ -11,6 +11,7 @@ type AdminConfig = {
 
 const SITE_URLS: Record<string, string> = {
   development: "http://test.cbenvironments.com:5173",
+  tunnel: "https://test.cbenvironments.com",
   staging: "",
   production: "",
 };

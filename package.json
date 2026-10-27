@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "vite",
+    "dev:tunnel": "vite --mode tunnel",
     "build": "tsc -b && vite build",
     "build:staging": "tsc -b && vite build --mode staging",
     "preview": "vite preview",

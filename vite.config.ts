@@ -29,7 +29,7 @@ function requireClerkKey(): Plugin {
 // Local development: http://test.cbenvironments.com:5174 (the public site runs on :5173).
 // In production this app shares cbenvironments.com with the public site, so its files live
 // under /portal/ (see worker/index.ts for how /portal* and /admin* are served).
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ command, mode }) => ({
   base: command === "build" ? "/portal/" : "/",
   plugins: [react(), tailwindcss(), requireClerkKey()],
   build: { outDir: "dist/portal", emptyOutDir: true },
@@ -37,11 +37,12 @@ export default defineConfig(({ command }) => ({
     host: true,
     port: 5174,
     strictPort: true,
-    allowedHosts: ["test.cbenvironments.com", "localhost"],
+    allowedHosts: ["testadmin.cbenvironments.com", "test.cbenvironments.com", "localhost"],
+    ws: mode === "tunnel" ? { protocol: "wss", host: "testadmin.cbenvironments.com", clientPort: 443 } : undefined,
     proxy: { "/api": { target: API_DEV_URL } },
   },
   preview: {
     port: 4175,
-    allowedHosts: ["test.cbenvironments.com", "localhost"],
+    allowedHosts: ["testadmin.cbenvironments.com", "test.cbenvironments.com", "localhost"],
   },
 }));
