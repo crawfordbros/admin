@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { clerkError, fakeClerk, fakeSignUp } from "../test/clerk";
+import { clerkError, fakeClerk, fakeSignUp, mockSecurity } from "../test/clerk";
 import { renderRoute } from "../test/render";
 import { AcceptInvitePage } from "./AcceptInvitePage";
 
@@ -25,6 +25,7 @@ describe("AcceptInvitePage", () => {
   });
 
   it("creates the account, then sets up two-step verification", async () => {
+    mockSecurity();
     const user = {
       createTOTP: vi.fn(async () => ({ uri: "otpauth://totp/CBES:pat?secret=JBSWY3DPEHPK3PXP", secret: "JBSWY3DPEHPK3PXP" })),
       verifyTOTP: vi.fn(async () => ({})),
@@ -45,8 +46,12 @@ describe("AcceptInvitePage", () => {
     expect(clerk.setActive).toHaveBeenCalledWith(expect.objectContaining({ session: "sess_2" }));
     expect(location()).toHaveTextContent("/portal/accept-invite");
 
+    await userEvent.click(screen.getByRole("button", { name: "Set up authenticator app" }));
     await userEvent.type(await screen.findByLabelText("Code from the app"), "123456");
-    await userEvent.click(screen.getByRole("button", { name: "Turn on two-step verification" }));
+    await userEvent.click(screen.getByRole("button", { name: "Verify code and continue" }));
+    expect(await screen.findByText(/Your authenticator is saved/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Code from the app"), "234567");
+    await userEvent.click(screen.getByRole("button", { name: "Verify code and continue" }));
     await waitFor(() => expect(location()).toHaveTextContent(/^\/portal$/));
   });
 

@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { AuthenticateWithRedirectCallback, ClerkProvider } from "@clerk/clerk-react";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from "react-router-dom";
 import { config } from "./config";
 import { RequireArea } from "./components/RequireArea";
+import { RequireSecurity } from "./components/RequireSecurity";
 import { UserScopedQueries } from "./components/UserScopedQueries";
 import { Shell } from "./components/Shell";
 import { LoginPage } from "./pages/LoginPage";
@@ -58,6 +59,7 @@ export function App() {
           />
           <Route path="/portal/login/*" element={<LoginPage />} />
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
+          <Route element={<RequireSecurity><Outlet /></RequireSecurity>}>
           <Route element={<Shell />}>
             <Route path="/portal" element={<RequireArea area="portal"><PortalHome /></RequireArea>} />
             <Route path="/portal/organizations/:id" element={<RequireArea area="organization"><OrganizationPage /></RequireArea>} />
@@ -77,6 +79,7 @@ export function App() {
               />
             ))}
             <Route path="*" element={<Navigate to="/portal" replace />} />
+          </Route>
           </Route>
         </Routes>
         </UserScopedQueries>

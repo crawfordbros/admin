@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { clerkError, fakeClerk, fakeSignIn } from "../test/clerk";
+import { clerkError, fakeClerk, fakeSession, fakeSignIn, mockSecurity } from "../test/clerk";
 import { renderRoute } from "../test/render";
 import { LoginPage } from "./LoginPage";
 
@@ -114,22 +114,30 @@ describe("LoginPage", () => {
   });
 
   it("sets up two-step verification when the session is waiting on it", async () => {
+    mockSecurity();
     const user = {
       createTOTP: vi.fn(async () => ({ uri: "otpauth://totp/CBES:pat?secret=JBSWY3DPEHPK3PXP", secret: "JBSWY3DPEHPK3PXP" })),
       verifyTOTP: vi.fn(async () => ({})),
     };
     const clerk = fakeClerk({ user });
-    clerk.session = { id: "sess_1", currentTask: { key: "setup-mfa" }, user };
+    clerk.session = fakeSession({ task: "setup-mfa", user });
+    const session = clerk.session;
     fakeSignIn();
     login();
 
-    expect(screen.getByRole("heading", { name: "Add two-step verification" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Add two-step verification" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Set up authenticator app" }));
     expect(await screen.findByText("JBSW Y3DP EHPK 3PXP")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /QR code/ })).toHaveAttribute("src", expect.stringMatching(/^data:image\/svg\+xml/));
     await userEvent.type(screen.getByLabelText("Code from the app"), "123456");
-    await userEvent.click(screen.getByRole("button", { name: "Turn on two-step verification" }));
+    await userEvent.click(screen.getByRole("button", { name: "Verify code and continue" }));
+    expect(await screen.findByText(/Your authenticator is saved/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Code from the app"), "234567");
+    await userEvent.click(screen.getByRole("button", { name: "Verify code and continue" }));
     expect(user.verifyTOTP).toHaveBeenCalledWith({ code: "123456" });
     expect(user.createTOTP).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(location()).toHaveTextContent("/portal"));
+    expect(session.startVerification).toHaveBeenCalledWith({ level: "second_factor" });
+    expect(session.attemptSecondFactorVerification).toHaveBeenCalledWith({ strategy: "totp", code: "234567" });
+    await waitFor(() => expect(location()).toHaveTextContent(/^\/portal$/));
   });
 });

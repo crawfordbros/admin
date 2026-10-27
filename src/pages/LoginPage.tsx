@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useAuth, useSignIn } from "@clerk/clerk-react";
-import { isClerkAPIResponseError } from "@clerk/clerk-react/errors";
 import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { Alert, Button, Loading, TextField } from "../components/ui";
 import { AuthLayout } from "./auth/AuthLayout";
@@ -134,26 +133,6 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on arrival
   }, []);
 
-  // Passkeys saved in the browser are offered right in the email field's autofill.
-  useEffect(() => {
-    if (step.name !== "email") return;
-    let cancelled = false;
-    void window.PublicKeyCredential?.isConditionalMediationAvailable?.().then((ok) => {
-      if (!ok || cancelled) return;
-      signIn
-        .authenticateWithPasskey({ flow: "autofill" })
-        .then(advance)
-        .catch((err: unknown) => {
-          // Dismissing the prompt or moving on to another step isn't an error worth showing.
-          if (!cancelled && isClerkAPIResponseError(err)) setError(authErrorMessage(err));
-        });
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per visit to the email step
-  }, [step.name]);
-
   const submitEmail = (e: FormEvent) => {
     e.preventDefault();
     void run(async () => {
@@ -187,8 +166,6 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
       }),
     );
 
-  const passkey = () => run(async () => advance(await signIn.authenticateWithPasskey({ flow: "discoverable" })));
-
   switch (step.name) {
     case "working":
       return (
@@ -220,7 +197,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
               <TextField
                 label="Email address"
                 type="email"
-                autoComplete="username webauthn"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -229,9 +206,6 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
                 {busy ? "Checking…" : "Continue"}
               </Button>
             </form>
-            <TextButton onClick={passkey} disabled={busy} className="self-start">
-              Sign in with a passkey
-            </TextButton>
           </div>
           <AccessNote />
         </>
