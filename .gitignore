@@ -4,8 +4,11 @@ dist
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
-.env.local
-.env.*.local
+# Env files, templates included
+/.env
+/.env.*
+# Docs stay local
+*.md
 *.tsbuildinfo
 test-results
 playwright-report

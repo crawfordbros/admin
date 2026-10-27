@@ -18,4 +18,11 @@ const CONFIGS: Record<string, AdminConfig> = {
   production: { clerkPublishableKey: "REPLACE_WITH_CLERK_PRODUCTION_PUBLISHABLE_KEY", siteUrl: "" },
 };
 
-export const config: AdminConfig = CONFIGS[import.meta.env.MODE] ?? CONFIGS.development;
+const base = CONFIGS[import.meta.env.MODE] ?? CONFIGS.development;
+
+export const config: AdminConfig = {
+  ...base,
+  // Optional override from .env.local or the shell. A blank value falls back to the mode's key,
+  // since Vite loads .env.local for production builds too.
+  clerkPublishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || base.clerkPublishableKey,
+};
