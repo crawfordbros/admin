@@ -92,7 +92,7 @@ export function WeeklyReportPage() {
         </Link>
       </div>
       <p className="m-0 hidden text-[13px] font-bold tracking-wide text-gold-text uppercase print:block">
-        CB Environment Solutions · (470) 585-2776 · office@cbenvironments.com
+        CB Environment Solutions · office@cbenvironments.com
       </p>
 
       <div className="flex flex-wrap items-end justify-between gap-4">

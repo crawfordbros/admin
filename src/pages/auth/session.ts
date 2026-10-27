@@ -1,6 +1,6 @@
 import { useClerk } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
-import { CBES_PHONE } from "./clerkErrors";
+import { CBES_EMAIL } from "./clerkErrors";
 
 export type SessionOutcome = "done" | "setup-mfa";
 
@@ -25,7 +25,7 @@ export function useCompleteSession() {
     });
     const task = clerk.session?.currentTask;
     if (task?.key === "setup-mfa") return "setup-mfa";
-    if (task) throw new Error(`Your account needs a setup step this portal can't finish. Call CBES at ${CBES_PHONE}.`);
+    if (task) throw new Error(`Your account needs a setup step this portal can't finish. Email CBES at ${CBES_EMAIL}.`);
     if (!navigated) navigate(to, { replace: true });
     return "done";
   };

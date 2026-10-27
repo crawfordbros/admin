@@ -4,7 +4,7 @@ import { isClerkAPIResponseError } from "@clerk/clerk-react/errors";
 import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { Alert, Button, Loading, TextField } from "../components/ui";
 import { AuthLayout } from "./auth/AuthLayout";
-import { ACCESS_NOTE, apiErrorMessage, authErrorMessage, CBES_PHONE } from "./auth/clerkErrors";
+import { ACCESS_NOTE, apiErrorMessage, authErrorMessage, CBES_EMAIL } from "./auth/clerkErrors";
 import { CodeField, PasswordField, SignedInAs, StepHeading, TextButton } from "./auth/fields";
 import { afterSignInPath } from "./auth/redirect";
 import { SetupMfaStep } from "./auth/SetupMfaStep";
@@ -115,7 +115,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
         setResendIn(RESEND_SECONDS);
         return go({ name: "second-factor", strategy: "email_code", sentTo: emailFactor.safeIdentifier });
       }
-      throw new Error(`Your account uses a second step this portal doesn't support. Call CBES at ${CBES_PHONE}.`);
+      throw new Error(`Your account uses a second step this portal doesn't support. Email CBES at ${CBES_EMAIL}.`);
     }
     if (res.status === "needs_new_password") return go({ name: "new-password" });
     if (res.status === "needs_first_factor") return go({ name: "password" });
@@ -352,8 +352,8 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
             <PasswordField
               label="New password"
               autoComplete="new-password"
-              minLength={15}
-              hint="At least 15 characters. A short phrase works well. You'll be signed out on other devices."
+              minLength={10}
+              hint="At least 10 characters. A short phrase works well. You'll be signed out on other devices."
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

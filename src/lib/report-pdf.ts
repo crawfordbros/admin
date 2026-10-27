@@ -95,7 +95,7 @@ export function buildReportPdf(r: WeeklyReport): jsPDF {
       .setFont("helvetica", "normal")
       .setFontSize(9)
       .setTextColor(...MUTED)
-      .text(`CB Environment Solutions · (470) 585-2776 · office@cbenvironments.com · Page ${p} of ${pages}`, MARGIN, doc.internal.pageSize.getHeight() - 28);
+      .text(`CB Environment Solutions · office@cbenvironments.com · Page ${p} of ${pages}`, MARGIN, doc.internal.pageSize.getHeight() - 28);
   }
   return doc;
 }

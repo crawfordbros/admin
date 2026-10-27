@@ -1,19 +1,19 @@
 import { isClerkAPIResponseError } from "@clerk/clerk-react/errors";
 
-/** The office number, kept on one line (no-break space, word joiner after the hyphen). */
-export const CBES_PHONE = "(470)\u00a0585-\u20602776";
+/** Where people reach CBES about their account. */
+export const CBES_EMAIL = "office@cbenvironments.com";
 
-export const ACCESS_NOTE = `Accounts are by invitation from CBES. Need access? Call ${CBES_PHONE}.`;
+export const ACCESS_NOTE = `Accounts are by invitation from CBES. Need access? Email ${CBES_EMAIL}.`;
 
 const MESSAGES: Record<string, string> = {
-  form_identifier_not_found: `No CBES portal account uses that email. Accounts are by invitation, so call ${CBES_PHONE} to get one.`,
+  form_identifier_not_found: `No CBES portal account uses that email. Accounts are by invitation, so email ${CBES_EMAIL} to get one.`,
   external_account_not_found:
-    `No CBES portal account uses that Google address. Sign in with the email your invitation went to, or call ${CBES_PHONE}.`,
+    `No CBES portal account uses that Google address. Sign in with the email your invitation went to, or email ${CBES_EMAIL}.`,
   form_password_incorrect: "That password doesn't match this account. Try again or reset it.",
   form_code_incorrect: "That code isn't right. Check the latest email or send a new code.",
   verification_expired: "That code has expired. Send a new code and try again.",
   form_password_pwned: "This password has appeared in a data breach elsewhere. Reset it to sign in.",
-  form_password_length_too_short: "Use at least 15 characters.",
+  form_password_length_too_short: "Use at least 10 characters.",
   session_exists: "You're already signed in.",
   too_many_requests: "Too many attempts. Wait a minute and try again.",
 };

@@ -3,7 +3,7 @@ import { useAuth, useSignUp } from "@clerk/clerk-react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { Alert, Button, Loading } from "../components/ui";
 import { AuthLayout } from "./auth/AuthLayout";
-import { authErrorMessage, CBES_PHONE } from "./auth/clerkErrors";
+import { authErrorMessage, CBES_EMAIL } from "./auth/clerkErrors";
 import { PasswordField, StepHeading } from "./auth/fields";
 import { SetupMfaStep } from "./auth/SetupMfaStep";
 import { useCompleteSession, usePendingMfaSetup } from "./auth/session";
@@ -75,7 +75,7 @@ function CreateAccount({ signUp, ticket }: { signUp: SignUp; ticket: string }) {
     try {
       const res = await signUp.update({ password });
       if (res.status !== "complete") {
-        throw new Error(`Your account still needs: ${res.missingFields.join(", ") || "more details"}. Call CBES at ${CBES_PHONE}.`);
+        throw new Error(`Your account still needs: ${res.missingFields.join(", ") || "more details"}. Email CBES at ${CBES_EMAIL}.`);
       }
       if ((await completeSession(res.createdSessionId, "/portal")) === "setup-mfa") setMfa(true);
     } catch (err) {
@@ -88,7 +88,7 @@ function CreateAccount({ signUp, ticket }: { signUp: SignUp; ticket: string }) {
   if (invalid) {
     return (
       <NoInvitation title="This invitation link didn't work">
-        {invalid} Ask CBES to send you a new invitation, or call {CBES_PHONE}.
+        {invalid} Ask CBES to send you a new invitation, or email {CBES_EMAIL}.
       </NoInvitation>
     );
   }
@@ -111,8 +111,8 @@ function CreateAccount({ signUp, ticket }: { signUp: SignUp; ticket: string }) {
         <PasswordField
           label="Password"
           autoComplete="new-password"
-          minLength={15}
-          hint="At least 15 characters. A short phrase works well."
+          minLength={10}
+          hint="At least 10 characters. A short phrase works well."
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

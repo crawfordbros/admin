@@ -55,8 +55,8 @@ export function PortalHome() {
 
       {properties.length === 0 ? (
         <p className="rounded-xl border border-line bg-white p-6 leading-relaxed text-muted">
-          You don't have a property yet. CBES links your account to your property when they invite you. Call (470) 585-2776 if
-          that hasn't happened.
+          You don't have a property yet. CBES links your account to your property when they invite you. Email office@cbenvironments.com
+          if that hasn't happened.
         </p>
       ) : (
         <>
