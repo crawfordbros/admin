@@ -4,11 +4,13 @@ dist
 .dev.vars
 .dev.vars.*
 !.dev.vars.example
-# Env files, templates included
+# Keep local values private; track only the key template.
 /.env
 /.env.*
+!/.env.example
 # Docs stay local
 *.md
+/claude.md
 *.tsbuildinfo
 test-results
 playwright-report

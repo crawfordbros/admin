@@ -1,6 +1,6 @@
 // Public, per-environment settings. Nothing secret belongs here: this ships to every browser.
 // `vite` = development, `vite build --mode staging`, `vite build` = production.
-// Keys come from env files (see .env.example), never from this file.
+// Keys come from .env.local locally or Render environment variables (see .env.example).
 
 type AdminConfig = {
   /** Clerk publishable key (pk_test_... or pk_live_...). */

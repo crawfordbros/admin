@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 const API_DEV_URL = process.env.CBES_API_DEV_URL ?? "http://localhost:8787";
 
 /**
- * Staging and production builds stop unless the Clerk key is set (.env.<mode>.local or the shell).
+ * Staging and production builds require the Clerk key from .env.local or Render's environment.
  * Production must use the live instance: .env.local is loaded for every mode, so a pk_test_ key
  * there would otherwise slip into a production build.
  */
@@ -19,7 +19,7 @@ function requireClerkKey(): Plugin {
       const prefix = config.mode === "production" ? "pk_live_" : "pk_";
       if (!key.startsWith(prefix)) {
         throw new Error(
-          `Build stopped: set VITE_CLERK_PUBLISHABLE_KEY to a ${prefix}... key in .env.${config.mode}.local (see .env.example).`,
+          `Build stopped: set VITE_CLERK_PUBLISHABLE_KEY to a ${prefix}... key in Render's Environment settings, or .env.local for local builds (see .env.example).`,
         );
       }
     },
