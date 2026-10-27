@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { config } from "./config";
 import { RequireArea } from "./components/RequireArea";
@@ -9,6 +10,22 @@ import { PortalHome } from "./pages/PortalHome";
 import { AdminHome } from "./pages/AdminHome";
 import { ComingSoon } from "./pages/ComingSoon";
 import { ADMIN_SECTIONS } from "./pages/adminSections";
+import { AcceptInvitePage } from "./pages/AcceptInvitePage";
+import { PropertiesPage } from "./pages/admin/PropertiesPage";
+import { NewPropertyPage, PropertyAdminPage } from "./pages/admin/PropertyAdminPage";
+import { PropertyPage } from "./pages/portal/PropertyPage";
+import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      // 401/403/404 won't fix themselves on a retry.
+      retry: (count, err) => count < 2 && !(err instanceof Error && "status" in err && [401, 403, 404, 422].includes(err.status as number)),
+    },
+  },
+});
 
 function ClerkWithRouter({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -26,6 +43,8 @@ function ClerkWithRouter({ children }: { children: ReactNode }) {
   );
 }
 
+const BUILT = new Set(["/admin", "/admin/properties"]);
+
 export function App() {
   if (!config.clerkPublishableKey.startsWith("pk_")) {
     return (
@@ -37,12 +56,19 @@ export function App() {
   return (
     <BrowserRouter>
       <ClerkWithRouter>
+        <QueryClientProvider client={queryClient}>
         <Routes>
           <Route path="/portal/login/*" element={<LoginPage />} />
+          <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
           <Route element={<Shell />}>
             <Route path="/portal" element={<RequireArea area="portal"><PortalHome /></RequireArea>} />
+            <Route path="/portal/properties/:id" element={<RequireArea area="manager"><PropertyPage /></RequireArea>} />
+            <Route path="/portal/properties/:id/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
             <Route path="/admin" element={<RequireArea area="admin"><AdminHome /></RequireArea>} />
-            {ADMIN_SECTIONS.filter((s) => s.path !== "/admin").map((s) => (
+            <Route path="/admin/properties" element={<RequireArea area="admin"><PropertiesPage /></RequireArea>} />
+            <Route path="/admin/properties/new" element={<RequireArea area="admin"><NewPropertyPage /></RequireArea>} />
+            <Route path="/admin/properties/:id" element={<RequireArea area="admin"><PropertyAdminPage /></RequireArea>} />
+            {ADMIN_SECTIONS.filter((s) => !BUILT.has(s.path)).map((s) => (
               <Route
                 key={s.path}
                 path={s.path}
@@ -52,6 +78,7 @@ export function App() {
             <Route path="*" element={<Navigate to="/portal" replace />} />
           </Route>
         </Routes>
+        </QueryClientProvider>
       </ClerkWithRouter>
     </BrowserRouter>
   );

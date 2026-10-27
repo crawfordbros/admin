@@ -11,12 +11,12 @@ function AdminNav() {
       isActive ? "bg-navy text-white hover:text-white" : "text-ink hover:bg-tint",
     ].join(" ");
   return (
-    <nav aria-label="Admin" className="border-b border-line bg-white lg:w-60 lg:flex-none lg:border-r lg:border-b-0">
+    <nav aria-label="Admin" className="border-b border-line bg-white lg:w-60 lg:flex-none lg:border-r lg:border-b-0 print:hidden">
       {/* Phones: one scrollable row of tabs. Desktop: a sidebar. */}
       <ul className="m-0 flex list-none gap-1 overflow-x-auto p-2 lg:flex-col lg:p-4">
         {ADMIN_SECTIONS.map((s) => (
           <li key={s.path}>
-            <NavLink to={s.path} end className={tab}>
+            <NavLink to={s.path} end={s.path === "/admin"} className={tab}>
               {s.label}
             </NavLink>
           </li>
@@ -33,8 +33,8 @@ export function Shell() {
   const inAdmin = pathname.startsWith("/admin") && canAccess(role, "admin");
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface">
-      <header className="bg-navy text-white">
+    <div className="flex min-h-dvh flex-col bg-surface print:bg-white">
+      <header className="bg-navy text-white print:hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <Link to="/portal" className="flex items-center gap-3 text-white no-underline hover:text-white">
             <img src={`${import.meta.env.BASE_URL}logo-gold-on-navy.webp`} alt="" width={240} height={183} className="h-11 w-auto" />
@@ -58,7 +58,7 @@ export function Shell() {
       </header>
       <div className="flex flex-1 flex-col lg:flex-row">
         {inAdmin && <AdminNav />}
-        <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 print:p-0">
           <Outlet />
         </main>
       </div>
