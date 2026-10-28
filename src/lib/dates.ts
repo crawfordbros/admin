@@ -16,3 +16,9 @@ export function dateRange(value: string[], today = nyToday()): { from?: string; 
   if (value[0] === "month") return { from: `${today.slice(0, 8)}01`, to: today };
   return {};
 }
+
+/** The Sunday that starts the last completed Sunday–Saturday week, in New York. */
+export function lastCompletedWeek(today = nyToday()): string {
+  const dow = new Date(`${today}T12:00:00Z`).getUTCDay();
+  return addDays(today, -dow - 7);
+}

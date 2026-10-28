@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -389,7 +389,9 @@ export function ReportsPage() {
         />
       )}
       {naming && <SaveViewModal query={location.search.replace(/^\?/, "")} onClose={() => setNaming(false)} />}
-      <Outlet />
+      <Suspense fallback={null}>
+        <Outlet />
+      </Suspense>
     </>
   );
 }

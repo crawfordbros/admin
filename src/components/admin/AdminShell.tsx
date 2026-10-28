@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { UserButton, useUser } from "@clerk/clerk-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { ROLE_LABELS, roleFrom } from "../../access";
 import { sectionFor } from "../../pages/adminSections";
 import { Icon } from "../icons";
+import { Loading } from "../ui";
 import { useFocusTrap } from "../useFocusTrap";
 import { AdminPageProvider, useAdminCrumbs, type Crumb } from "./adminPage";
 import { AdminSidebar } from "./AdminSidebar";
@@ -141,7 +142,9 @@ export function AdminShell() {
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onMenu={() => setMenu(true)} onSearch={() => setSearch(true)} />
           <main id="main" tabIndex={-1} className="flex flex-1 flex-col gap-6 px-4 pt-6 pb-14 focus:outline-none sm:px-6 lg:px-8 lg:pt-7 print:p-0">
-            <Outlet />
+            <Suspense fallback={<Loading />}>
+              <Outlet />
+            </Suspense>
           </main>
         </div>
       </div>

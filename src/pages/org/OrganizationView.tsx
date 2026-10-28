@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router-dom";
 import { errorMessage, useApi, type InviteRole, type OrganizationDetail, type OrganizationProperty } from "../../lib/api";
@@ -360,7 +360,9 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
         </Modal>
       )}
 
-      <Outlet context={{ detail: data, area, isAdmin } satisfies OrgOutletContext} />
+      <Suspense fallback={null}>
+        <Outlet context={{ detail: data, area, isAdmin } satisfies OrgOutletContext} />
+      </Suspense>
     </div>
   );
 }

@@ -9,6 +9,8 @@ export class ApiError extends Error {
     readonly status: number,
     message: string,
     readonly fieldErrors: Record<string, string> = {},
+    /** The rest of the error body, such as { code, organizationId }. */
+    readonly details: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -21,7 +23,8 @@ export function useApi() {
       const token = await getToken();
       const headers = new Headers(init.headers);
       if (token) headers.set("Authorization", `Bearer ${token}`);
-      if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+      // JSON for string bodies; FormData and Blob uploads set their own type.
+      if (typeof init.body === "string" && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
       let res: Response;
       try {
         res = await fetch(`/api${path}`, { ...init, headers });
@@ -29,8 +32,8 @@ export function useApi() {
         throw new ApiError(0, "We couldn't reach the server. Check your connection and try again.");
       }
       if (res.status === 204) return undefined as T;
-      const body = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string> };
-      if (!res.ok) throw new ApiError(res.status, body.error ?? "Something went wrong. Please try again.", body.fieldErrors);
+      const body = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string> } & Record<string, unknown>;
+      if (!res.ok) throw new ApiError(res.status, body.error ?? "Something went wrong. Please try again.", body.fieldErrors, body);
       return body as T;
     },
     [getToken],
@@ -420,3 +423,170 @@ export type AdminUserRow = {
 export type AdminUserList = { items: AdminUserRow[]; total: number; page: number; pageSize: number; groupCounts: Record<UserGroup, number> };
 
 export type AuditEntry = { id: string; actor: { id: string; name: string } | null; action: string; targetType: string | null; targetId: string | null; detail: unknown; createdAt: string };
+
+// Weekly reports in the Admin Portal (ADMIN_PORTAL_SPEC sections 6.8 and 7.3).
+
+export type Delivery = "sent" | "scheduled" | "bounced" | "failed" | "not_sent";
+
+export type WeeklyRow = {
+  propertyId: string;
+  name: string;
+  units: number | null;
+  city: string | null;
+  photoVersion: string | null;
+  nights: { scheduled: number; serviced: number; byNight: boolean[]; dates?: string[] };
+  valetStatus: "ok" | "not_configured" | "no_job" | "error";
+  avgClockIn: string | null;
+  residentReports: number;
+  resolved: number;
+  avgReplyHours: number | null;
+  violations: number;
+  overwatchUnits: number;
+  director: { name: string; email: string } | null;
+  recipients: number;
+  delivery: Delivery;
+  lastRunAt: string | null;
+  lastError: string | null;
+};
+
+export type WeeklyAdminView = {
+  week: { start: string; end: string; label: string };
+  summary: { properties: number; sent: number; failed: number; residentReports: number; violations: number; noDirector: number };
+  groups: { org: { id: string | null; name: string; logoVersion: string | null; representative: string | null; rollupSentAt: string | null }; rows: WeeklyRow[] }[];
+};
+
+export type WeeklyScope = "property" | "organization" | "all";
+export type WeeklyRecipients = {
+  recipients: { email: string; name: string | null; kind: "director" | "member" | "representative" | "admin"; propertyName: string | null }[];
+  skippedNoDirector: string[];
+};
+export type WeeklySendResult = { sent: number; failed: number; recipients: number; skippedNoDirector: string[] };
+
+// Quotes (ADMIN_PORTAL_SPEC sections 6.9, 7.13 and 7.14).
+
+export type QuoteStage = "new" | "conversation" | "quote_sent" | "contract_sent" | "won" | "lost";
+export type QuoteTerm = "12_month" | "36_month" | "month_to_month";
+
+export type QuoteCard = {
+  id: string;
+  refNo: number;
+  kind: "quote" | "contact";
+  stage: QuoteStage;
+  community: string | null;
+  company: string | null;
+  contactName: string;
+  units: number | null;
+  services: string[];
+  createdAt: string;
+  firstResponseAt: string | null;
+  lastActivity: { kind: "form" | "email_in" | "email_out" | "document" | "note" | "stage"; text: string; at: string };
+  messagesCount: number;
+  owner: { id: string; name: string } | null;
+  /** "email": started by an email to quotes@ that matched no quote. */
+  source: "web" | "contact" | "manual" | "email";
+};
+
+export type QuotesKpis = {
+  newCount: number;
+  newOver24h: number;
+  avgFirstResponseHours: number | null;
+  quotesOut: number;
+  quotesOutUnits: number;
+  contractsOut: number;
+  oldestContractSentAt: string | null;
+  wonThisQuarter: number;
+  winRatePct: number | null;
+};
+
+export type QuoteMessage = {
+  id: string;
+  direction: "in" | "out";
+  from: string;
+  to: string;
+  cc: string[];
+  subject: string | null;
+  body: string;
+  createdAt: string;
+  sentBy: { id: string; name: string } | null;
+  attachments: { id: string; fileName: string }[];
+};
+
+export type QuoteDocument = {
+  id: string;
+  kind: "quote_pdf" | "contract" | "signed_contract" | "coi" | "other";
+  fileName: string;
+  contentType: string;
+  bytes: number;
+  status: "draft" | "ready" | "sent" | "signed";
+  uploadedBy: { id: string; name: string } | null;
+  createdAt: string;
+};
+
+export type QuoteDetail = QuoteCard & {
+  contact: { name: string; title: string | null; email: string; phone: string | null };
+  request: { address: string | null; propertyType: string | null; desiredStart: string | null; currentProvider: string | null; message: string | null };
+  rateCentsPerUnit: number | null;
+  term: QuoteTerm | null;
+  lostReason: string | null;
+  organizationId: string | null;
+  notes: { id: string; author: { id: string; name: string } | null; body: string; createdAt: string }[];
+  messages: QuoteMessage[];
+  documents: QuoteDocument[];
+};
+
+export type ContractTemplate = { key: "12_month" | "36_month" | "month_to_month" | "coi"; label: string; fileName: string | null; uploadedAt: string | null };
+
+// Settings, Overview and Overwatch (ADMIN_PORTAL_SPEC 6.2, 6.5, 6.10)
+
+export type Day = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+export type ReplyTarget = 4 | 12 | 24 | 48;
+export type OverwatchRule = { count: number; days: 14 | 30 | 60 | 90; countDismissed: boolean };
+export type IssueTypeSetting = { key: string; label: string; labelEs: string | null; replyTargetHours: ReplyTarget; onForm: boolean; used: boolean };
+export type ViolationTypeSetting = { key: string; label: string; labelEs: string | null; active: boolean; countsForOverwatch: boolean; thisMonth: number; used: boolean };
+export type Holiday = { date: string; name: string };
+
+export type AdminSettings = {
+  overwatch: OverwatchRule;
+  calendar: { serviceNights: Day[]; startTime: string; makeupPolicy: "next_night" | "skip" };
+  weeklyReport: { day: Day; time: string; tz: "America/New_York" };
+  email: { reportsFrom: string; quotesFrom: string; allowedSenders: string[] };
+  issueTypes: IssueTypeSetting[];
+  violationTypes: ViolationTypeSetting[];
+  holidays: Holiday[];
+};
+
+export type OverwatchPreview = {
+  threshold: OverwatchRule;
+  units: { propertyId: string; propertyName: string; orgId: string | null; orgName: string | null; unit: string; count: number; mostCommon: string; lastAt: string }[];
+};
+
+export type OverviewRange = "today" | "7d" | "30d";
+export type OverviewKpi = { value: number | null; previous: number | null; spark: number[]; note?: string };
+export type AttentionItem = {
+  kind: "report_due" | "violations_to_review" | "no_clock_in" | "quote_waiting" | "invites_stale";
+  title: string;
+  subtitle: string;
+  tag: string;
+  severity: "high" | "medium" | "low";
+  link: string;
+  at: string;
+};
+export type TonightStatus = "not_service_night" | "no_clock_in" | "in_progress" | "done" | "not_linked";
+export type AdminOverview = {
+  range: { from: string; to: string; label: string };
+  kpis: { openReports: OverviewKpi; avgFirstReplyHours: OverviewKpi; violations: OverviewKpi; overwatchUnits: OverviewKpi; newQuotes: OverviewKpi };
+  activity: { weekStart: string; violations: number; residentReports: number }[];
+  attention: AttentionItem[];
+  service: {
+    tonight: boolean;
+    date: string;
+    holidayName: string | null;
+    startTime: string;
+    nextServiceNight: string | null;
+    valetStatus: "ok" | "not_configured" | "error";
+    clockedIn: number;
+    total: number;
+  };
+  tonight: { propertyId: string; orgId: string | null; name: string; orgName: string | null; stewardName: string | null; progressPct: number | null; status: TonightStatus }[];
+  orgs: { id: string; name: string; logoVersion: string | null; properties: number; openReports: number; violations30d: number; avgReplyHours: number | null }[];
+};

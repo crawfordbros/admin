@@ -113,3 +113,12 @@ export const dateTime = (iso: string) =>
 export function nyToday(now = new Date()) {
   return now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 }
+
+/** "8:00 PM" for "20:00". */
+export function clockLabel(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+}
+
+/** "Sunday" for a YYYY-MM-DD date. */
+export const weekdayName = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "long" });

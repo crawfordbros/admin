@@ -17,6 +17,7 @@ import {
 import { CONTRACT_LABELS, PROPERTY_ROLE_LABELS, PROPERTY_TYPE_LABELS, VALET_STATUS_TEXT, addDays, age, formatCount, formatDay, monthYear, replyHours, timeAgo } from "../../lib/format";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES, squareWebp } from "../../lib/images";
 import { useFormSubmit } from "../../lib/useFormSubmit";
+import { lastCompletedWeek } from "../../lib/dates";
 import { useQueryState } from "../../lib/useQueryState";
 import { Alert, Button, ButtonLink, Loading, SelectField, TextField } from "../../components/ui";
 import { Avatar, EmptyState, Pill, StatTile, StatusBadge } from "../../components/display";
@@ -487,15 +488,8 @@ function PropertyInviteModal({ orgId, property, onClose, onDone }: { orgId: stri
   );
 }
 
-/** The Sunday that starts the week before this one, in New York. */
-function lastWeekStart(now = new Date()) {
-  const today = now.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
-  const dow = new Date(`${today}T12:00:00Z`).getUTCDay();
-  return addDays(today, -dow - 7);
-}
-
 function WeeklyList({ property }: { property: PropertyProfile }) {
-  const first = lastWeekStart();
+  const first = lastCompletedWeek();
   const weeks = Array.from({ length: 8 }, (_, i) => addDays(first, -7 * i));
   return (
     <section className={card}>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
@@ -295,7 +295,9 @@ export function UsersPage() {
         />
       )}
       {activity && <ActivityDrawer user={activity} onClose={() => setActivity(null)} />}
-      <Outlet />
+      <Suspense fallback={null}>
+        <Outlet />
+      </Suspense>
     </>
   );
 }

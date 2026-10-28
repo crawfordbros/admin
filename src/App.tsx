@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { lazy, type ReactNode } from "react";
 import { AuthenticateWithRedirectCallback, ClerkProvider } from "@clerk/clerk-react";
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useNavigate } from "react-router-dom";
 import { config } from "./config";
@@ -10,25 +10,33 @@ import { AdminShell } from "./components/admin/AdminShell";
 import { ToastProvider } from "./components/Toast";
 import { LoginPage } from "./pages/LoginPage";
 import { PortalHome } from "./pages/PortalHome";
-import { AdminHome } from "./pages/AdminHome";
 import { ComingSoon } from "./pages/ComingSoon";
 import { ADMIN_SECTIONS } from "./pages/adminSections";
 import { AcceptInvitePage } from "./pages/AcceptInvitePage";
-import { OrganizationAdminPage, OrganizationsPage } from "./pages/admin/OrganizationsPage";
 import { OrganizationPage } from "./pages/portal/OrganizationPage";
-import { PropertyAdminPage } from "./pages/admin/PropertyAdminPage";
-import { PropertyDetailPage } from "./pages/admin/PropertyDetailPage";
-import { AddPropertyModal } from "./pages/org/AddPropertyModal";
-import { ViolationsPage } from "./pages/violations/ViolationsPage";
-import { ViolationDetailPage } from "./pages/violations/ViolationDetailPage";
-import { PortalViolationPage } from "./pages/violations/PortalViolations";
-import { ReportsPage } from "./pages/reports/ReportsPage";
-import { ReportDrawer } from "./pages/reports/ReportDrawer";
-import { UsersPage } from "./pages/users/UsersPage";
-import { AddAdminModal } from "./pages/users/AddAdminModal";
 import { NewPropertyRedirect, PropertyRedirect } from "./pages/admin/redirects";
 import { PropertyPage } from "./pages/portal/PropertyPage";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
+
+// Each Admin Portal section downloads when it's first opened (ADMIN_PORTAL_SPEC 10, performance).
+const OrganizationAdminPage = lazy(() => import("./pages/admin/OrganizationsPage").then((m) => ({ default: m.OrganizationAdminPage })));
+const OrganizationsPage = lazy(() => import("./pages/admin/OrganizationsPage").then((m) => ({ default: m.OrganizationsPage })));
+const PropertyAdminPage = lazy(() => import("./pages/admin/PropertyAdminPage").then((m) => ({ default: m.PropertyAdminPage })));
+const PropertyDetailPage = lazy(() => import("./pages/admin/PropertyDetailPage").then((m) => ({ default: m.PropertyDetailPage })));
+const AddPropertyModal = lazy(() => import("./pages/org/AddPropertyModal").then((m) => ({ default: m.AddPropertyModal })));
+const ViolationsPage = lazy(() => import("./pages/violations/ViolationsPage").then((m) => ({ default: m.ViolationsPage })));
+const ViolationDetailPage = lazy(() => import("./pages/violations/ViolationDetailPage").then((m) => ({ default: m.ViolationDetailPage })));
+const PortalViolationPage = lazy(() => import("./pages/violations/PortalViolations").then((m) => ({ default: m.PortalViolationPage })));
+const ReportsPage = lazy(() => import("./pages/reports/ReportsPage").then((m) => ({ default: m.ReportsPage })));
+const ReportDrawer = lazy(() => import("./pages/reports/ReportDrawer").then((m) => ({ default: m.ReportDrawer })));
+const UsersPage = lazy(() => import("./pages/users/UsersPage").then((m) => ({ default: m.UsersPage })));
+const AddAdminModal = lazy(() => import("./pages/users/AddAdminModal").then((m) => ({ default: m.AddAdminModal })));
+const QuotesPage = lazy(() => import("./pages/quotes/QuotesPage").then((m) => ({ default: m.QuotesPage })));
+const QuoteDetailPage = lazy(() => import("./pages/quotes/QuoteDetailPage").then((m) => ({ default: m.QuoteDetailPage })));
+const OverviewPage = lazy(() => import("./pages/overview/OverviewPage").then((m) => ({ default: m.OverviewPage })));
+const OverwatchPage = lazy(() => import("./pages/overwatch/OverwatchPage").then((m) => ({ default: m.OverwatchPage })));
+const SettingsPage = lazy(() => import("./pages/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const WeeklyReportsPage = lazy(() => import("./pages/weekly/WeeklyReportsPage").then((m) => ({ default: m.WeeklyReportsPage })));
 
 
 function ClerkWithRouter({ children }: { children: ReactNode }) {
@@ -49,7 +57,7 @@ function ClerkWithRouter({ children }: { children: ReactNode }) {
   );
 }
 
-const BUILT = new Set(["/admin", "/admin/organizations", "/admin/violations", "/admin/reports", "/admin/users"]);
+const BUILT = new Set(["/admin", "/admin/organizations", "/admin/violations", "/admin/reports", "/admin/users", "/admin/weekly-reports", "/admin/quotes", "/admin/overwatch", "/admin/settings"]);
 
 export function App() {
   if (!config.clerkPublishableKey.startsWith("pk_")) {
@@ -82,7 +90,7 @@ export function App() {
               <Route path="/portal/violations/:id" element={<RequireArea area="portal"><PortalViolationPage /></RequireArea>} />
             </Route>
             <Route path="/admin" element={<RequireArea area="admin" standalone><AdminShell /></RequireArea>}>
-              <Route index element={<AdminHome />} />
+              <Route index element={<OverviewPage />} />
               <Route path="organizations" element={<OrganizationsPage />} />
               <Route path="organizations/:orgId" element={<OrganizationAdminPage />}>
                 <Route path="properties/new" element={<AddPropertyModal />} />
@@ -96,8 +104,13 @@ export function App() {
               <Route path="users" element={<UsersPage />}>
                 <Route path="add-admin" element={<AddAdminModal />} />
               </Route>
+              <Route path="weekly-reports" element={<WeeklyReportsPage />} />
+              <Route path="quotes" element={<QuotesPage />} />
+              <Route path="quotes/:id" element={<QuoteDetailPage />} />
               <Route path="violations" element={<ViolationsPage />} />
               <Route path="violations/:id" element={<ViolationDetailPage />} />
+              <Route path="overwatch" element={<OverwatchPage />} />
+              <Route path="settings" element={<SettingsPage />} />
               {/* Properties moved inside Organizations (ADMIN_PORTAL_SPEC section 3.2). */}
               <Route path="properties" element={<Navigate to="/admin/organizations" replace />} />
               <Route path="properties/new" element={<NewPropertyRedirect />} />

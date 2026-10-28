@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dateRange } from "./dates";
+import { dateRange, lastCompletedWeek } from "./dates";
 import { clockView } from "./replyClock";
 
 const open = (hoursLeft: number) => clockView({ state: "open", hoursLeft, targetHours: 24 });
@@ -11,6 +11,17 @@ describe("clockView", () => {
     expect(open(4.1)).toEqual({ text: "4h left", tone: "warning" });
     expect(open(4)).toEqual({ text: "4h left", tone: "danger" });
     expect(open(0.5)).toEqual({ text: "Under 1h left", tone: "danger" });
+  });
+
+  it("scales the thresholds to the issue type's target", () => {
+    const four = (hoursLeft: number) => clockView({ state: "open", hoursLeft, targetHours: 4 }).tone;
+    expect(four(2.5)).toBe("success");
+    expect(four(2)).toBe("warning");
+    expect(four(0.6)).toBe("danger");
+    const two = (hoursLeft: number) => clockView({ state: "open", hoursLeft, targetHours: 48 }).tone;
+    expect(two(30)).toBe("success");
+    expect(two(24)).toBe("warning");
+    expect(two(8)).toBe("danger");
   });
 
   it("shows overdue reports and replies", () => {
@@ -28,5 +39,13 @@ describe("dateRange", () => {
     expect(dateRange(["month"], "2026-10-27")).toEqual({ from: "2026-10-01", to: "2026-10-27" });
     expect(dateRange(["2026-10-01", "2026-10-05"])).toEqual({ from: "2026-10-01", to: "2026-10-05" });
     expect(dateRange([])).toEqual({});
+  });
+});
+
+describe("lastCompletedWeek", () => {
+  it("is the Sunday a week before this week's Sunday", () => {
+    expect(lastCompletedWeek("2026-10-27")).toBe("2026-10-18"); // a Tuesday
+    expect(lastCompletedWeek("2026-10-25")).toBe("2026-10-18"); // a Sunday: last week just ended
+    expect(lastCompletedWeek("2026-10-24")).toBe("2026-10-11"); // a Saturday: this week isn't over
   });
 });
