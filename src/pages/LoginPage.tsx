@@ -3,7 +3,7 @@ import { useAuth, useSignIn } from "@clerk/clerk-react";
 import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { Alert, Button, Loading, TextField } from "../components/ui";
 import { AuthLayout } from "./auth/AuthLayout";
-import { ACCESS_NOTE, apiErrorMessage, authErrorMessage, CBES_EMAIL } from "./auth/clerkErrors";
+import { apiErrorMessage, authErrorMessage, CBES_EMAIL } from "./auth/clerkErrors";
 import { CodeField, PasswordField, SignedInAs, StepHeading, TextButton } from "./auth/fields";
 import { afterSignInPath } from "./auth/redirect";
 import { SetupMfaStep } from "./auth/SetupMfaStep";
@@ -184,9 +184,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "email":
       return (
         <>
-          <StepHeading title="Sign in to the CBES portal" focus={false}>
-            For property managers, valets and the CBES team.
-          </StepHeading>
+          <StepHeading title="Sign in to the CBES portal" focus={false} />
           <div className="flex flex-col gap-5">
             {error && <Alert>{error}</Alert>}
             <Button variant="outline" onClick={google} disabled={busy}>
@@ -210,7 +208,6 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
               </Button>
             </form>
           </div>
-          <AccessNote />
         </>
       );
 
@@ -402,10 +399,6 @@ function googleError(signIn: SignIn): string {
 
 function Alternatives({ children }: { children: ReactNode }) {
   return <div className="mt-4 flex flex-wrap gap-x-6">{children}</div>;
-}
-
-function AccessNote() {
-  return <p className="mt-7 mb-0 border-t border-line pt-5 text-sm leading-relaxed text-muted">{ACCESS_NOTE}</p>;
 }
 
 function GoogleMark() {

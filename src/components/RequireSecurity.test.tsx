@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { startRegistration } from "@simplewebauthn/browser";
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import { fakeClerk, fakeSession, mockSecurity } from "../test/clerk";
 import { mockFetch, renderRoute } from "../test/render";
 import { RequireSecurity } from "./RequireSecurity";
@@ -14,6 +14,7 @@ beforeEach(() => {
   vi.stubGlobal("isSecureContext", true);
   vi.stubGlobal("PublicKeyCredential", class {});
   vi.mocked(startRegistration).mockReset();
+  vi.mocked(startAuthentication).mockReset().mockImplementation(() => new Promise(() => {}));
 });
 
 describe("required second factor after any first factor", () => {
@@ -33,7 +34,9 @@ describe("required second factor after any first factor", () => {
     clerk.session = fakeSession();
     mockSecurity({ passkey: true, authenticator: false, verified: false, pending: false });
     enter();
-    expect(await screen.findByRole("button", { name: "Verify with passkey" })).toBeEnabled();
+    await waitFor(() => expect(startAuthentication).toHaveBeenCalledTimes(1));
+    expect(screen.getByText("Follow your device's prompt…")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Verify with passkey" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Set up authenticator app" })).not.toBeInTheDocument();
     expect(screen.queryByText("Protected admin data")).not.toBeInTheDocument();
   });
@@ -65,6 +68,7 @@ describe("required second factor after any first factor", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Create a passkey" }));
     expect(await screen.findByText("Protected admin data")).toBeInTheDocument();
     await waitFor(() => expect(clerk.setActive).toHaveBeenCalled());
+    expect(startAuthentication).not.toHaveBeenCalled();
   });
 
   it("fails closed when the security check is unavailable", async () => {

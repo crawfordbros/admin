@@ -3,8 +3,6 @@ import { isClerkAPIResponseError } from "@clerk/clerk-react/errors";
 /** Where people reach CBES about their account. */
 export const CBES_EMAIL = "office@cbenvironments.com";
 
-export const ACCESS_NOTE = `Accounts are by invitation from CBES. Need access? Email ${CBES_EMAIL}.`;
-
 const MESSAGES: Record<string, string> = {
   form_identifier_not_found: `No CBES portal account uses that email. Accounts are by invitation, so email ${CBES_EMAIL} to get one.`,
   external_account_not_found:

@@ -9,7 +9,7 @@ export function StepHeading({ title, focus = true, children }: { title: string; 
     if (focus) ref.current?.focus();
   }, [focus]);
   return (
-    <div className="mb-6">
+    <div className="mb-6 text-center">
       <h1 ref={ref} tabIndex={-1} className="m-0 text-[1.75rem] leading-tight font-bold text-navy focus:outline-none">
         {title}
       </h1>

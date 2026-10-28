@@ -132,6 +132,7 @@ describe("LoginPage", () => {
     await userEvent.type(screen.getByLabelText("Code from the app"), "123456");
     await userEvent.click(screen.getByRole("button", { name: "Verify code and continue" }));
     expect(await screen.findByText(/Your authenticator is saved/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to security methods" })).not.toBeInTheDocument();
     await userEvent.type(screen.getByLabelText("Code from the app"), "234567");
     await userEvent.click(screen.getByRole("button", { name: "Verify code and continue" }));
     expect(user.verifyTOTP).toHaveBeenCalledWith({ code: "123456" });
