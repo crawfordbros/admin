@@ -8,7 +8,7 @@ import { serviceTime } from "../../lib/format";
 import { Alert, Button, Card, Loading } from "../../components/ui";
 import { StatusBadge } from "../../components/display";
 import { useToast } from "../../components/Toast";
-import { useManagerPreview } from "../../lib/preview";
+import { MANAGER_PREVIEW_DENIED, useManagerPreview } from "../../lib/preview";
 import { unwrap } from "./paths";
 import { Details, Gallery, Notes, People, UnitHistoryCard } from "./ViolationDetailPage";
 import { ViolationThumb } from "./shared";
@@ -60,8 +60,8 @@ export function PortalViolationPage() {
   const preview = useManagerPreview();
   // Previewing as a manager, the page shows exactly what a manager sees.
   const role = preview.on ? "manager" : roleFrom(user?.publicMetadata);
-  const key = ["portal", "violation", id, preview.on];
-  const { data: v, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<ViolationDetail>(`/portal/violations/${id}${preview.query}`) });
+  const key = ["portal", "violation", id, preview.query];
+  const { data: v, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<ViolationDetail>(`/portal/violations/${id}${preview.query}`), enabled: !preview.denied });
   useEffect(() => {
     if (v) document.title = `V-${v.refNo} ${v.typeLabel} | CBES Portal`;
   }, [v]);
@@ -75,6 +75,7 @@ export function PortalViolationPage() {
     onError: (err) => toast.error(errorMessage(err)),
   });
 
+  if (preview.denied) return <Alert>{MANAGER_PREVIEW_DENIED}</Alert>;
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
 

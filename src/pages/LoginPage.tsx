@@ -15,7 +15,6 @@ type SignIn = NonNullable<ReturnType<typeof useSignIn>["signIn"]>;
 type Step =
   | { name: "email" }
   | { name: "password" }
-  | { name: "email-code"; emailAddressId: string }
   | { name: "second-factor"; strategy: "totp" | "email_code"; sentTo?: string }
   | { name: "reset-code" }
   | { name: "new-password" }
@@ -142,17 +141,9 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
       const res = await signIn.create({ identifier: email.trim() });
       const factors = res.supportedFirstFactors ?? [];
       if (factors.some((f) => f.strategy === "password")) return go({ name: "password" });
-      await sendEmailCode(res);
+      throw new Error(`This account doesn't have a password. Sign in with Google if it's linked to your account, or email ${CBES_EMAIL} for help. Each person needs their own account.`);
     });
   };
-
-  async function sendEmailCode(res: SignIn = signIn) {
-    const factor = res.supportedFirstFactors?.find((f) => f.strategy === "email_code");
-    if (factor?.strategy !== "email_code") throw new Error("This account can't get sign-in codes by email. Use your password instead.");
-    await res.prepareFirstFactor({ strategy: "email_code", emailAddressId: factor.emailAddressId });
-    setResendIn(RESEND_SECONDS);
-    go({ name: "email-code", emailAddressId: factor.emailAddressId });
-  }
 
   async function sendResetCode() {
     await signIn.create({ strategy: "reset_password_email_code", identifier: email.trim() });
@@ -233,29 +224,8 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
             <TextButton onClick={() => run(() => sendResetCode())} disabled={busy}>
               Forgot your password?
             </TextButton>
-            <TextButton onClick={() => run(() => sendEmailCode())} disabled={busy}>
-              Email me a code instead
-            </TextButton>
           </Alternatives>
         </>
-      );
-
-    case "email-code":
-      return (
-        <CodeStep
-          title="Check your email"
-          intro="Enter the 6-digit code we just emailed you."
-          email={email}
-          onStartOver={startOver}
-          code={code}
-          setCode={setCode}
-          error={error}
-          busy={busy}
-          submitLabel="Verify code"
-          onSubmit={() => run(async () => advance(await signIn.attemptFirstFactor({ strategy: "email_code", code })))}
-          resendIn={resendIn}
-          onResend={() => run(() => sendEmailCode())}
-        />
       );
 
     case "second-factor":

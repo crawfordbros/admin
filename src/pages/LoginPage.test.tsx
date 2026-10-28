@@ -22,6 +22,8 @@ describe("LoginPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Enter your password" })).toHaveFocus();
     expect(screen.getByText("pat@demo-mgmt.com")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Email me a code instead" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Forgot your password?" })).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText("Password"), "correct horse battery staple");
     await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
@@ -62,24 +64,43 @@ describe("LoginPage", () => {
     await waitFor(() => expect(location()).toHaveTextContent("/portal"));
   });
 
-  it("emails a code to someone without a password", async () => {
-    fakeClerk();
+  it("does not fall back to email-code sign-in for accounts without a password", async () => {
+    const clerk = fakeClerk();
     const signIn = fakeSignIn();
     const factors = [{ strategy: "email_code", emailAddressId: "idn_1", safeIdentifier: "p***@demo-mgmt.com" }];
     signIn.create.mockResolvedValue({ ...signIn, supportedFirstFactors: factors });
-    signIn.prepareFirstFactor.mockResolvedValue(signIn);
-    signIn.attemptFirstFactor.mockResolvedValue({ ...signIn, status: "complete", createdSessionId: "sess_1" });
     login();
 
     await userEvent.type(screen.getByLabelText("Email address"), "pat@demo-mgmt.com");
     await userEvent.click(screen.getByRole("button", { name: "Continue" }));
-    expect(await screen.findByRole("heading", { name: "Check your email" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Send a new code in \d+s/ })).toBeDisabled();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Each person needs their own account.");
+    expect(screen.queryByLabelText("Verification code")).not.toBeInTheDocument();
+    expect(signIn.prepareFirstFactor).not.toHaveBeenCalled();
+    expect(signIn.attemptFirstFactor).not.toHaveBeenCalled();
+    expect(clerk.setActive).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Continue with Google" }));
+    expect(signIn.authenticateWithRedirect).toHaveBeenCalledWith(expect.objectContaining({ strategy: "oauth_google" }));
+  });
 
-    await userEvent.type(screen.getByLabelText("Verification code"), "424242");
-    await userEvent.click(screen.getByRole("button", { name: "Verify code" }));
-    expect(signIn.attemptFirstFactor).toHaveBeenCalledWith({ strategy: "email_code", code: "424242" });
-    await waitFor(() => expect(location()).toHaveTextContent("/portal"));
+  it("keeps password recovery separate from email-code login and still requires MFA", async () => {
+    const clerk = fakeClerk();
+    const signIn = fakeSignIn();
+    signIn.create.mockResolvedValue({ ...signIn, supportedFirstFactors: [{ strategy: "password" }, { strategy: "email_code", emailAddressId: "idn_1" }] });
+    signIn.attemptFirstFactor.mockResolvedValue({ ...signIn, status: "needs_new_password" });
+    signIn.resetPassword.mockResolvedValue({ ...signIn, status: "needs_second_factor", supportedSecondFactors: [{ strategy: "totp" }] });
+    login();
+    await userEvent.type(screen.getByLabelText("Email address"), "pat@demo-mgmt.com");
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Forgot your password?" }));
+    expect(signIn.create).toHaveBeenCalledWith({ strategy: "reset_password_email_code", identifier: "pat@demo-mgmt.com" });
+    await userEvent.type(await screen.findByLabelText("Verification code"), "123456");
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+    expect(signIn.attemptFirstFactor).toHaveBeenCalledWith({ strategy: "reset_password_email_code", code: "123456" });
+    await userEvent.type(await screen.findByLabelText("New password"), "a new long password");
+    await userEvent.click(screen.getByRole("button", { name: "Save password and sign in" }));
+    expect(signIn.resetPassword).toHaveBeenCalledWith({ password: "a new long password", signOutOfOtherSessions: true });
+    expect(await screen.findByLabelText("Code from the app")).toBeInTheDocument();
+    expect(clerk.setActive).not.toHaveBeenCalled();
   });
 
   it("redeems an invitation ticket for someone who already has an account", async () => {

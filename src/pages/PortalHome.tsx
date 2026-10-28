@@ -17,10 +17,11 @@ export function PortalHome() {
 
   const { user, organizations, properties } = data;
   const role = roleFrom({ role: user.role });
-  const isAdmin = isAdminRole(role);
-  // A representative of one organization goes straight to it; a manager with one property, to that.
-  if (!isAdmin && organizations.length === 1) return <Navigate to={`/portal/organizations/${organizations[0].id}`} replace />;
-  if (!isAdmin && organizations.length === 0 && properties.length === 1) {
+  // Admins work from the admin dashboard; a representative of one organization goes straight to it;
+  // a manager with one property, to that.
+  if (isAdminRole(role)) return <Navigate to="/admin" replace />;
+  if (organizations.length === 1) return <Navigate to={`/portal/organizations/${organizations[0].id}`} replace />;
+  if (organizations.length === 0 && properties.length === 1) {
     return <Navigate to={`/portal/properties/${properties[0].id}`} replace />;
   }
 
@@ -29,14 +30,6 @@ export function PortalHome() {
     <div className="mx-auto max-w-4xl">
       <p className="mt-0 mb-1 text-sm font-semibold text-gold-text">{role ? ROLE_LABELS[role] : ""}</p>
       <h1 className="mt-0 mb-6 text-3xl font-bold text-navy">Welcome{firstName ? `, ${firstName}` : ""}</h1>
-
-      {isAdmin && (
-        <p className="mt-0 mb-6">
-          <Link to="/admin" className="font-bold">
-            Go to the admin dashboard
-          </Link>
-        </p>
-      )}
 
       {organizations.length > 0 && (
         <>
@@ -60,7 +53,7 @@ export function PortalHome() {
         </p>
       ) : (
         <>
-          <h2 className="mt-0 mb-3 text-xl">{isAdmin ? "All properties" : "Your properties"}</h2>
+          <h2 className="mt-0 mb-3 text-xl">Your properties</h2>
           <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
             {properties.map((p) => (
               <li key={p.id} className="rounded-xl border border-line bg-white p-5">

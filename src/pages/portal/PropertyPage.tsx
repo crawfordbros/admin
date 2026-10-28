@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { ApiError, errorMessage, useApi, type Property, type PropertyOverview, type WeeklyReport } from "../../lib/api";
 import { CONTRACT_LABELS, PROPERTY_ROLE_LABELS, formatCount, formatDate } from "../../lib/format";
-import { useManagerPreview } from "../../lib/preview";
+import { MANAGER_PREVIEW_DENIED, useManagerPreview } from "../../lib/preview";
 import { Alert, Button, ButtonLink, Card, Loading, TextField } from "../../components/ui";
 import { Avatar, Pill, StatTile } from "../../components/display";
 import { Icon } from "../../components/icons";
@@ -18,19 +18,22 @@ export function PropertyPage() {
   const [saved, setSaved] = useState(false);
   const preview = useManagerPreview();
   const { data, error, isPending } = useQuery({
-    queryKey: ["portal", "property", id, preview.on],
+    queryKey: ["portal", "property", id, preview.query],
     queryFn: () => api<PropertyOverview>(`/portal/properties/${id}${preview.query}`),
+    enabled: !preview.denied,
   });
   // Last week's report, for nights serviced and the average clock-in.
   const week = useQuery({
     queryKey: ["portal", "report", id, ""],
     queryFn: () => api<WeeklyReport>(`/portal/properties/${id}/report`),
     retry: false,
+    enabled: !preview.denied,
   });
   useEffect(() => {
     if (data) document.title = `${data.property.name} | CBES Portal`;
   }, [data]);
 
+  if (preview.denied) return <Alert>{MANAGER_PREVIEW_DENIED}</Alert>;
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
   const { property, openReports, recentReports, buildings, units, team, stats } = data;

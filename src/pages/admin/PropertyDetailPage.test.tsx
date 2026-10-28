@@ -23,6 +23,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("PropertyDetailPage", () => {
   it("shows the property's profile, numbers and teams", async () => {
+    vi.stubGlobal("__clerkRole", "super_admin");
     mockFetch(handler);
     show();
     expect(await screen.findByRole("heading", { name: "Demo Community", level: 1 })).toBeInTheDocument();
@@ -35,6 +36,15 @@ describe("PropertyDetailPage", () => {
     expect(screen.getByText("Steward · 4 properties")).toBeInTheDocument();
     expect(await screen.findByText(/once CBES links this property to its Connecteam job/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /See what managers see/ })).toHaveAttribute("href", "/portal/properties/p1?as=manager");
+  });
+
+  it("does not offer the manager preview to a regular admin", async () => {
+    vi.stubGlobal("__clerkRole", "admin");
+    mockFetch(handler);
+    show();
+    await screen.findByRole("heading", { name: "Demo Community", level: 1 });
+    expect(screen.queryByRole("link", { name: /See what managers see/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Edit property" })).toBeInTheDocument();
   });
 
   it("assigns the Steward and a valet from the Team tab", async () => {

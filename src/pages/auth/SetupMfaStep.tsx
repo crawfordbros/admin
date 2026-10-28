@@ -8,13 +8,19 @@ import { Alert, Button, Loading } from "../../components/ui";
 import { authErrorMessage } from "./clerkErrors";
 import { CodeField, StepHeading, TextButton } from "./fields";
 import { useSecurityApi, useSecurityStatus, type SecurityStatus } from "./security";
+import { ApiError } from "../../lib/authenticatedRequest";
 
 /** Every sign-in uses the saved method; only unenrolled accounts choose a method. */
 export function SetupMfaStep({ to }: { to: string }) {
   const clerk = useClerk();
   const status = useSecurityStatus();
   if (status.isPending) return <Loading label="Checking your security methods…" />;
-  if (status.error) return <><Alert>{status.error.message}</Alert><Button onClick={() => void status.refetch()}>Try again</Button></>;
+  if (status.error) {
+    const denied = status.error instanceof ApiError && status.error.details.code === "impersonation_forbidden";
+    return <><Alert>{status.error.message}</Alert>{denied
+      ? <Button onClick={() => clerk.signOut({ redirectUrl: "/portal/login" })}>Sign out</Button>
+      : <Button onClick={() => void status.refetch()}>Try again</Button>}</>;
+  }
   return <SecurityStep key={clerk.session?.id} to={to} status={status.data} />;
 }
 

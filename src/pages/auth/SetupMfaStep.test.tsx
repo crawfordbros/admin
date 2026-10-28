@@ -66,6 +66,19 @@ beforeEach(() => {
 });
 
 describe("saved MFA method", () => {
+  it.each([destination, "/setup"])("offers sign-out instead of MFA for forbidden impersonation on %s", async (path) => {
+    const clerk = fakeClerk();
+    clerk.session = fakeSession();
+    mockFetch(() => [403, { code: "impersonation_forbidden", error: "Only Super Admins can impersonate another account." }]);
+    flow(path);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Only Super Admins");
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
+    expect(startAuthentication).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(clerk.signOut).toHaveBeenCalledWith({ redirectUrl: "/portal/login" });
+  });
+
   it("opens the passkey prompt after a successful password and returns to the requested page", async () => {
     fakeClerk();
     const signIn = fakeSignIn();

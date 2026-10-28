@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PropertyOverview } from "../../lib/api";
 import { mockFetch, renderRoute } from "../../test/render";
 import { PropertyPage } from "./PropertyPage";
+import { PortalViolationPage } from "../violations/PortalViolations";
 
 const noViolations = { items: [], total: 0, page: 1, pageSize: 25 };
 
@@ -80,8 +81,8 @@ describe("PropertyPage", () => {
     expect(screen.getByRole("button", { name: "Create Overwatch case" })).toBeDisabled();
   });
 
-  it("previews what managers see for an admin, with changes turned off", async () => {
-    (globalThis as { __clerkRole?: string }).__clerkRole = "admin";
+  it("previews what managers see for a Super Admin, with changes turned off", async () => {
+    vi.stubGlobal("__clerkRole", "super_admin");
     const calls = mockFetch((url) => (url.includes("/violations") ? [200, noViolations] : url.includes("/report") ? [404, {}] : [200, overview(true)]));
     renderRoute("/portal/properties/:id", "/portal/properties/p1?as=manager", <PropertyPage />);
     expect(await screen.findByText("Previewing what property managers see.")).toBeInTheDocument();
@@ -89,6 +90,22 @@ describe("PropertyPage", () => {
     expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
     expect(calls.some((c) => c.url === "/api/portal/properties/p1?as=manager")).toBe(true);
     expect(calls.some((c) => c.url === "/api/portal/properties/p1/violations?as=manager")).toBe(true);
-    delete (globalThis as { __clerkRole?: string }).__clerkRole;
+  });
+
+  it.each(["admin", "representative", "manager", "director", "lead", "valet"])("rejects a direct manager-preview URL for %s", (role) => {
+    vi.stubGlobal("__clerkRole", role);
+    const calls = mockFetch(() => [200, overview(true)]);
+    renderRoute("/portal/properties/:id", "/portal/properties/p1?as=manager", <PropertyPage />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Only Super Admins");
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(calls).toHaveLength(0);
+  });
+
+  it("rejects a direct violation-preview URL for a regular admin", () => {
+    vi.stubGlobal("__clerkRole", "admin");
+    const calls = mockFetch(() => [200, {}]);
+    renderRoute("/portal/violations/:id", "/portal/violations/v1?as=manager", <PortalViolationPage />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Only Super Admins");
+    expect(calls).toHaveLength(0);
   });
 });

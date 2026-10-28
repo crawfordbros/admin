@@ -12,6 +12,12 @@ const me = (role: string, properties: { id: string; name: string }[], organizati
 });
 
 describe("PortalHome", () => {
+  it.each(["admin", "super_admin"])("takes an %s straight to the admin dashboard", async (role) => {
+    mockFetch(() => [200, me(role, [{ id: "p1", name: "Demo Community" }])]);
+    renderRoute("/portal", "/portal", <PortalHome />);
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(/^\/admin$/));
+  });
+
   it("takes a manager with one property straight to it", async () => {
     mockFetch(() => [200, me("manager", [{ id: "p1", name: "Demo Community" }])]);
     renderRoute("/portal", "/portal", <PortalHome />);

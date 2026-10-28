@@ -22,6 +22,29 @@ refresh shared by concurrent requests, then one replay of the auth-rejected requ
 errors, HTML gateway errors, permission errors, and security challenges never cause sign-out
 or automatic write retries. `mfa_required` sends the user through verification again.
 
+## Sign-in methods and impersonation
+
+Portal sign-in uses a password or linked Google account, followed by the account's saved MFA
+method. Email codes remain available for password recovery and Clerk's additional new-device
+verification, but the portal does not offer email-code passwordless sign-in. Each new property
+manager should receive a separate account invitation through the existing organization workflow.
+
+Clerk's provider settings must match this UI: in each deployed instance, disable **Email
+verification code** and **Email verification link** as sign-in options under **User &
+authentication → Email**. Keep email-address verification and password recovery enabled.
+Removing a custom UI does not disable provider-side authentication strategies. See
+[Clerk's sign-in options](https://clerk.com/docs/guides/configure/auth-strategies/sign-up-sign-in-options).
+The locally configured development instance still advertised both email sign-in strategies when
+this change was checked; no Clerk dashboard settings were changed by this implementation.
+
+Only Super Admins can use the read-only `?as=manager` preview. Direct frontend URLs and API
+requests from other roles are denied. Signed Clerk impersonation sessions must identify an
+active portal Super Admin in `act.sub`; the API rechecks that actor's live Clerk role on every
+request, including MFA endpoints. Disallowed actors receive `403 impersonation_forbidden` and
+the verification screen offers sign-out. The target account's permissions and MFA requirements
+still apply. This change does not add an impersonation-creation feature or remove existing
+credentials.
+
 ## Local development
 
 Both `admin` and `api` pin Node **22.21.1** in `.nvmrc`. Run `nvm use` in each terminal before

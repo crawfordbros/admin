@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import {
@@ -29,6 +30,7 @@ import { useToast } from "../../components/Toast";
 import { useAdminPage } from "../../components/admin/adminPage";
 import { cx } from "../../components/styles";
 import { propertyPath } from "./paths";
+import { roleFrom } from "../../access";
 import { PropertyOverwatch, ScopedReports, ScopedViolations } from "./scoped";
 
 type Tab = "overview" | "violations" | "reports" | "overwatch" | "team" | "weekly" | "settings";
@@ -38,6 +40,8 @@ const card = "rounded-[14px] border border-line bg-white p-5";
 
 /** /admin/organizations/:orgId/properties/:propertyId (ADMIN_PORTAL_SPEC 7.10). */
 export function PropertyDetailPage() {
+  const { user } = useUser();
+  const isSuper = roleFrom(user?.publicMetadata) === "super_admin";
   const { orgId = "", propertyId = "" } = useParams();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -108,10 +112,10 @@ export function PropertyDetailPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink to={`/portal/properties/${property.id}?as=manager`} variant="secondary">
+            {isSuper && <ButtonLink to={`/portal/properties/${property.id}?as=manager`} variant="secondary">
               <Icon name="eye" size={18} />
               See what managers see
-            </ButtonLink>
+            </ButtonLink>}
             <Button variant="secondary" aria-label="Edit property" className="w-11 px-0!" onClick={() => update({ tab: "settings" })}>
               <Icon name="edit" size={18} />
             </Button>

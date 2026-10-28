@@ -6,6 +6,7 @@ import { AuthLayout } from "../pages/auth/AuthLayout";
 import { SetupMfaStep } from "../pages/auth/SetupMfaStep";
 import { useSecurityStatus } from "../pages/auth/security";
 import { PortalSessionActivity } from "./PortalSession";
+import { ApiError } from "../lib/authenticatedRequest";
 
 /** Every protected route, including an OAuth return or a direct URL, checks the server's MFA proof. */
 export function RequireSecurity({ children }: { children: ReactNode }) {
@@ -17,7 +18,10 @@ export function RequireSecurity({ children }: { children: ReactNode }) {
   if (!clerk.session) return <RedirectToSignIn />;
   if (security.isPending) return <AuthLayout><Loading label="Checking two-step verification…" /></AuthLayout>;
   if (security.error) {
-    return <AuthLayout><Alert>{security.error.message}</Alert><Button onClick={() => void security.refetch()}>Try again</Button></AuthLayout>;
+    const denied = security.error instanceof ApiError && security.error.details.code === "impersonation_forbidden";
+    return <AuthLayout><Alert>{security.error.message}</Alert>{denied
+      ? <Button onClick={() => clerk.signOut({ redirectUrl: "/portal/login" })}>Sign out</Button>
+      : <Button onClick={() => void security.refetch()}>Try again</Button>}</AuthLayout>;
   }
   if (!security.data.verified || security.data.pending) {
     return <AuthLayout><SetupMfaStep to={location.pathname + location.search} /></AuthLayout>;
