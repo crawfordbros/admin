@@ -96,10 +96,12 @@ describe("SettingsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(screen.getByText("Settings saved")).toBeInTheDocument());
     const writes = calls.filter((c) => c.method !== "GET");
-    expect(writes.map((c) => `${c.method} ${c.url}`)).toEqual(["PATCH /api/admin/settings", `DELETE /api/admin/settings/holidays?date=${NEXT}-12-25`]);
+    // One call: the holiday list rides with the calendar so the section is saved and logged once.
+    expect(writes.map((c) => `${c.method} ${c.url}`)).toEqual(["PATCH /api/admin/settings"]);
     expect(writes[0].body).toEqual({
       overwatch: { count: 4, days: 30, countDismissed: false },
       calendar: { serviceNights: ["sun", "mon", "tue", "wed", "thu", "fri"], startTime: "20:00", makeupPolicy: "next_night" },
+      holidays: [{ date: `${NEXT}-11-26`, name: "Thanksgiving Day" }],
     });
   });
 

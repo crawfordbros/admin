@@ -36,6 +36,25 @@ describe("OrganizationView", () => {
     expect(await screen.findByRole("link", { name: /Demo Community/ })).toHaveAttribute("href", "/admin/organizations/org1/properties/p1");
   });
 
+  it("adds Reports, Violations and Activity tabs for admins only", async () => {
+    mockFetch((url) =>
+      url.startsWith("/api/admin/organizations/org1/activity")
+        ? [200, { items: [{ id: "a1", actor: { id: "u1", name: "Nick Crawford" }, action: "property.create", targetType: "property", targetId: "p1", detail: null, createdAt: new Date().toISOString(), summary: "Nick Crawford added Brookhaven Terrace" }], nextBefore: null }]
+        : [200, orgDetail({ kpis: { ...orgDetail().kpis, violations30d: 12, violationsPer100Units: 3.4 } })],
+    );
+    show(true, "/org/org1?tab=activity");
+    expect(await screen.findByText("Nick Crawford added Brookhaven Terrace")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Violations/ })).toBeInTheDocument();
+    expect(screen.getByText("3.4 per 100 units")).toBeInTheDocument();
+  });
+
+  it("keeps those tabs from Representatives", async () => {
+    mockFetch(() => [200, orgDetail()]);
+    show(false, "/org/org1?tab=activity");
+    expect(await screen.findByRole("tab", { name: /Properties/ })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("tab", { name: /Activity/ })).not.toBeInTheDocument();
+  });
+
   it("opens Add property over the page, and blocks it at the limit", async () => {
     mockFetch(() => [200, orgDetail()]);
     const { unmount } = show(false);
@@ -57,16 +76,16 @@ describe("OrganizationView", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Invite people" }));
     const dialog = screen.getByRole("dialog", { name: "Invite people" });
     const role = within(dialog).getByLabelText("Role");
-    // Only CBES invites representatives.
-    expect(within(role).queryByRole("option", { name: "Representative" })).not.toBeInTheDocument();
+    // Only CBES invites Representatives and Directors; a Representative invites property managers.
+    expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property manager"]);
+    expect(role).toBeDisabled();
     await userEvent.type(within(dialog).getByLabelText("Email"), "sam@demo-mgmt.com");
-    await userEvent.selectOptions(role, "director");
     await userEvent.click(within(dialog).getByRole("checkbox", { name: "Willow Bend" }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Send invitation" }));
     expect(await screen.findByText(/Invitation sent to sam@demo-mgmt.com/)).toBeInTheDocument();
     expect(calls.find((c) => c.method === "POST")).toMatchObject({
       url: "/api/organizations/org1/invitations",
-      body: { email: "sam@demo-mgmt.com", name: "", role: "director", propertyIds: ["p2"] },
+      body: { email: "sam@demo-mgmt.com", name: "", role: "manager", propertyIds: ["p2"] },
     });
   });
 

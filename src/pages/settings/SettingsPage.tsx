@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
-import { ApiError, errorMessage, useApi, type AdminSettings, type Holiday } from "../../lib/api";
+import { ApiError, errorMessage, useApi, type AdminSettings } from "../../lib/api";
 import { useUnsavedWarning } from "../../lib/useUnsavedWarning";
 import { useAdminPage } from "../../components/admin/adminPage";
 import { PageHeader, Pill, Skeleton } from "../../components/display";
@@ -91,7 +91,7 @@ function SettingsForm({ saved }: { saved: AdminSettings }) {
     let step: "issues" | "violations" | null = null;
     const accept = (res: AdminSettings, take: (fresh: Draft) => Partial<Draft>) => {
       const fresh = toDraft(res);
-      current = { ...fresh, holidays: current.holidays };
+      current = fresh;
       setBase(current);
       setDraft((d) => ({ ...d, ...take(fresh) }));
     };
@@ -102,6 +102,9 @@ function SettingsForm({ saved }: { saved: AdminSettings }) {
       if (JSON.stringify(base.weeklyReport) !== JSON.stringify(draft.weeklyReport)) patch.weeklyReport = draft.weeklyReport;
       if (base.email.reportsFrom !== draft.email.reportsFrom || base.email.quotesFrom !== draft.email.quotesFrom)
         patch.email = { reportsFrom: draft.email.reportsFrom.trim(), quotesFrom: draft.email.quotesFrom.trim() };
+      // The whole holiday list rides with the calendar, so the section saves (and is logged) once.
+      const byDate = (list: Draft["holidays"]) => [...list].sort((x, y) => x.date.localeCompare(y.date));
+      if (JSON.stringify(byDate(base.holidays)) !== JSON.stringify(byDate(draft.holidays))) patch.holidays = byDate(draft.holidays);
       if (Object.keys(patch).length) accept(await api<AdminSettings>("/admin/settings", { method: "PATCH", body: JSON.stringify(patch) }), () => ({}));
 
       const rows = <T extends { key: string; label: string; labelEs: string | null }>(list: T[], pick: (r: T) => object) =>
@@ -115,22 +118,6 @@ function SettingsForm({ saved }: { saved: AdminSettings }) {
         step = "violations";
         const items = rows(draft.violationTypes, (r) => ({ active: r.active, countsForOverwatch: r.countsForOverwatch }));
         accept(await api<AdminSettings>("/admin/settings/violation-types", { method: "PUT", body: JSON.stringify({ items }) }), (f) => ({ violationTypes: f.violationTypes }));
-      }
-
-      step = null;
-      const removed = base.holidays.filter((h) => !draft.holidays.some((d) => d.date === h.date && d.name === h.name));
-      const added = draft.holidays.filter((h) => !base.holidays.some((b) => b.date === h.date && b.name === h.name));
-      let holidays: Holiday[] = current.holidays;
-      for (const h of removed) {
-        await api(`/admin/settings/holidays?date=${h.date}`, { method: "DELETE" });
-        holidays = holidays.filter((x) => x.date !== h.date);
-        current = { ...current, holidays };
-        setBase(current);
-      }
-      for (const h of added) {
-        holidays = (await api<{ holidays: Holiday[] }>("/admin/settings/holidays", { method: "POST", body: JSON.stringify(h) })).holidays;
-        current = { ...current, holidays };
-        setBase(current);
       }
 
       toast.success("Settings saved");

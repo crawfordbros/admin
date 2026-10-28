@@ -18,5 +18,8 @@ describe("afterSignInPath", () => {
     expect(from("https://evil.example/portal")).toBe("/portal");
     expect(from("//evil.example/portal")).toBe("/portal");
     expect(from("https://cbenvironments.com/portal/login")).toBe("/portal");
+    expect(from("/portal/accept-invite")).toBe("/portal");
+    expect(from("/contact")).toBe("/portal");
+    expect(from("/administrator")).toBe("/portal");
   });
 });

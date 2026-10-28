@@ -157,7 +157,7 @@ function Kpis({ data, range }: { data: AdminOverview; range: OverviewRange }) {
       icon: "message" as const,
       iconTone: "navy" as const,
       spark: k.openReports.spark,
-      to: "/admin/reports?tab=open",
+      to: "/admin/reports?tab=open&dates=all",
     },
     {
       label: "Avg first reply",
@@ -166,7 +166,7 @@ function Kpis({ data, range }: { data: AdminOverview; range: OverviewRange }) {
       icon: "clock" as const,
       iconTone: "success" as const,
       spark: k.avgFirstReplyHours.spark,
-      to: "/admin/reports",
+      to: `/admin/reports?dates=${range}`,
     },
     {
       label: range === "today" ? "Violations today" : `Violations, ${range === "7d" ? "7" : "30"} days`,
@@ -175,7 +175,7 @@ function Kpis({ data, range }: { data: AdminOverview; range: OverviewRange }) {
       icon: "alert-triangle" as const,
       iconTone: "warning" as const,
       spark: k.violations.spark,
-      to: "/admin/violations",
+      to: `/admin/violations?stage=all&dates=${range}`,
     },
     {
       label: "Overwatch units",

@@ -47,7 +47,8 @@ export function ViolationsPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { params, update, list } = useQueryState();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // A selection belongs to the list it was made on (see `selected` below).
+  const [selection, setSelection] = useState<{ list: string; ids: Set<string> }>({ list: "", ids: new Set() });
   const [dismissing, setDismissing] = useState<string[] | null>(null);
   useAdminPage("Violations");
 
@@ -65,14 +66,23 @@ export function ViolationsPage() {
   if (to) query.set("to", to);
   if (q.trim()) query.set("q", q.trim());
   const filterQuery = query.toString();
+  const sendQuery = new URLSearchParams(filterQuery);
+  sendQuery.delete("stage");
+  const filterSend = sendQuery.toString();
   query.set("page", String(page));
   query.set("pageSize", String(PAGE_SIZE));
 
+  const listKey = query.toString();
   const violations = useQuery({
-    queryKey: ["admin", "violations", query.toString()],
-    queryFn: () => api<AdminViolationList>(`/admin/violations?${query}`),
+    queryKey: ["admin", "violations", listKey],
+    queryFn: () => api<AdminViolationList>(`/admin/violations?${listKey}`),
     placeholderData: (prev) => prev,
   });
+  // Bulk actions only ever reach violations on screen now: changing a filter, the stage or the page
+  // clears the selection, and rows that leave the list drop out of it.
+  const shown = new Set(violations.isPlaceholderData ? [] : (violations.data?.items ?? []).map((v) => v.id));
+  const selected = selection.list === listKey ? new Set([...selection.ids].filter((id) => shown.has(id))) : new Set<string>();
+  const setSelected = (ids: Set<string>) => setSelection({ list: listKey, ids });
   const options = useFilterOptions();
 
   const refresh = async () => {
@@ -88,9 +98,14 @@ export function ViolationsPage() {
     onError: (err) => toast.error(errorMessage(err)),
   });
   const send = useMutation({
-    mutationFn: () => api<{ sent: number; properties: number }>("/admin/violations/send", { method: "POST", body: "{}" }),
+    // Sends the In review violations matching the current filters, so it sends what the button counts.
+    mutationFn: () => api<{ sent: number; properties: number }>(`/admin/violations/send${filterSend ? `?${filterSend}` : ""}`, { method: "POST", body: "{}" }),
     onSuccess: async ({ sent, properties }) => {
-      toast.success(`Sent ${sent} violation${sent === 1 ? "" : "s"} to ${properties} propert${properties === 1 ? "y" : "ies"}.`);
+      toast.success(
+        properties
+          ? `Sent ${sent} violation${sent === 1 ? "" : "s"} to ${properties} propert${properties === 1 ? "y" : "ies"}.`
+          : `Moved ${sent} violation${sent === 1 ? "" : "s"} to Sent. No property managers were set up to email.`,
+      );
       await refresh();
     },
     onError: (err) => toast.error(errorMessage(err)),

@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@10.28.2",
+  "engines": { "node": ">=22.12.0" },
   "scripts": {
     "dev": "vite",
     "dev:tunnel": "vite --mode tunnel",

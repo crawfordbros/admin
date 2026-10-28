@@ -21,6 +21,8 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, onClose: () => 
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        // An open combobox or menu inside the dialog (address suggestions, a popover) closes first.
+        if ((e.target as Element | null)?.closest?.('[aria-expanded="true"]')) return;
         e.stopPropagation();
         close.current();
       }

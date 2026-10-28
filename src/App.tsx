@@ -5,6 +5,7 @@ import { config } from "./config";
 import { RequireArea } from "./components/RequireArea";
 import { RequireSecurity } from "./components/RequireSecurity";
 import { UserScopedQueries } from "./components/UserScopedQueries";
+import { PortalSessionBoundary } from "./components/PortalSession";
 import { Shell } from "./components/Shell";
 import { AdminShell } from "./components/admin/AdminShell";
 import { ToastProvider } from "./components/Toast";
@@ -71,6 +72,7 @@ export function App() {
     <BrowserRouter>
       <ClerkWithRouter>
         <UserScopedQueries>
+        <PortalSessionBoundary>
         <ToastProvider>
         <Routes>
           <Route
@@ -124,6 +126,7 @@ export function App() {
           </Route>
         </Routes>
         </ToastProvider>
+        </PortalSessionBoundary>
         </UserScopedQueries>
       </ClerkWithRouter>
     </BrowserRouter>

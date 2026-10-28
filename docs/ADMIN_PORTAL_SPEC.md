@@ -78,7 +78,7 @@ Changes:
 | Change | Detail |
 | --- | --- |
 | Add `super_admin` | Exactly one person: Nick. Has everything `admin` has, plus adding admins and upgrading users to admin. Set once in the Clerk dashboard (`{ "role": "super_admin" }`) and enforced by the API. |
-| Display `lead` as **Steward** | Keep the stored value `lead` (no data migration). Change `ROLE_LABELS.lead` to `"Steward"`. A Steward is a valet's direct manager. |
+| Display `lead` as **Steward** | Keep the stored value `lead` (no data migration). Change `ROLE_LABELS.lead` to `"Steward"`. A Steward is a valet's direct manager. **Steward is its own role, kept alongside Admin** (`users.is_steward`, migration 0015): upgrading a Steward to admin keeps them in the Steward picker, and removing either role removes only that role's access (owner decision, Oct 28, 2026). |
 | Keep `representative` | The leader of an Organization ("Representative" everywhere in the UI). |
 | Keep `director`, `manager` | Property level: **Management Director** (receives the weekly report) and **Property manager**. |
 
@@ -123,8 +123,9 @@ Add unit tests to `src/access.test.ts` for every new role/area pair.
 | Add property to an organization | ✓ | ✓ | own, max 100 per org | — | — | — |
 | Edit property basics | ✓ | ✓ | own | own (read only today; edit later) | — | — |
 | Set Connecteam job ID, assign Steward | ✓ | ✓ | — | — | — | — |
-| Invite Representatives | ✓ | ✓ | own org | — | — | — |
-| Invite Directors / Property managers | ✓ | ✓ | own org | — | — | — |
+| Invite Representatives | ✓ | ✓ | — | — | — | — |
+| Invite Directors | ✓ | ✓ | — | — | — | — |
+| Invite Property managers | ✓ | ✓ | own org | — | — | — |
 | Invite Stewards / Valets | ✓ | ✓ | — | — | — | — |
 | Add admin / upgrade user to admin | ✓ | — | — | — | — | — |
 | Remove a user's access | ✓ | ✓ (not admins) | own org people | — | — | — |
@@ -946,7 +947,7 @@ Each screen lists: purpose, layout (top to bottom, then left to right), data, in
 8. **Reports / Violations tabs:** the Reports and Violations tables from 7.2/7.4 pre-filtered to this org (reuse components).
 9. **Activity tab:** audit log entries for this org.
 
-**Invite people modal:** Email, Name, Role (Representative · Management Director · Property manager), Properties (multi, required for Director/manager). Representatives can only invite into their own org.
+**Invite people modal:** Email, Name, Role (Representative · Management Director · Property manager), Properties (multi, required for Director/manager). Only admins invite Representatives and Directors; Representatives can only invite Property managers, into their own org (owner decision, Oct 28, 2026).
 
 **Acceptance**
 - [ ] A Representative sees the same page for their org without admin controls (status, Connecteam, Steward).

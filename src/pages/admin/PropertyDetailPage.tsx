@@ -29,9 +29,10 @@ import { useToast } from "../../components/Toast";
 import { useAdminPage } from "../../components/admin/adminPage";
 import { cx } from "../../components/styles";
 import { propertyPath } from "./paths";
+import { PropertyOverwatch, ScopedReports, ScopedViolations } from "./scoped";
 
-type Tab = "overview" | "team" | "weekly" | "settings";
-const TABS: Tab[] = ["overview", "team", "weekly", "settings"];
+type Tab = "overview" | "violations" | "reports" | "overwatch" | "team" | "weekly" | "settings";
+const TABS: Tab[] = ["overview", "violations", "reports", "overwatch", "team", "weekly", "settings"];
 
 const card = "rounded-[14px] border border-line bg-white p-5";
 
@@ -107,7 +108,7 @@ export function PropertyDetailPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink to={`/portal/properties/${property.id}`} variant="secondary">
+            <ButtonLink to={`/portal/properties/${property.id}?as=manager`} variant="secondary">
               <Icon name="eye" size={18} />
               See what managers see
             </ButtonLink>
@@ -126,6 +127,9 @@ export function PropertyDetailPage() {
             onChange={(t) => update({ tab: t === "overview" ? null : t })}
             tabs={[
               { value: "overview", label: "Overview" },
+              { value: "violations", label: "Violations" },
+              { value: "reports", label: "Reports", count: data.stats.openReports || undefined },
+              { value: "overwatch", label: "Overwatch" },
               { value: "team", label: "Team", count: data.valets.length + (data.steward ? 1 : 0) + data.members.length },
               { value: "weekly", label: "Weekly reports" },
               { value: "settings", label: "Settings" },
@@ -136,6 +140,9 @@ export function PropertyDetailPage() {
 
       <div id="property-panel" role="tabpanel" aria-labelledby={`property-tab-${tab}`} className="flex flex-col gap-5">
         {tab === "overview" && <Overview detail={data} onTeam={() => update({ tab: "team" })} />}
+        {tab === "violations" && <ScopedViolations scope={{ property: property.id }} />}
+        {tab === "reports" && <ScopedReports scope={{ property: property.id }} />}
+        {tab === "overwatch" && <PropertyOverwatch propertyId={property.id} />}
         {tab === "team" && <Team orgId={orgId} detail={data} onChanged={refresh} />}
         {tab === "weekly" && <WeeklyList property={property} />}
         {tab === "settings" && <Settings orgId={orgId} property={property} onSaved={refresh} />}

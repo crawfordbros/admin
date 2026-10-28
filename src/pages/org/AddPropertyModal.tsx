@@ -410,8 +410,9 @@ export function AddPropertyModal() {
                   </label>
                   <label>
                     <span className="sr-only">Role for person {i + 1}</span>
-                    <select value={inv.role} onChange={(e) => set({ role: e.target.value as Invite["role"] })} className={input}>
-                      {(["manager", "director"] as const).map((r) => (
+                    {/* Only CBES adds Directors; Representatives invite property managers. */}
+                    <select value={inv.role} disabled={!isAdmin} onChange={(e) => set({ role: e.target.value as Invite["role"] })} className={input}>
+                      {(isAdmin ? (["manager", "director"] as const) : (["manager"] as const)).map((r) => (
                         <option key={r} value={r}>
                           {PROPERTY_ROLE_LABELS[r]}
                         </option>

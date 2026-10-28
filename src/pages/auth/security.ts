@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useClerk } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
+import { authenticatedRequest, responseJson } from "../../lib/authenticatedRequest";
 
 export type SecurityStatus = { passkey: boolean; authenticator: boolean; verified: boolean; pending: boolean };
 
@@ -8,23 +9,15 @@ export type SecurityStatus = { passkey: boolean; authenticator: boolean; verifie
 export function useSecurityApi() {
   const clerk = useClerk();
   return useCallback(async <T,>(path: string, body?: unknown): Promise<T> => {
-    const token = await clerk.session?.getToken({ skipCache: true });
-    if (!token) throw new Error("Your session has ended. Sign in again.");
-    const res = await fetch(`/api/auth/mfa${path}`, {
+    const session = clerk.session;
+    const res = await authenticatedRequest({ sessionId: session?.id, getToken: async (options) => await session?.getToken(options) ?? null }, `/auth/mfa${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: "same-origin",
       cache: "no-store",
     });
-    if (res.headers.get("cf-mitigated") === "challenge") {
-      throw new Error("The site's security service interrupted verification. Reload this page and try again.");
-    }
-    const result = await res.json().catch(() => {
-      throw new Error("The verification service is temporarily unavailable. Reload this page and try again.");
-    });
-    if (!res.ok) throw new Error(result.error ?? "We couldn't verify your security method. Try again.");
-    return result as T;
+    return responseJson<T>(res);
   }, [clerk]);
 }
 

@@ -1,11 +1,40 @@
-import { useId, type ComponentProps, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps, type MouseEvent, type ReactNode } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 import { buttonClass, cx, type Variant } from "./styles";
 
 // Same building blocks and styles as cbes-web (src/components/fields.tsx).
 
-export function Button({ variant, className, type = "button", ...props }: ComponentProps<"button"> & { variant?: Variant }) {
-  return <button type={type} className={buttonClass(variant, className)} {...props} />;
+/**
+ * Every button guards against double clicks: the extra clicks of a double-click (the browser
+ * counts them in `detail`) are ignored, so a submit button can't submit twice; and when `onClick`
+ * returns a promise the button stays disabled until it settles. useApi also shares identical
+ * writes, as the last line of defence.
+ */
+export function Button({ variant, className, type = "button", onClick, disabled, ...props }: Omit<ComponentProps<"button">, "onClick"> & {
+  variant?: Variant;
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => unknown;
+}) {
+  const [busy, setBusy] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const click = (e: MouseEvent<HTMLButtonElement>) => {
+    if (busy || e.detail > 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const result = onClick?.(e);
+    if (result && typeof (result as Promise<unknown>).then === "function") {
+      setBusy(true);
+      void (result as Promise<unknown>).catch(() => {}).finally(() => mounted.current && setBusy(false));
+    }
+  };
+  return <button type={type} className={buttonClass(variant, className)} disabled={disabled || busy} aria-busy={busy || undefined} onClick={click} {...props} />;
 }
 
 export function ButtonLink({ variant, className, ...props }: LinkProps & { variant?: Variant }) {

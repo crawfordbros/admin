@@ -42,7 +42,7 @@ export function QuotesPage() {
 
   const view = params.get("view") === "list" ? "list" : "pipeline";
   const q = params.get("q") ?? "";
-  const quotes = useQuery({ queryKey: ["admin", "quotes", q.trim()], queryFn: () => api<{ items: QuoteCard[]; kpis: QuotesKpis }>(`/admin/quotes${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`), placeholderData: (p) => p });
+  const quotes = useQuery({ queryKey: ["admin", "quotes", q.trim()], queryFn: () => api<{ items: QuoteCard[]; kpis: QuotesKpis }>(`/admin/quotes${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`), placeholderData: (p) => p, refetchInterval: 60_000 });
 
   const move = useMutation({
     mutationFn: ({ quote, stage, lostReason }: { quote: QuoteCard; stage: QuoteStage; lostReason?: string }) =>

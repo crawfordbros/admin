@@ -254,12 +254,15 @@ export function Notes({
   v,
   onAdded,
   staff,
+  readOnly,
 }: {
   area: ViolationArea;
   v: ViolationDetail;
   onAdded: () => Promise<unknown>;
   /** A valet or Steward replying from the portal: CBES-only notes to the CBES people on it. */
   staff?: boolean;
+  /** Notes are listed but can't be added (an admin previewing the manager view). */
+  readOnly?: boolean;
 }) {
   const api = useApi();
   const toast = useToast();
@@ -305,6 +308,7 @@ export function Notes({
         <span className="text-[12.5px] text-muted">Notes ping the people you choose by email and in their portal</span>
       </div>
 
+      {!readOnly && (
       <form
         className="mb-[18px] flex flex-col gap-2.5 rounded-xl border-[1.5px] border-navy p-3 print:hidden"
         onSubmit={(e) => {
@@ -386,6 +390,7 @@ export function Notes({
           </Button>
         </div>
       </form>
+      )}
 
       <ol className="m-0 flex list-none flex-col gap-4 p-0">
         {events.map((e) => (

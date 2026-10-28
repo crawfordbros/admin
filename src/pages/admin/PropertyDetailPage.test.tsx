@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderRoute } from "../../test/render";
-import { propertyDetail } from "../../test/fixtures";
+import { propertyDetail, reportRow, violationRow } from "../../test/fixtures";
 import { PropertyDetailPage } from "./PropertyDetailPage";
 
 const ROUTE = "/admin/organizations/:orgId/properties/:propertyId";
@@ -34,7 +34,7 @@ describe("PropertyDetailPage", () => {
     expect(screen.getByText("#1042 Missed pickup")).toBeInTheDocument();
     expect(screen.getByText("Steward · 4 properties")).toBeInTheDocument();
     expect(await screen.findByText(/once CBES links this property to its Connecteam job/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /See what managers see/ })).toHaveAttribute("href", "/portal/properties/p1");
+    expect(screen.getByRole("link", { name: /See what managers see/ })).toHaveAttribute("href", "/portal/properties/p1?as=manager");
   });
 
   it("assigns the Steward and a valet from the Team tab", async () => {
@@ -66,6 +66,28 @@ describe("PropertyDetailPage", () => {
     const previews = within(panel).getAllByRole("link", { name: "Preview" });
     expect(previews).toHaveLength(8);
     expect(previews[0].getAttribute("href")).toMatch(/^\/portal\/properties\/p1\/report\?week=\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("lists the property's violations, reports and Overwatch units in their tabs", async () => {
+    const calls = mockFetch((url, method) => {
+      if (url.startsWith("/api/admin/violations?"))
+        return [200, { items: [violationRow({ id: "v1", refNo: 2041 })], total: 1, page: 1, pageSize: 20, stageCounts: { new: 1, in_review: 0, sent: 0, resolved: 0, dismissed: 0 } }];
+      if (url.startsWith("/api/admin/reports?")) return [200, { items: [reportRow({ id: "r1", refNo: 1042 })], total: 1, page: 1, pageSize: 20, tabCounts: { open: 1, new: 1, in_progress: 0, resolved: 0, closed: 0 } }];
+      if (url === "/api/admin/overwatch/preview")
+        return [200, { threshold: { count: 3, days: 30, countDismissed: false }, units: [{ propertyId: "p1", propertyName: "x", orgId: "org1", orgName: "y", unit: "412", count: 4, mostCommon: "Bag not tied", lastAt: new Date().toISOString() }, { propertyId: "p9", propertyName: "z", orgId: null, orgName: null, unit: "1", count: 3, mostCommon: "Other", lastAt: new Date().toISOString() }] }];
+      return handler(url, method);
+    });
+    show("/admin/organizations/org1/properties/p1?tab=violations");
+    expect(await screen.findByRole("link", { name: /V-2041/ })).toHaveAttribute("href", "/admin/violations/v1");
+    expect(calls.some((c) => c.url.startsWith("/api/admin/violations?property=p1&stage=all"))).toBe(true);
+    expect(screen.getByRole("link", { name: "Open in Violations" })).toHaveAttribute("href", "/admin/violations?property=p1&stage=all");
+
+    await userEvent.click(screen.getByRole("tab", { name: /Reports/ }));
+    expect(await screen.findByRole("link", { name: /#1042/ })).toHaveAttribute("href", "/admin/reports/r1");
+
+    await userEvent.click(screen.getByRole("tab", { name: "Overwatch" }));
+    expect(await screen.findByText("Unit 412")).toBeInTheDocument();
+    expect(screen.queryByText("Unit 1")).not.toBeInTheDocument();
   });
 
   it("follows a property that moved to another organization", async () => {

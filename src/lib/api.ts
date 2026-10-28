@@ -1,57 +1,71 @@
 import { useCallback } from "react";
 import { useAuth } from "@clerk/clerk-react";
+import { authenticatedRequest, responseJson } from "./authenticatedRequest";
+export { ApiError } from "./authenticatedRequest";
 
 // Calls cbes-api on the same origin (/api, proxied to :8787 in development) with the Clerk
 // session token. The API decides what each person can see; these types mirror its responses.
 
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-    readonly fieldErrors: Record<string, string> = {},
-    /** The rest of the error body, such as { code, organizationId }. */
-    readonly details: Record<string, unknown> = {},
-  ) {
-    super(message);
-  }
+/**
+ * Double-click protection for every change (ADMIN_PORTAL_SPEC 4.7): a write identical to one still
+ * in flight, or finished within the last second, shares that request instead of sending another.
+ * So a second click, a repeated Enter or a twice-fired menu item can never send, save or delete
+ * twice, whatever the control.
+ */
+const inFlight = new Map<string, Promise<unknown>>();
+const SETTLE_MS = 1000;
+
+function writeKey(path: string, init: RequestInit): string | null {
+  const method = (init.method ?? "GET").toUpperCase();
+  if (method === "GET" || method === "HEAD") return null;
+  const body = init.body;
+  let part = "";
+  if (typeof body === "string") part = body;
+  else if (body instanceof FormData)
+    part = JSON.stringify([...body.entries()].map(([k, v]) => [k, typeof v === "string" ? v : `${v.name}:${v.size}:${v.type}`]));
+  else if (body instanceof Blob) part = `blob:${body.size}:${body.type}`;
+  else if (body != null) return null; // other body types can't be compared; send as is
+  return `${method} ${path} ${part}`;
 }
 
+/** Tests start each case with no shared requests. */
+export const clearPendingWrites = () => inFlight.clear();
+
 export function useApi() {
-  const { getToken } = useAuth();
-  return useCallback(
+  const { getToken, sessionId, userId } = useAuth();
+  const send = useCallback(
     async <T,>(path: string, init: RequestInit = {}): Promise<T> => {
-      const token = await getToken();
-      const headers = new Headers(init.headers);
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      // JSON for string bodies; FormData and Blob uploads set their own type.
-      if (typeof init.body === "string" && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-      let res: Response;
-      try {
-        res = await fetch(`/api${path}`, { ...init, headers });
-      } catch {
-        throw new ApiError(0, "We couldn't reach the server. Check your connection and try again.");
-      }
-      if (res.status === 204) return undefined as T;
-      const body = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string> } & Record<string, unknown>;
-      if (!res.ok) throw new ApiError(res.status, body.error ?? "Something went wrong. Please try again.", body.fieldErrors, body);
-      return body as T;
+      return responseJson<T>(await authenticatedRequest({ getToken, sessionId }, path, init));
     },
-    [getToken],
+    [getToken, sessionId],
+  );
+  return useCallback(
+    <T,>(path: string, init: RequestInit = {}): Promise<T> => {
+      const write = writeKey(path, init);
+      if (!write) return send<T>(path, init);
+      const key = `${userId}:${sessionId}:${write}`;
+      const pending = inFlight.get(key);
+      if (pending) return pending as Promise<T>;
+      const request = send<T>(path, init);
+      inFlight.set(key, request);
+      const release = () => setTimeout(() => inFlight.get(key) === request && inFlight.delete(key), SETTLE_MS);
+      request.then(release, release);
+      return request;
+    },
+    [send, sessionId, userId],
   );
 }
 
 /** Fetches an image (or other file) the API only serves to signed-in users. */
 export function useApiBlob() {
-  const { getToken } = useAuth();
+  const { getToken, sessionId } = useAuth();
   return useCallback(
     async (path: string): Promise<Blob | null> => {
-      const token = await getToken();
-      const res = await fetch(`/api${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      const res = await authenticatedRequest({ getToken, sessionId }, path);
       if (res.status === 404) return null;
-      if (!res.ok) throw new ApiError(res.status, "The image couldn't be loaded.");
       return res.blob();
     },
-    [getToken],
+    [getToken, sessionId],
   );
 }
 
@@ -95,6 +109,9 @@ export type PropertyOverview = {
   units: number;
   openReports: number;
   recentReports: { refNo: number; createdAt: string; issueLabel: string; unit: string | null; status: ReportStatus; statusLabel: string }[];
+  /** Who services the property and who manages it (read only here). */
+  team?: { steward: PersonRef | null; valets: PersonRef[]; staff: (PersonRef & { role: PropertyRole })[] };
+  stats?: { violations30d: number; violationsPer100Units: number | null; overwatchUnits: number; overwatchThreshold: { count: number; days: number } };
 };
 
 export type AdminPropertyRow = {
@@ -167,13 +184,22 @@ export type OrganizationProperty = {
   contractType: ContractType | null;
   photoVersion: string | null;
   openReports: number;
+  violations30d?: number;
   manager: PersonRef | null;
   steward: PersonRef | null;
 };
 
 export type OrganizationDetail = {
   organization: OrganizationProfile;
-  kpis: { properties: number; units: number; openReports: number; oldestOpenHours: number | null; avgReplyHours: number | null };
+  kpis: {
+    properties: number;
+    units: number;
+    openReports: number;
+    oldestOpenHours: number | null;
+    avgReplyHours: number | null;
+    violations30d?: number;
+    violationsPer100Units?: number | null;
+  };
   properties: OrganizationProperty[];
   representatives: { id: string; email: string; name: string | null; addedAt: string }[];
   staff: { id: string; email: string; name: string | null; role: PropertyRole; propertyId: string; propertyName: string }[];
@@ -418,6 +444,8 @@ export type AdminUserRow = {
   lastActiveAt: string | null;
   status: "active" | "invited" | "removed";
   invitedAt: string | null;
+  /** Steward is its own role, kept alongside Admin (an admin can also be a property's Steward). */
+  steward?: boolean;
 };
 
 export type AdminUserList = { items: AdminUserRow[]; total: number; page: number; pageSize: number; groupCounts: Record<UserGroup, number> };
@@ -590,3 +618,6 @@ export type AdminOverview = {
   tonight: { propertyId: string; orgId: string | null; name: string; orgName: string | null; stewardName: string | null; progressPct: number | null; status: TonightStatus }[];
   orgs: { id: string; name: string; logoVersion: string | null; properties: number; openReports: number; violations30d: number; avgReplyHours: number | null }[];
 };
+
+export type ActivityEntry = AuditEntry & { summary: string };
+export type ActivityPage = { items: ActivityEntry[]; nextBefore: string | null };

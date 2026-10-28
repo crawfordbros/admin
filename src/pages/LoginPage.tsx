@@ -8,6 +8,7 @@ import { CodeField, PasswordField, SignedInAs, StepHeading, TextButton } from ".
 import { afterSignInPath } from "./auth/redirect";
 import { SetupMfaStep } from "./auth/SetupMfaStep";
 import { useCompleteSession, usePendingMfaSetup } from "./auth/session";
+import { INACTIVITY_NOTICE } from "../components/PortalSession";
 
 type SignIn = NonNullable<ReturnType<typeof useSignIn>["signIn"]>;
 
@@ -47,6 +48,8 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
+      {params.get("reason") === "inactivity" && <p role="status">{INACTIVITY_NOTICE}</p>}
+      {params.get("reason") === "expired" && <p role="status">Please sign in again to continue.</p>}
       <SignInSteps signIn={signIn} to={to} ticket={params.get("__clerk_ticket")} pendingMfa={pendingMfa} />
     </AuthLayout>
   );

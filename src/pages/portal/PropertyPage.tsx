@@ -1,9 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { ApiError, errorMessage, useApi, type Property, type PropertyOverview } from "../../lib/api";
-import { CONTRACT_LABELS, formatDate } from "../../lib/format";
-import { Alert, Button, ButtonLink, Card, Loading, Stat, TextField } from "../../components/ui";
+import { ApiError, errorMessage, useApi, type Property, type PropertyOverview, type WeeklyReport } from "../../lib/api";
+import { CONTRACT_LABELS, PROPERTY_ROLE_LABELS, formatCount, formatDate } from "../../lib/format";
+import { useManagerPreview } from "../../lib/preview";
+import { Alert, Button, ButtonLink, Card, Loading, TextField } from "../../components/ui";
+import { Avatar, Pill, StatTile } from "../../components/display";
+import { Icon } from "../../components/icons";
+import { propertyPath } from "../admin/paths";
 import { PropertyViolations } from "../violations/PortalViolations";
 
 /** A property manager's home: their property's details and resident reports. Representatives can edit the basics. */
@@ -12,9 +16,16 @@ export function PropertyPage() {
   const api = useApi();
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const preview = useManagerPreview();
   const { data, error, isPending } = useQuery({
-    queryKey: ["portal", "property", id],
-    queryFn: () => api<PropertyOverview>(`/portal/properties/${id}`),
+    queryKey: ["portal", "property", id, preview.on],
+    queryFn: () => api<PropertyOverview>(`/portal/properties/${id}${preview.query}`),
+  });
+  // Last week's report, for nights serviced and the average clock-in.
+  const week = useQuery({
+    queryKey: ["portal", "report", id, ""],
+    queryFn: () => api<WeeklyReport>(`/portal/properties/${id}/report`),
+    retry: false,
   });
   useEffect(() => {
     if (data) document.title = `${data.property.name} | CBES Portal`;
@@ -22,7 +33,9 @@ export function PropertyPage() {
 
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
-  const { property, canManage, openReports, recentReports, buildings, units } = data;
+  const { property, openReports, recentReports, buildings, units, team, stats } = data;
+  const canManage = data.canManage && !preview.on;
+  const valet = week.data?.valetTimes;
 
   const details: [string, string | number | null][] = [
     ["Address", [property.address, property.city].filter(Boolean).join(", ") || null],
@@ -35,6 +48,17 @@ export function PropertyPage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5">
+      {preview.on && (
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-info/30 bg-info-bg px-4 py-3 text-[14px] text-info">
+          <Icon name="eye" size={18} />
+          <span className="min-w-0 flex-1">
+            <strong>Previewing what property managers see.</strong> Internal violations and CBES-only notes are hidden, and changes are turned off.
+          </span>
+          <Link to={propertyPath(property.organizationId, property.id)} className="font-bold text-info">
+            Back to admin view
+          </Link>
+        </div>
+      )}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="mt-0 mb-1 text-sm font-semibold text-gold-text">
@@ -51,10 +75,22 @@ export function PropertyPage() {
         </ButtonLink>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat value={openReports} label="Open resident reports" />
-        <Stat value={buildings || "—"} label="Buildings" />
-        <Stat value={units || property.unitCount || "—"} label="Units" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
+        <StatTile
+          label="Nights serviced"
+          value={valet?.status === "ok" ? valet.nights.length : "—"}
+          sub={valet && valet.status !== "ok" ? "Not linked to Connecteam yet" : (week.data?.week.label ?? "Last week")}
+        />
+        <StatTile label="Avg valet clock-in" value={valet?.status === "ok" ? (valet.avgClockIn ?? "—") : "—"} sub="From Connecteam" />
+        <StatTile label="Open resident reports" value={openReports} sub={`${formatCount(units || property.unitCount || 0)} units · ${buildings || "—"} buildings`} />
+        {stats && (
+          <StatTile
+            label="Violations, 30 days"
+            value={stats.violations30d}
+            sub={stats.violationsPer100Units === null ? "Sent to the property" : `${stats.violationsPer100Units} per 100 units`}
+          />
+        )}
+        {stats && <StatTile label="Units at threshold" value={stats.overwatchUnits} sub="Overwatch in Phase 2" />}
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -81,8 +117,10 @@ export function PropertyPage() {
             </ul>
           )}
         </Card>
-        <PropertyViolations propertyId={property.id} />
+        <PropertyViolations propertyId={property.id} preview={preview.on} />
         </div>
+
+        <div className="flex min-w-0 flex-col gap-5">
 
         <Card
           title="Property details"
@@ -130,8 +168,61 @@ export function PropertyPage() {
             <a href="mailto:office@cbenvironments.com">office@cbenvironments.com</a>.
           </p>
         </Card>
+        {team && <TeamCard team={team} />}
+        {stats && <OverwatchCard stats={stats} />}
+        </div>
       </div>
     </div>
+  );
+}
+
+/** Who services the property (CBES) and who manages it, read only (ADMIN_PORTAL_SPEC 7.10). */
+function TeamCard({ team }: { team: NonNullable<PropertyOverview["team"]> }) {
+  const person = (p: { id: string; name: string }, role: string) => (
+    <li key={`${role}:${p.id}`} className="flex items-center gap-2.5">
+      <Avatar name={p.name} seed={p.id} size={30} />
+      <span className="min-w-0">
+        <span className="block truncate text-[14px] font-semibold">{p.name}</span>
+        <span className="block text-[12.5px] text-muted">{role}</span>
+      </span>
+    </li>
+  );
+  return (
+    <Card title="Team">
+      <h3 className="mt-0 mb-2 text-[13px] font-bold text-muted">CBES</h3>
+      {team.steward || team.valets.length ? (
+        <ul className="m-0 mb-4 flex list-none flex-col gap-2.5 p-0">
+          {team.steward && person(team.steward, "Steward")}
+          {team.valets.map((v) => person(v, "Valet"))}
+        </ul>
+      ) : (
+        <p className="mt-0 mb-4 text-[14px] text-muted">CBES hasn't assigned a team yet.</p>
+      )}
+      <h3 className="mt-0 mb-2 text-[13px] font-bold text-muted">Property staff</h3>
+      {team.staff.length ? (
+        <ul className="m-0 flex list-none flex-col gap-2.5 p-0">{team.staff.map((s) => person(s, PROPERTY_ROLE_LABELS[s.role]))}</ul>
+      ) : (
+        <p className="m-0 text-[14px] text-muted">No property staff yet.</p>
+      )}
+    </Card>
+  );
+}
+
+function OverwatchCard({ stats }: { stats: NonNullable<PropertyOverview["stats"]> }) {
+  const n = stats.overwatchUnits;
+  return (
+    <section className="rounded-xl border border-dashed border-field bg-subtle p-5">
+      <h2 className="m-0 flex flex-wrap items-center gap-2 text-lg text-ink">
+        Overwatch <Pill tone="gold">Phase 2</Pill>
+      </h2>
+      <p className="mt-1.5 mb-3 text-[14px] leading-relaxed text-muted">
+        {n ? `${n} unit${n === 1 ? " has" : "s have"}` : "No unit has"} {stats.overwatchThreshold.count} or more violations in the last {stats.overwatchThreshold.days} days. Overwatch cases
+        for following up with those residents arrive in Phase 2.
+      </p>
+      <button type="button" disabled className="min-h-11 cursor-not-allowed rounded-lg border border-line bg-white px-4 text-[14px] font-bold text-placeholder">
+        Create Overwatch case
+      </button>
+    </section>
   );
 }
 

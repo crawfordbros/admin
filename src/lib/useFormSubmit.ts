@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { ApiError, errorMessage } from "./api";
 
 /** Shared submit handling: field errors (422) go next to their fields, anything else above the buttons. */
@@ -6,8 +6,12 @@ export function useFormSubmit<T>(send: (values: FormData) => Promise<T>, after: 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // A second submit (double-click, or Enter pressed twice) while one is running is ignored.
+  const running = useRef(false);
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (running.current) return;
+    running.current = true;
     const form = e.currentTarget;
     const values = new FormData(form);
     setSaving(true);
@@ -19,6 +23,7 @@ export function useFormSubmit<T>(send: (values: FormData) => Promise<T>, after: 
       if (err instanceof ApiError && Object.keys(err.fieldErrors).length) setErrors(err.fieldErrors);
       else setFormError(errorMessage(err));
     } finally {
+      running.current = false;
       setSaving(false);
     }
   }

@@ -86,6 +86,33 @@ describe("UsersPage", () => {
     expect(calls.find((c) => c.method === "DELETE")?.url).toBe("/api/admin/users/u_lead/access");
   });
 
+  it("keeps the Steward role alongside Admin, and the Super Admin can remove it", async () => {
+    asRole("super_admin");
+    const steward = row({ id: "u_admin2", name: "Andre Lewis", email: "andre@cbenvironments.com", role: "admin", access: "Everything", steward: true });
+    const calls = mockFetch((url, method) =>
+      url.startsWith("/api/admin/users?") ? [200, { ...list, items: [...users, steward] }] : url === "/api/admin/users/u_admin2/steward" ? [200, { user: { ...steward, steward: false } }] : handler(url, method),
+    );
+    show();
+    const r = (await screen.findByText("Andre Lewis")).closest("tr")!;
+    expect(within(r).getByText("Admin")).toBeInTheDocument();
+    expect(within(r).getByText("Steward")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Actions for Andre Lewis" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove Steward role" }));
+    await waitFor(() => expect(calls.find((c) => c.method === "PUT")).toMatchObject({ url: "/api/admin/users/u_admin2/steward", body: { steward: false } }));
+  });
+
+  it("offers the Super Admin removing admin from an admin who is also a Steward", async () => {
+    asRole("super_admin");
+    const steward = row({ id: "u_admin2", name: "Andre Lewis", email: "andre@cbenvironments.com", role: "admin", access: "Everything", steward: true });
+    mockFetch((url, method) => (url.startsWith("/api/admin/users?") ? [200, { ...list, items: [...users, steward] }] : handler(url, method)));
+    show();
+    await userEvent.click(await screen.findByRole("button", { name: "Actions for Andre Lewis" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Remove admin access" }));
+    const dialog = screen.getByRole("dialog", { name: "Remove admin access" });
+    expect(dialog).toHaveTextContent("They stay the Steward on the properties they lead");
+    expect(await within(dialog).findByRole("button", { name: "Confirm with passkey and remove" })).toBeEnabled();
+  });
+
   it("turns a removed account back on", async () => {
     asRole("admin");
     const calls = mockFetch((url, method) =>

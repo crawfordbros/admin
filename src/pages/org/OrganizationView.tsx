@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router-dom";
 import { errorMessage, useApi, type InviteRole, type OrganizationDetail, type OrganizationProperty } from "../../lib/api";
@@ -17,6 +17,10 @@ import { useToast } from "../../components/Toast";
 import { useAdminPage } from "../../components/admin/adminPage";
 import { cx } from "../../components/styles";
 import { propertyPath } from "../admin/paths";
+// Admin-only tabs, loaded when opened so Representatives' pages stay small.
+const ScopedReports = lazy(() => import("../admin/scoped").then((m) => ({ default: m.ScopedReports })));
+const ScopedViolations = lazy(() => import("../admin/scoped").then((m) => ({ default: m.ScopedViolations })));
+const OrgActivity = lazy(() => import("../admin/scoped").then((m) => ({ default: m.OrgActivity })));
 import type { OrgOutletContext } from "./AddPropertyModal";
 
 type Props = {
@@ -27,7 +31,7 @@ type Props = {
   isAdmin: boolean;
 };
 
-type Tab = "properties" | "people" | "invitations";
+type Tab = "properties" | "people" | "invitations" | "reports" | "violations" | "activity";
 
 /**
  * One organization: its properties, people and pending invitations (ADMIN_PORTAL_SPEC 7.8). CBES
@@ -77,7 +81,9 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
   const propertyLink = (propertyId: string) => (area === "admin" ? propertyPath(organization.id, propertyId) : `/portal/properties/${propertyId}`);
   const slots = Math.max(0, organization.propertyLimit - properties.length);
   const people = new Set([...representatives.map((r) => r.id), ...staff.map((s) => s.id)]).size;
-  const tab = (["properties", "people", "invitations"].includes(params.get("tab") ?? "") ? params.get("tab") : "properties") as Tab;
+  // Reports, Violations and Activity read admin-only endpoints; Representatives see them per property.
+  const tabs: Tab[] = area === "admin" ? ["properties", "people", "invitations", "reports", "violations", "activity"] : ["properties", "people", "invitations"];
+  const tab = (tabs.includes(params.get("tab") as Tab) ? params.get("tab") : "properties") as Tab;
 
   return (
     <div className="flex flex-col gap-5">
@@ -140,6 +146,13 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
               { value: "properties", label: "Properties", count: properties.length },
               { value: "people", label: "People", count: people },
               { value: "invitations", label: "Invitations", count: invitations.length },
+              ...(area === "admin"
+                ? ([
+                    { value: "reports", label: "Reports", count: kpis.openReports || undefined },
+                    { value: "violations", label: "Violations", count: kpis.violations30d || undefined },
+                    { value: "activity", label: "Activity" },
+                  ] as const)
+                : []),
             ]}
           />
         </div>
@@ -154,6 +167,13 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
           sub={kpis.oldestOpenHours === null ? "None waiting" : `Oldest ${age(kpis.oldestOpenHours)}`}
           tone={kpis.oldestOpenHours !== null && kpis.oldestOpenHours >= 20 ? "bad" : "neutral"}
         />
+        {kpis.violations30d !== undefined && (
+          <StatTile
+            label="Violations, 30 days"
+            value={formatCount(kpis.violations30d)}
+            sub={kpis.violationsPer100Units == null ? undefined : `${kpis.violationsPer100Units} per 100 units`}
+          />
+        )}
         <StatTile label="Avg first reply" value={replyHours(kpis.avgReplyHours)} sub="Last 30 days" />
       </div>
 
@@ -281,6 +301,11 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
           </section>
         )}
 
+        <Suspense fallback={null}>
+          {tab === "reports" && <ScopedReports scope={{ org: organization.id }} showProperty />}
+          {tab === "violations" && <ScopedViolations scope={{ org: organization.id }} showProperty />}
+          {tab === "activity" && <OrgActivity orgId={organization.id} />}
+        </Suspense>
         {tab === "invitations" && (
           <section className="rounded-[14px] border border-line bg-white">
             {invitations.length === 0 ? (
@@ -296,7 +321,8 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
                     role={INVITE_ROLE_LABELS[i.role]}
                     detail={`${i.propertyName ?? `All of ${organization.name}`} · sent ${timeAgo(i.createdAt)}`}
                     action={
-                      (isAdmin || i.role !== "representative") && (
+                      // Representatives manage the property manager invitations they can send.
+                      (isAdmin || i.role === "manager") && (
                         <Button
                           variant="secondary"
                           className="min-h-9! px-3! text-[13px]"
@@ -501,6 +527,11 @@ function PropertyCard({ orgId, property: p, to }: { orgId: string; property: Org
           <Pill tone={p.openReports ? "danger" : "success"}>
             {p.openReports} open report{p.openReports === 1 ? "" : "s"}
           </Pill>
+          {p.violations30d !== undefined && (
+            <Pill tone={p.violations30d ? "warning" : "neutral"}>
+              {p.violations30d} violation{p.violations30d === 1 ? "" : "s"} 30d
+            </Pill>
+          )}
         </span>
         <span className="mt-auto flex items-center justify-between gap-2 border-t border-row-line pt-2.5 text-[12.5px]">
           <span className="flex min-w-0 items-center gap-1.5">
@@ -648,7 +679,8 @@ function InviteModal({
 }) {
   const api = useApi();
   const [role, setRole] = useState<InviteRole>(isAdmin ? "representative" : "manager");
-  const roles = (Object.keys(INVITE_ROLE_LABELS) as InviteRole[]).filter((r) => isAdmin || r !== "representative");
+  // Only CBES adds Representatives and Directors; Representatives invite property managers.
+  const roles: InviteRole[] = isAdmin ? (Object.keys(INVITE_ROLE_LABELS) as InviteRole[]) : ["manager"];
   const forProperties = role !== "representative";
 
   const { onSubmit, errors, formError, saving } = useFormSubmit(
@@ -687,8 +719,15 @@ function InviteModal({
           name="role"
           value={role}
           onChange={(e) => setRole(e.target.value as InviteRole)}
+          disabled={roles.length === 1}
           error={errors.role}
-          hint={role === "representative" ? `Sees and manages every property in ${organizationName}.` : "Sees only the properties you choose."}
+          hint={
+            role === "representative"
+              ? `Sees and manages every property in ${organizationName}.`
+              : isAdmin
+                ? "Sees only the properties you choose."
+                : "Sees only the properties you choose. To add a Director or another Representative, ask CBES."
+          }
           className="sm:col-span-2"
         >
           {roles.map((r) => (

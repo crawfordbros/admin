@@ -11,9 +11,29 @@ function Probe() {
   return <p>{data ?? "loading"}</p>;
 }
 
-afterEach(() => as("user_1"));
+afterEach(() => {
+  as("user_1");
+  delete (globalThis as { __clerkSessionId?: string }).__clerkSessionId;
+});
 
 describe("UserScopedQueries", () => {
+  it("drops cached data when the same person gets a new session", async () => {
+    const auth = globalThis as { __clerkSessionId?: string };
+    auth.__clerkSessionId = "first-session";
+    let value = "previous session data";
+    function SessionProbe() {
+      const { data } = useQuery({ queryKey: ["private"], queryFn: async () => value, staleTime: Infinity });
+      return <p>{data ?? "loading"}</p>;
+    }
+    const { rerender } = render(<UserScopedQueries><SessionProbe /></UserScopedQueries>);
+    await screen.findByText("previous session data");
+    auth.__clerkSessionId = "second-session";
+    value = "new session data";
+    rerender(<UserScopedQueries><SessionProbe /></UserScopedQueries>);
+    expect(screen.queryByText("previous session data")).not.toBeInTheDocument();
+    expect(await screen.findByText("new session data")).toBeInTheDocument();
+  });
+
   it("never shows one person's cached data to the next person who signs in", async () => {
     as("user_a");
     const { rerender } = render(

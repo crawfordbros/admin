@@ -50,7 +50,8 @@ export function ReportsPage() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { params, update, list } = useQueryState();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // A selection belongs to the list it was made on (see `selected` below).
+  const [selection, setSelection] = useState<{ list: string; ids: Set<string> }>({ list: "", ids: new Set() });
   const [logging, setLogging] = useState(false);
   const [naming, setNaming] = useState(false);
   useAdminPage("Reports");
@@ -75,7 +76,13 @@ export function ReportsPage() {
   listQuery.set("page", String(page));
   listQuery.set("pageSize", String(PAGE_SIZE));
 
-  const reports = useQuery({ queryKey: ["admin", "reports", "list", listQuery.toString()], queryFn: () => api<AdminReportList>(`/admin/reports?${listQuery}`), placeholderData: (p) => p });
+  const listKey = listQuery.toString();
+  const reports = useQuery({ queryKey: ["admin", "reports", "list", listKey], queryFn: () => api<AdminReportList>(`/admin/reports?${listKey}`), placeholderData: (p) => p });
+  // Bulk actions only ever reach reports on screen now: changing a filter, the tab, the sort or the
+  // page clears the selection, and rows that leave the list (after a refresh) drop out of it.
+  const shown = new Set(reports.isPlaceholderData ? [] : (reports.data?.items ?? []).map((r) => r.id));
+  const selected = selection.list === listKey ? new Set([...selection.ids].filter((id) => shown.has(id))) : new Set<string>();
+  const setSelected = (ids: Set<string>) => setSelection({ list: listKey, ids });
   const summary = useQuery({ queryKey: ["admin", "reports", "summary", filterQuery.toString()], queryFn: () => api<ReportsSummary>(`/admin/reports/summary?${filterQuery}`), placeholderData: (p) => p });
   const options = useFilterOptions(filters.org ?? []);
   const views = useQuery({ queryKey: ["saved-views", "reports"], queryFn: () => api<{ items: SavedView[] }>("/saved-views?page=reports") });

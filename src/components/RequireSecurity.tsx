@@ -5,6 +5,7 @@ import { Alert, Button, Loading } from "./ui";
 import { AuthLayout } from "../pages/auth/AuthLayout";
 import { SetupMfaStep } from "../pages/auth/SetupMfaStep";
 import { useSecurityStatus } from "../pages/auth/security";
+import { PortalSessionActivity } from "./PortalSession";
 
 /** Every protected route, including an OAuth return or a direct URL, checks the server's MFA proof. */
 export function RequireSecurity({ children }: { children: ReactNode }) {
@@ -21,5 +22,5 @@ export function RequireSecurity({ children }: { children: ReactNode }) {
   if (!security.data.verified || security.data.pending) {
     return <AuthLayout><SetupMfaStep to={location.pathname + location.search} /></AuthLayout>;
   }
-  return <>{children}</>;
+  return <PortalSessionActivity>{children}</PortalSessionActivity>;
 }

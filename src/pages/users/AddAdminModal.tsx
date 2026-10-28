@@ -41,7 +41,9 @@ function AddAdmin() {
   const [mode, setMode] = useState<"invite" | "upgrade">(preselected ? "upgrade" : "invite");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [search, setSearch] = useState("");
+  // Opened from a row's "Upgrade to Admin", the search starts on that person so they're in the
+  // first page of results however many users there are.
+  const [search, setSearch] = useState(params.get("q") ?? "");
   const [chosenId, setChosenId] = useState<string | null>(preselected);
   const [understood, setUnderstood] = useState(false);
   const [code, setCode] = useState("");

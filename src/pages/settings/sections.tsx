@@ -81,7 +81,7 @@ export function OverwatchSection({ value, onChange, changed }: { value: Overwatc
     <SettingsSection id="overwatch" title="Overwatch threshold" description="When a unit is flagged. Used on violations and weekly reports now, and by Overwatch in Phase 2." changed={changed}>
       <div className="flex flex-wrap items-center gap-3 text-[16px] font-semibold">
         <span>Flag a unit after</span>
-        <span role="group" aria-label="Number of violations" className="inline-flex items-center overflow-hidden rounded-xl border-[1.5px] border-navy">
+        <span role="group" aria-label="Number of violations" data-repeatable className="inline-flex items-center overflow-hidden rounded-xl border-[1.5px] border-navy">
           <button type="button" aria-label="Fewer violations" className={stepper} disabled={value.count <= 2} onClick={() => set({ count: value.count - 1 })}>
             −
           </button>

@@ -7,6 +7,9 @@ import { lastCompletedWeek } from "../../lib/dates";
 import { mockFetch, renderRoute } from "../../test/render";
 import { WeeklyReportsPage } from "./WeeklyReportsPage";
 
+const pdf = vi.hoisted(() => ({ buildOrgPdf: vi.fn(() => ({ save: vi.fn() })) }));
+vi.mock("../../lib/report-pdf", () => ({ buildOrgPdf: pdf.buildOrgPdf, orgFileName: () => "org.pdf", downloadReportPdf: vi.fn(), buildReportPdf: vi.fn(), reportFileName: () => "r.pdf" }));
+
 const row = (o: Partial<WeeklyRow>): WeeklyRow => ({
   propertyId: "p1", name: "The Oaks at Decatur", units: 312, city: "Decatur", photoVersion: null,
   nights: { scheduled: 5, serviced: 4, byNight: [true, true, false, true, true] }, valetStatus: "ok", avgClockIn: "8:06 PM",
@@ -67,6 +70,17 @@ describe("WeeklyReportsPage", () => {
     expect(screen.getByTestId("location")).toHaveTextContent(`week=${earlier}`);
     await waitFor(() => expect(calls.some((c) => c.url.endsWith(`week=${earlier}`))).toBe(true));
     expect(screen.getByRole("button", { name: "Next week" })).toBeEnabled();
+  });
+
+  it("builds the organization PDF from all its properties, whatever the search hides", async () => {
+    mockFetch((url, method) => (url.startsWith("/api/portal/properties/") ? [200, { property: { id: "x" } }] : handler(url, method)));
+    show("/admin/weekly-reports?q=oaks");
+    const group = (await screen.findByRole("heading", { name: "Peachtree Residential" })).closest("section")!;
+    expect(within(group).queryByText("Brookhaven Terrace")).not.toBeInTheDocument();
+    await userEvent.click(within(group).getByRole("button", { name: "Org PDF" }));
+    await waitFor(() => expect(pdf.buildOrgPdf).toHaveBeenCalled());
+    const rows = (pdf.buildOrgPdf.mock.calls[0] as unknown[])[2] as { name: string }[];
+    expect(rows.map((r) => r.name)).toEqual(["The Oaks at Decatur", "Brookhaven Terrace"]);
   });
 
   it("filters to failed deliveries", async () => {

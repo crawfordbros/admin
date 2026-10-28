@@ -75,6 +75,16 @@ describe("ReportsPage", () => {
     expect(calls.find((c) => c.url === "/api/admin/reports/bulk")?.body).toEqual({ ids: ["r1"], assigneeUserId: "u_ad" });
   });
 
+  it("drops the selection when the list changes, so bulk actions only reach reports on screen", async () => {
+    mockFetch(handler);
+    show();
+    const row = (await screen.findByText("Missed pickup", { selector: "a" })).closest("tr")!;
+    await userEvent.click(within(row).getByRole("checkbox", { name: "Select row" }));
+    expect(screen.getByRole("region", { name: "Selected reports" })).toHaveTextContent("1 selected");
+    await userEvent.click(screen.getByRole("button", { name: "Trash in hallway" }));
+    expect(screen.queryByRole("region", { name: "Selected reports" })).not.toBeInTheDocument();
+  });
+
   it("saves the current view", async () => {
     const calls = mockFetch(handler);
     show("/admin/reports?sort=clock");

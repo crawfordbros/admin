@@ -55,6 +55,7 @@ describe("required second factor after any first factor", () => {
     clerk.session = fakeSession();
     let verified = false;
     mockFetch((url) => {
+      if (url === "/api/auth/session") return [200, { serverTime: Date.now(), lastActivityAt: Date.now(), expiresAt: Date.now() + 30 * 60_000 }];
       if (url.endsWith("/register/options")) return [200, { options: {}, challengeId: "challenge-1" }];
       if (url.endsWith("/register/verify")) { verified = true; return [200, { verified: true }]; }
       return [200, { passkey: verified, authenticator: false, verified, pending: false }];

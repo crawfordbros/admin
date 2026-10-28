@@ -31,6 +31,18 @@ describe("Modal", () => {
     );
   }
 
+  it("lets an open combobox inside take Escape without closing the dialog", async () => {
+    const onClose = vi.fn();
+    render(
+      <Modal title="Add property" onClose={onClose}>
+        <input aria-label="Address" role="combobox" aria-expanded="true" aria-controls="list" />
+      </Modal>,
+    );
+    screen.getByRole("combobox", { name: "Address" }).focus();
+    await userEvent.keyboard("{Escape}");
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it("focuses the first field, keeps Tab inside, and closes on Escape back to the opener", async () => {
     render(<Harness />);
     const opener = screen.getByRole("button", { name: "Add an admin" });

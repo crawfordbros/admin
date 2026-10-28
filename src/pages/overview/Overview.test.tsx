@@ -40,7 +40,8 @@ describe("OverviewPage", () => {
 
     expect(await screen.findByText("Tonight is a service night. 2 of 3 properties have a valet clocked in.")).toBeInTheDocument();
     const open = screen.getByRole("link", { name: /Open resident reports/ });
-    expect(open).toHaveAttribute("href", "/admin/reports?tab=open");
+    expect(open).toHaveAttribute("href", "/admin/reports?tab=open&dates=all");
+    expect(screen.getByRole("link", { name: /Violations, 7 days/ })).toHaveAttribute("href", "/admin/violations?stage=all&dates=7d");
     expect(open).toHaveTextContent("−2 vs the previous 7 days");
     expect(screen.getByRole("link", { name: /Violations, 7 days/ })).toHaveTextContent("+6 vs the previous 7 days");
     expect(screen.getByRole("link", { name: /Overwatch units/ })).toHaveTextContent("Phase 2 preview");

@@ -7,7 +7,7 @@ export function afterSignInPath(search: string, origin = window.location.origin)
   if (!raw) return "/portal";
   try {
     const url = new URL(raw, origin);
-    if (url.origin !== origin || url.pathname.startsWith("/portal/login")) return "/portal";
+    if (url.origin !== origin || !/^\/(admin|portal)(\/|$)/.test(url.pathname) || /^\/portal\/(login|accept-invite)(\/|$)/.test(url.pathname)) return "/portal";
     return url.pathname + url.search + url.hash;
   } catch {
     return "/portal";

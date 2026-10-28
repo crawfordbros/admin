@@ -70,6 +70,10 @@ describe("AddPropertyModal", () => {
 
   it("hides CBES-only fields from representatives and never sends them", async () => {
     const { calls, dialog } = open(false, api());
+    // Representatives invite property managers only.
+    const role = within(dialog).getByLabelText("Role for person 1");
+    expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property manager"]);
+    expect(role).toBeDisabled();
     expect(within(dialog).queryByLabelText("Connecteam job ID")).not.toBeInTheDocument();
     expect(within(dialog).queryByLabelText("Steward")).not.toBeInTheDocument();
     await userEvent.type(within(dialog).getByLabelText("Property name"), "Sage Pointe");

@@ -81,8 +81,11 @@ export function WeeklyReportsPage() {
       const [{ downloadReportPdf }, rep] = await Promise.all([import("../../lib/report-pdf"), report(r.propertyId)]);
       downloadReportPdf(rep);
     });
-  const orgPdf = (g: Group) =>
-    download(`org:${g.org.id}`, async () => {
+  // The organization's PDF always covers every one of its properties, whatever the search or
+  // delivery filter is hiding on screen.
+  const orgPdf = (shownGroup: Group) =>
+    download(`org:${shownGroup.org.id}`, async () => {
+      const g = data!.groups.find((x) => x.org.id === shownGroup.org.id) ?? shownGroup;
       const [{ buildOrgPdf, orgFileName }, reports] = await Promise.all([import("../../lib/report-pdf"), Promise.all(g.rows.map((r) => report(r.propertyId)))]);
       buildOrgPdf(g.org.name, data!.week.label, g.rows, reports).save(orgFileName(g.org.name, week));
     });

@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import { useClerk } from "@clerk/clerk-react";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
-import { ApiError, useApi } from "./api";
+import { useApi } from "./api";
+import { authenticatedRequest, responseJson, SessionTransition } from "./authenticatedRequest";
+import { endSession } from "./sessionState";
 import { useSecurityStatus } from "../pages/auth/security";
 
 export type StepUpMethod = "passkey" | "authenticator";
@@ -14,6 +16,7 @@ export type StepUpMethod = "passkey" | "authenticator";
 export function useStepUp() {
   const api = useApi();
   const clerk = useClerk();
+  const sessionId = clerk.session?.id;
   const status = useSecurityStatus();
   const method: StepUpMethod | null = status.data?.passkey ? "passkey" : status.data?.authenticator ? "authenticator" : null;
 
@@ -35,7 +38,10 @@ export function useStepUp() {
         return stepUpToken;
       }
       const session = clerk.session;
-      if (!session) throw new Error("Your session has ended. Sign in again.");
+      if (!session) {
+        if (sessionId) endSession(sessionId, "expired");
+        throw new SessionTransition();
+      }
       if (!code || !/^\d{6}$/.test(code)) throw new Error("Enter the 6-digit code from your authenticator app.");
       await session.startVerification({ level: "second_factor" });
       try {
@@ -44,13 +50,11 @@ export function useStepUp() {
         throw new Error("That code didn't work. Check the app and try the newest code.", { cause: err });
       }
       // A fresh token carries the new verification time the API checks.
-      const token = await session.getToken({ skipCache: true });
-      const res = await fetch("/api/auth/step-up/authenticator", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-      const body = (await res.json().catch(() => ({}))) as { stepUpToken?: string; error?: string };
-      if (!res.ok || !body.stepUpToken) throw new ApiError(res.status, body.error ?? "We couldn't confirm it's you. Try again.");
+      const res = await authenticatedRequest({ sessionId: session.id, getToken: (options) => session.getToken(options) }, "/auth/step-up/authenticator", { method: "POST" }, { forceRefresh: true });
+      const body = await responseJson<{ stepUpToken: string }>(res);
       return body.stepUpToken;
     },
-    [api, clerk, method],
+    [api, clerk, method, sessionId],
   );
 
   return { method, loading: status.isPending, confirm };

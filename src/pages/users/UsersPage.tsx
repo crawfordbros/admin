@@ -64,6 +64,7 @@ export function UsersPage() {
   const [inviting, setInviting] = useState(false);
   const [changing, setChanging] = useState<AdminUserRow | null>(null);
   const [removing, setRemoving] = useState<AdminUserRow | null>(null);
+  const [demoting, setDemoting] = useState<AdminUserRow | null>(null);
   const [activity, setActivity] = useState<AdminUserRow | null>(null);
   useAdminPage("Users");
 
@@ -80,7 +81,7 @@ export function UsersPage() {
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
   const act = useMutation({
-    mutationFn: ({ path, method }: { path: string; method: string; done: string }) => api(path, { method }),
+    mutationFn: ({ path, method, body }: { path: string; method: string; done: string; body?: unknown }) => api(path, { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }),
     onSuccess: async (_r, { done }) => {
       toast.success(done);
       await refresh();
@@ -106,8 +107,17 @@ export function UsersPage() {
       ];
     const protectedAdmin = isAdminRole(u.role) && !isSuper;
     const items: MenuItem[] = [];
-    if (isSuper && !isAdminRole(u.role)) items.push({ label: "Upgrade to Admin", onSelect: () => navigate(`/admin/users/add-admin?user=${u.id}`) });
+    if (isSuper && !isAdminRole(u.role)) items.push({ label: "Upgrade to Admin", onSelect: () => navigate(`/admin/users/add-admin?user=${u.id}${u.email ? `&q=${encodeURIComponent(u.email)}` : ""}`) });
     if (u.role === "lead" || u.role === "valet") items.push({ label: "Change role", onSelect: () => setChanging(u) });
+    // Admin and Steward are separate roles: removing admin leaves a Steward a Steward.
+    if (isSuper && u.role === "admin" && u.steward && u.id !== user?.id) items.push({ label: "Remove admin access", tone: "danger", onSelect: () => setDemoting(u) });
+    // An admin keeps or gains the Steward role separately; removing it takes them off the properties they lead.
+    if (isAdminRole(u.role))
+      items.push(
+        u.steward
+          ? { label: "Remove Steward role", disabled: protectedAdmin, onSelect: () => act.mutate({ path: `/admin/users/${u.id}/steward`, method: "PUT", body: { steward: false }, done: `${who} is no longer a Steward and has been taken off their properties.` }) }
+          : { label: "Make Steward", disabled: protectedAdmin, onSelect: () => act.mutate({ path: `/admin/users/${u.id}/steward`, method: "PUT", body: { steward: true }, done: `${who} can now be chosen as a property's Steward.` }) },
+      );
     if (u.orgId && ["representative", "director", "manager"].includes(u.role)) items.push({ label: "Change access", to: `/admin/organizations/${u.orgId}?tab=people` });
     items.push(
       { label: "Reset two-step verification", disabled: protectedAdmin, onSelect: () => act.mutate({ path: `/admin/users/${u.id}/reset-mfa`, method: "POST", done: `${who} will set up two-step verification again at their next sign-in.` }) },
@@ -232,7 +242,16 @@ export function UsersPage() {
                 </span>
               ),
             },
-            { key: "role", header: "Role", cell: (u) => <RoleBadge role={u.role} /> },
+            {
+              key: "role",
+              header: "Role",
+              cell: (u) => (
+                <span className="flex flex-wrap gap-1">
+                  <RoleBadge role={u.role} />
+                  {u.steward && u.role !== "lead" && <RoleBadge role="lead" />}
+                </span>
+              ),
+            },
             { key: "access", header: "Access", cell: (u) => <span className="text-[13px]">{u.access}</span> },
             {
               key: "mfa",
@@ -289,6 +308,17 @@ export function UsersPage() {
           onClose={() => setRemoving(null)}
           onDone={async (message) => {
             setRemoving(null);
+            toast.success(message);
+            await refresh();
+          }}
+        />
+      )}
+      {demoting && (
+        <RemoveAdminModal
+          user={demoting}
+          onClose={() => setDemoting(null)}
+          onDone={async (message) => {
+            setDemoting(null);
             toast.success(message);
             await refresh();
           }}
@@ -368,6 +398,51 @@ function InviteStaffModal({ onClose, onDone }: { onClose: () => void; onDone: (e
   );
 }
 
+/** The Super Admin takes admin away from an admin who is also a Steward; they stay a Steward. */
+function RemoveAdminModal({ user, onClose, onDone }: { user: AdminUserRow; onClose: () => void; onDone: (message: string) => Promise<void> }) {
+  const api = useApi();
+  const stepUp = useStepUp();
+  const [code, setCode] = useState("");
+  const who = user.name ?? user.email;
+  const first = who.split(/[\s@]/)[0];
+  const save = useMutation({
+    mutationFn: async () => api(`/admin/admins/${user.id}`, { method: "DELETE", body: JSON.stringify({ stepUpToken: await stepUp.confirm(code) }) }),
+    onSuccess: () => onDone(`${who} is no longer an admin. They're still a Steward on their properties.`),
+  });
+  return (
+    <Modal
+      title="Remove admin access"
+      context={who}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="danger" disabled={save.isPending || !stepUp.method} onClick={() => save.mutateAsync().catch(() => {})}>
+            {save.isPending ? "Confirming…" : stepUp.method === "authenticator" ? "Confirm with code and remove" : "Confirm with passkey and remove"}
+          </Button>
+        </>
+      }
+    >
+      <p className="m-0 flex flex-wrap items-center gap-2 text-[15px]">
+        <RoleBadge role="admin" />
+        <Icon name="chevron-right" size={18} />
+        <RoleBadge role="lead" />
+      </p>
+      <p className="mt-3 mb-4 text-[14px] text-muted">
+        {first} loses admin access at their next sign-in. They stay the Steward on the properties they lead and keep their valets.
+      </p>
+      <StepUpField stepUp={stepUp} code={code} onCode={setCode} notice="The other admins get an email, and the change is logged." />
+      {save.error && (
+        <div className="mt-3">
+          <Alert>{errorMessage(save.error)}</Alert>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 function ChangeRoleModal({ user, onClose, onDone }: { user: AdminUserRow; onClose: () => void; onDone: (message: string) => Promise<void> }) {
   const api = useApi();
   const next = user.role === "lead" ? "valet" : "lead";
@@ -397,7 +472,12 @@ function ChangeRoleModal({ user, onClose, onDone }: { user: AdminUserRow; onClos
         <Icon name="chevron-right" size={18} />
         <RoleBadge role={next} />
       </p>
-      <p className="mt-3 mb-0 text-[14px] text-muted">Their property assignments stay the same. To make someone an admin, the Super Admin uses Upgrade to Admin.</p>
+      <p className="mt-3 mb-0 text-[14px] text-muted">
+        {next === "valet"
+          ? `${who.split(/[\s@]/)[0]} stops being a Steward: they come off the properties they lead and stay a valet wherever they're assigned.`
+          : "Their property assignments stay the same, and they can now be chosen as a property's Steward."}{" "}
+        To make someone an admin, the Super Admin uses Upgrade to Admin.
+      </p>
       {save.error && (
         <div className="mt-3">
           <Alert>{errorMessage(save.error)}</Alert>
