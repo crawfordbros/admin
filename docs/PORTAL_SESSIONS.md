@@ -50,16 +50,21 @@ credentials.
 Both `admin` and `api` pin Node **22.21.1** in `.nvmrc`. Run `nvm use` in each terminal before
 starting them. Node 21 cannot run the installed Wrangler/Vite toolchain.
 
-In `api`, run `pnpm db:migrate:local` and `pnpm dev:tunnel`. In `admin`, run `pnpm dev:tunnel`.
-Keep the existing web/tunnel processes running. Check both:
+In `admin` and `web`, run `pnpm dev:tunnel`; run `pnpm tunnel` in `web`.
+Test and staging share the deployed staging API, D1 and R2. No local API process is needed.
+Check both:
 
 ```sh
-curl http://127.0.0.1:8787/api/health
+curl https://staging-api.cbenvironments.com/api/health
 curl https://testadmin.cbenvironments.com/api/health
 ```
 
-Both must return `{"ok":true,"environment":"local"}`. An `ECONNREFUSED` for port 8787 is an
-API process problem, not token expiry. A successful portal build does not start the API.
+Both must return `{"ok":true,"environment":"staging"}`. The staging Worker owns `/api/*`
+on `test`, `testadmin` and `staging`; local Vite servers and previews also proxy to staging.
+Production `/api/*` belongs only to the production Worker and uses separate D1/R2.
+If Cloudflare returns `cf-mitigated: challenge`, the API hostname/path needs a Cloudflare
+configuration rule that disables browser challenges for API requests; a server proxy cannot
+complete an interactive challenge. Do not point test traffic at production to work around it.
 
 ## Release order and verification
 

@@ -3,7 +3,8 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { SPECULATION_RULES_BODY, SPECULATION_RULES_HEADER, SPECULATION_RULES_HEADERS, SPECULATION_RULES_PATH } from "./shared/speculationRules.ts";
 
-const API_DEV_URL = process.env.CBES_API_DEV_URL ?? "http://localhost:8787";
+// Local/test frontends share staging data. Production /api routes belong to the production Worker.
+const API_DEV_URL = "https://staging-api.cbenvironments.com";
 
 function portalSpeculationRules(): Plugin {
   const htmlHeaders: Connect.NextHandleFunction = (req, res, next) => {
@@ -85,12 +86,12 @@ export default defineConfig(({ command, mode }) => ({
     strictPort: true,
     allowedHosts: ["testadmin.cbenvironments.com", "test.cbenvironments.com", "localhost"],
     ws: mode === "tunnel" ? { protocol: "wss", host: "testadmin.cbenvironments.com", clientPort: 443 } : undefined,
-    // Give Wrangler the upstream Host so its dev proxy does not rewrite the
-    // browser's HTTPS Origin to HTTP after Cloudflare Tunnel terminates TLS.
+    // Set the upstream Host for Cloudflare routing; preserve the browser's Origin for MFA.
     proxy: { "/api": { target: API_DEV_URL, changeOrigin: true } },
   },
   preview: {
     port: 4175,
     allowedHosts: ["testadmin.cbenvironments.com", "test.cbenvironments.com", "localhost"],
+    proxy: { "/api": { target: API_DEV_URL, changeOrigin: true } },
   },
 }));
