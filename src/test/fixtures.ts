@@ -156,6 +156,7 @@ export const reportDetail = (overrides: Partial<ReportDetail> = {}): ReportDetai
   ...reportRow(),
   reporterName: "Jordan Lee",
   reporterContact: "jordan@example.com",
+  reporterPhone: null,
   contactMethod: "email",
   issueDate: "2026-10-26",
   description: "Bags were left at the door overnight.",

@@ -415,6 +415,8 @@ export type ReportDetail = ReportRow & {
   reporterName: string;
   reporterContact: string;
   contactMethod: "email" | "phone";
+  /** A number the resident said CBES may call, given alongside their email on the website form. */
+  reporterPhone: string | null;
   issueDate: string | null;
   description: string | null;
   firstResponseAt: string | null;

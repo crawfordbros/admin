@@ -122,8 +122,14 @@ export function ReportDrawer() {
             <p className="m-0 font-semibold">{r.reporterName}</p>
             <p className="m-0 text-[14px]">
               {r.contactMethod === "email" ? <a href={`mailto:${r.reporterContact}`}>{r.reporterContact}</a> : <a href={`tel:${r.reporterContact}`}>{r.reporterContact}</a>}
-              <span className="text-muted"> · prefers {r.contactMethod === "email" ? "email" : "a phone call"}</span>
+              {!r.reporterPhone && <span className="text-muted"> · prefers {r.contactMethod === "email" ? "email" : "a phone call"}</span>}
             </p>
+            {r.reporterPhone && (
+              <p className="m-0 text-[14px]">
+                <a href={`tel:${r.reporterPhone}`}>{r.reporterPhone}</a>
+                <span className="text-muted"> · OK to call</span>
+              </p>
+            )}
             {r.issueDate && <p className="mt-1 mb-0 text-[13px] text-muted">Happened {formatDay(r.issueDate)}</p>}
             {r.description && <p className="mt-2.5 mb-0 text-[14.5px] leading-relaxed whitespace-pre-wrap">{r.description}</p>}
             {r.photos.length > 0 && (

@@ -135,4 +135,13 @@ describe("ReportDrawer", () => {
     await userEvent.click(within(drawer).getByRole("button", { name: "Log call" }));
     await waitFor(() => expect(calls.find((c) => c.url.endsWith("/calls"))?.body).toEqual({ body: "Left a voicemail." }));
   });
+
+  it("shows the number a web resident said we can call, next to their email", async () => {
+    mockFetch((url, method, body) => (url === "/api/admin/reports/r1" && method === "GET" ? [200, reportDetail({ reporterPhone: "(404) 555-0100" })] : handler(url, method, body)));
+    show("/admin/reports/r1");
+    const drawer = await screen.findByRole("dialog", { name: "Missed pickup" });
+    expect(await within(drawer).findByRole("link", { name: "(404) 555-0100" })).toHaveAttribute("href", "tel:(404) 555-0100");
+    expect(within(drawer).getByText(/OK to call/)).toBeInTheDocument();
+    expect(within(drawer).getByLabelText("Reply to Jordan Lee")).toBeInTheDocument();
+  });
 });
