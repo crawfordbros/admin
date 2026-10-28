@@ -86,6 +86,86 @@ describe("UsersPage", () => {
     expect(calls.find((c) => c.method === "DELETE")?.url).toBe("/api/admin/users/u_lead/access");
   });
 
+  it("cancels a role change without writing, then saves and restores focus to the row", async () => {
+    asRole("admin");
+    const calls = mockFetch((url, method) => url === "/api/admin/users/u_lead" && method === "PATCH" ? [200, {}] : handler(url, method));
+    show();
+    const trigger = await screen.findByRole("button", { name: "Actions for Dana Brooks" });
+    await userEvent.click(trigger);
+    expect(screen.getByRole("table", { name: "Users" })).not.toContainElement(screen.getByRole("menu"));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change role" }));
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Change role" })).getByRole("button", { name: "Cancel" }));
+    expect(trigger).toHaveFocus();
+    expect(calls.some((c) => c.method === "PATCH")).toBe(false);
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change role" }));
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Change role" })).getByRole("button", { name: "Make Valet" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.find((c) => c.method === "PATCH")).toMatchObject({ url: "/api/admin/users/u_lead", body: { role: "valet" } });
+    expect(trigger).toHaveFocus();
+  });
+
+  it("keeps a failed role change open with its error and permits cancellation", async () => {
+    asRole("admin");
+    mockFetch((url, method) => url === "/api/admin/users/u_lead" && method === "PATCH" ? [400, { error: "Role change unavailable" }] : handler(url, method));
+    show();
+    const trigger = await screen.findByRole("button", { name: "Actions for Dana Brooks" });
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Change role" }));
+    const dialog = screen.getByRole("dialog", { name: "Change role" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Make Valet" }));
+    expect(await within(dialog).findByText("Role change unavailable")).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(trigger).toHaveFocus();
+  });
+
+  it("opens activity for the selected user and restores focus when the drawer closes", async () => {
+    asRole("admin");
+    const calls = mockFetch((url, method) => url.startsWith("/api/admin/audit?") ? [200, { items: [] }] : handler(url, method));
+    show();
+    const trigger = await screen.findByRole("button", { name: "Actions for Dana Brooks" });
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "View activity" }));
+    const dialog = screen.getByRole("dialog", { name: "Activity" });
+    expect(dialog).toHaveTextContent("Dana Brooks");
+    expect(await within(dialog).findByText("No changes recorded for this person yet.")).toBeInTheDocument();
+    expect(calls.some((c) => c.url === "/api/admin/audit?targetType=user&targetId=u_lead")).toBe(true);
+    await userEvent.keyboard("{Escape}");
+    expect(trigger).toHaveFocus();
+  });
+
+  it.each([
+    ["Resend invitation", "/api/admin/invitations/org:i1/resend", "POST"],
+    ["Cancel invitation", "/api/admin/invitations/org:i1", "DELETE"],
+  ])("runs %s for the selected invitation", async (label, path, method) => {
+    asRole("admin");
+    const calls = mockFetch((url, verb) => url === path ? [204, null] : handler(url, verb));
+    show();
+    const trigger = await screen.findByRole("button", { name: "Actions for m.ortega@peachtreeres.com" });
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: label }));
+    await waitFor(() => expect(calls.some((c) => c.url === path && c.method === method)).toBe(true));
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it.each([false, true])("handles MFA reset (failure=%s) and blocks protected admin actions", async (fail) => {
+    asRole("admin");
+    const calls = mockFetch((url, method) => url.endsWith("/reset-mfa") ? fail ? [400, { error: "Reset unavailable" }] : [204, null] : handler(url, method));
+    show();
+    const trigger = await screen.findByRole("button", { name: "Actions for Dana Brooks" });
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("menuitem", { name: "Reset two-step verification" }));
+    expect(await screen.findByText(fail ? "Reset unavailable" : /Dana Brooks will set up two-step verification again/)).toBeInTheDocument();
+    expect(calls.find((c) => c.url.endsWith("/reset-mfa"))).toMatchObject({ url: "/api/admin/users/u_lead/reset-mfa", method: "POST" });
+    await userEvent.click(screen.getByRole("button", { name: "Actions for Nigel Crawford" }));
+    const protectedAction = screen.getByRole("menuitem", { name: "Reset two-step verification" });
+    expect(protectedAction).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(protectedAction);
+    expect(calls.filter((c) => c.url.endsWith("/reset-mfa"))).toHaveLength(1);
+  });
+
   it("keeps the Steward role alongside Admin, and the Super Admin can remove it", async () => {
     asRole("super_admin");
     const steward = row({ id: "u_admin2", name: "Andre Lewis", email: "andre@cbenvironments.com", role: "admin", access: "Everything", steward: true });
