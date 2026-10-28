@@ -1,8 +1,54 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { SPECULATION_RULES_BODY, SPECULATION_RULES_HEADER, SPECULATION_RULES_HEADERS, SPECULATION_RULES_PATH } from "./shared/speculationRules.ts";
 
 const API_DEV_URL = process.env.CBES_API_DEV_URL ?? "http://localhost:8787";
+
+function portalSpeculationRules(): Plugin {
+  const htmlHeaders: Connect.NextHandleFunction = (req, res, next) => {
+    const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+    if (pathname === "/" || pathname === "/portal/" || pathname.endsWith(".html")) {
+      res.setHeader("Speculation-Rules", SPECULATION_RULES_HEADER);
+    }
+    next();
+  };
+  const middleware: Connect.NextHandleFunction = (req, res, next) => {
+    const pathname = new URL(req.url ?? "/", "http://localhost").pathname;
+    if (pathname === SPECULATION_RULES_PATH) {
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        res.writeHead(405, { Allow: "GET, HEAD" });
+        res.end();
+        return;
+      }
+      res.writeHead(200, SPECULATION_RULES_HEADERS);
+      res.end(req.method === "HEAD" ? undefined : SPECULATION_RULES_BODY);
+      return;
+    }
+    if (pathname === "/api" || pathname.startsWith("/api/")) return next();
+
+    // Cover directly served HTML before Vite can return a conditional 304.
+    htmlHeaders(req, res, next);
+  };
+  return {
+    name: "cbes-portal-speculation-rules",
+    configureServer(server) {
+      server.middlewares.use(middleware);
+      // Vite has rewritten app routes to index.html by this point. Set the
+      // header before HTML serving, including 304s, without touching assets.
+      return () => server.middlewares.use(htmlHeaders);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware);
+      // Preview serves dist/portal as its root, but built assets use /portal/.
+      server.middlewares.use((req, _res, next) => {
+        if (req.url?.startsWith("/portal/")) req.url = req.url.slice("/portal".length);
+        next();
+      });
+      return () => server.middlewares.use(htmlHeaders);
+    },
+  };
+}
 
 /**
  * Staging and production builds require the Clerk key from .env.local or Render's environment.
@@ -31,7 +77,7 @@ function requireClerkKey(): Plugin {
 // under /portal/ (see worker/index.ts for how /portal* and /admin* are served).
 export default defineConfig(({ command, mode }) => ({
   base: command === "build" ? "/portal/" : "/",
-  plugins: [react(), tailwindcss(), requireClerkKey()],
+  plugins: [react(), tailwindcss(), requireClerkKey(), portalSpeculationRules()],
   build: { outDir: "dist/portal", emptyOutDir: true },
   server: {
     host: true,
