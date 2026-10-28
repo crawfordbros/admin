@@ -1,16 +1,15 @@
-import { useEffect } from "react";
+import { useAdminPage } from "../components/admin/adminPage";
+import { EmptyState, PageHeader } from "../components/display";
+import type { IconName } from "../components/icons";
 
-export function ComingSoon({ title, detail }: { title: string; detail: string }) {
-  useEffect(() => {
-    document.title = `${title} | CBES Admin`;
-  }, [title]);
+export function ComingSoon({ title, detail, icon }: { title: string; detail: string; icon: IconName }) {
+  useAdminPage(title);
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="mt-0 mb-3 text-3xl font-bold text-navy">{title}</h1>
-      <div className="rounded-xl border-2 border-dashed border-gold bg-white p-6">
-        <p className="mt-0 mb-1 font-semibold text-gold-text">Coming in Phase 2</p>
-        <p className="m-0 leading-relaxed text-muted">{detail}</p>
-      </div>
-    </div>
+    <>
+      <PageHeader title={title} description={detail} />
+      <section className="rounded-[14px] border border-line bg-white">
+        <EmptyState icon={icon} title="This section is being built" body="It opens here once its part of the API is ready. Nothing here needs your attention yet." />
+      </section>
+    </>
   );
 }

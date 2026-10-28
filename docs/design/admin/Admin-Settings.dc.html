@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 2100px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="settings" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Settings" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div><h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Settings</h1><p style="margin: 6px 0 0; font-size: 15px; color: #4A4C63;">Rules that apply across every organization. Changes are logged with who made them.</p></div>
+<div style="display: flex; gap: 10px; align-items: center;"><span style="font-size: 13px; font-weight: 600; color: #7A4B00; background: #FFF4DB; padding: 6px 10px; border-radius: 999px;">2 unsaved changes</span><button type="button" style="height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 600; font-size: 14px; color: #1A1C3D;">Discard</button><button type="button" style="height: 42px; padding: 0 18px; border-radius: 10px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px;">Save changes</button></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
+<nav aria-label="Settings sections" style="flex: 1 1 220px; max-width: 100%; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 8px;">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="6"><a href="{{n.href}}" style="{{n.style}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{n.icon}}"></path></svg>{{n.label}}</a></sc-for>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+
+<section id="overwatch" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 22px;">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;"><div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Overwatch threshold</h2><p style="margin: 4px 0 0; font-size: 13.5px; color: #4A4C63;">When a unit is flagged. Used on violations and weekly reports now, and by Overwatch in Phase 2.</p></div><span style="align-self: flex-start; font-size: 11.5px; font-weight: 700; background: #FFF4DB; color: #7A4B00; padding: 3px 9px; border-radius: 999px;">Changed</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; font-size: 16px; font-weight: 600;">
+<span>Flag a unit after</span>
+<span role="group" aria-label="Number of violations" style="display: inline-flex; align-items: center; border: 1.5px solid #272B84; border-radius: 12px; overflow: hidden;"><button type="button" aria-label="Fewer" style="width: 44px; height: 46px; border: none; background: #EEEFF8; color: #272B84; font-size: 20px; font-weight: 700;">−</button><span style="width: 52px; text-align: center; font-family: 'Fira Sans', sans-serif; font-size: 22px; font-weight: 700; color: #1A1C5E;">3</span><button type="button" aria-label="More" style="width: 44px; height: 46px; border: none; background: #EEEFF8; color: #272B84; font-size: 20px; font-weight: 700;">+</button></span>
+<span>violations within</span>
+<label><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Time window</span><select style="height: 46px; border-radius: 12px; border: 1.5px solid #272B84; padding: 0 12px; font-size: 16px; font-weight: 700; color: #1A1C5E; background: #FFFFFF;"><option>14 days</option><option selected>30 days</option><option>60 days</option><option>90 days</option></select></label>
+</div>
+<div style="margin-top: 16px; display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; background: #F8F8FB; font-size: 13.5px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#272B84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>With these settings, <strong>5 units</strong> across 4 properties are flagged today.</span><label style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: 600;"><input type="checkbox" style="accent-color: #272B84; width: 18px; height: 18px;">Count dismissed violations</label></div>
+</section>
+
+<section id="issues" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 22px;">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;"><div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Resident issue types</h2><p style="margin: 4px 0 0; font-size: 13.5px; color: #4A4C63;">What residents choose on the Report an Issue form. Drag to reorder.</p></div><button type="button" style="align-self: flex-start; height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px dashed #A9ABC9; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;">+ Add issue type</button></div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px;"><th style="padding: 8px 6px; width: 28px;"></th><th style="padding: 8px 6px;">Label</th><th style="padding: 8px 6px;">Spanish</th><th style="padding: 8px 6px;">Reply target</th><th style="padding: 8px 6px;">On form</th></tr></thead>
+<tbody>
+<sc-for list="{{issues}}" as="t" hint-placeholder-count="8">
+<tr style="border-top: 1px solid #F0F0F5;"><td style="padding: 8px 6px; color: #A9ABC9;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></td><td style="padding: 8px 6px;"><input type="text" aria-label="Label" value="{{t.label}}" style="width: 100%; box-sizing: border-box; height: 38px; border-radius: 9px; border: 1px solid #E4E4EC; padding: 0 10px; font-size: 14px; font-weight: 600;"></td><td style="padding: 8px 6px;"><input type="text" aria-label="Spanish label" value="{{t.es}}" style="width: 100%; box-sizing: border-box; height: 38px; border-radius: 9px; border: 1px solid #E4E4EC; padding: 0 10px; font-size: 14px; color: #4A4C63;"></td><td style="padding: 8px 6px;"><select aria-label="Reply target" style="height: 38px; border-radius: 9px; border: 1px solid #E4E4EC; padding: 0 8px; font-size: 13.5px; background: #FFFFFF;"><option>{{t.target}}</option></select></td><td style="padding: 8px 6px;"><span role="switch" aria-checked="{{t.onAria}}" aria-label="Show on form" style="{{t.track}}"><span style="{{t.knob}}"></span></span></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="violations" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 22px;">
+<div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;"><div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Violation types</h2><p style="margin: 4px 0 0; font-size: 13.5px; color: #4A4C63;">The buttons valets see in the app. Counted toward Overwatch unless turned off.</p></div><button type="button" style="align-self: flex-start; height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px dashed #A9ABC9; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;">+ Add violation type</button></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+<sc-for list="{{viol}}" as="v" hint-placeholder-count="7">
+<div style="{{v.card}}">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><strong style="font-size: 14.5px;">{{v.label}}</strong><span role="switch" aria-checked="{{v.onAria}}" aria-label="Active" style="{{v.track}}"><span style="{{v.knob}}"></span></span></div>
+<span style="font-size: 12.5px; color: #4A4C63;">{{v.es}}</span>
+<span style="display: flex; gap: 6px; flex-wrap: wrap;"><span style="{{v.owStyle}}">{{v.ow}}</span><span style="font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #F0F0F4; color: #3A3C50;">{{v.n}} this month</span></span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section id="calendar" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 22px;">
+<h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Service nights and holidays</h2>
+<p style="margin: 4px 0 16px; font-size: 13.5px; color: #4A4C63;">Shown on the Residents page and used to count nights serviced in weekly reports.</p>
+<fieldset style="border: none; margin: 0 0 18px; padding: 0;"><legend style="font-size: 13.5px; font-weight: 700; margin-bottom: 8px;">Service nights (start 8:00 PM)</legend>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;"><sc-for list="{{days}}" as="d" hint-placeholder-count="7"><label style="{{d.style}}"><input type="checkbox" checked="{{d.on}}" style="position: absolute; opacity: 0;">{{d.label}}</label></sc-for></div>
+</fieldset>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"><h3 style="margin: 0; font-size: 14px; font-weight: 700;">No-service holidays</h3><button type="button" style="height: 36px; padding: 0 12px; border-radius: 10px; border: 1px dashed #A9ABC9; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;">+ Add date</button></div>
+<ul style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+<sc-for list="{{holidays}}" as="h" hint-placeholder-count="6"><li style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid #E4E4EC; border-radius: 12px;"><span style="flex: none; width: 46px; height: 50px; border-radius: 10px; background: #EEEFF8; color: #272B84; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;"><span style="font-size: 10.5px; font-weight: 700;">{{h.mon}}</span><span style="font-family: 'Fira Sans', sans-serif; font-size: 19px; font-weight: 700;">{{h.day}}</span></span><span style="flex: 1; min-width: 0;"><strong style="display: block; font-size: 13.5px;">{{h.name}}</strong><span style="font-size: 12px; color: #4A4C63;">{{h.note}}</span></span><button type="button" aria-label="Remove holiday" style="width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent; color: #8A8CA3;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></li></sc-for>
+</ul>
+<label style="margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 14px; font-weight: 600;">When a holiday falls on a service night<select style="height: 40px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px; background: #FFFFFF;"><option>Make up the next night</option><option>Skip, no make-up</option></select></label>
+</section>
+
+<section id="reports" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 22px;">
+<h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Weekly reports and email</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px;">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Send day<select style="height: 42px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px; background: #FFFFFF;"><option>Monday</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Send time (Eastern)<select style="height: 42px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px; background: #FFFFFF;"><option>7:00 AM</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Reports sent from<input type="text" value="office@cbenvironments.com" style="height: 42px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px;"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Quotes sent from<input type="text" value="quotes@cbenvironments.com" style="height: 42px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px;"></label>
+</div>
+</section>
+
+</div>
+</div>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nOn = 'display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; background: #EEEFF8; color: #1A1C5E; font-weight: 700; font-size: 14px; text-decoration: none;';
+    const nOff = 'display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 10px; color: #1A1C3D; font-weight: 600; font-size: 14px; text-decoration: none;';
+    const nav = [['Overwatch threshold', '#overwatch', 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z', 1], ['Issue types', '#issues', 'M4 4h16v12H8l-4 4z', 0], ['Violation types', '#violations', 'M12 3l9 16H3zM12 10v4', 0], ['Nights and holidays', '#calendar', 'M4 5h16v15H4zM4 9h16M9 3v4M15 3v4', 0], ['Reports and email', '#reports', 'M4 6h16v12H4zM4 7l8 6 8-6', 0]].map(n => ({ label: n[0], href: n[1], icon: n[2], style: n[3] ? nOn : nOff }));
+    const sw = (on) => ({ track: 'display: inline-flex; width: 40px; height: 24px; border-radius: 999px; padding: 2px; box-sizing: border-box; background: ' + (on ? '#272B84' : '#C9CAD6') + '; justify-content: ' + (on ? 'flex-end' : 'flex-start') + ';', knob: 'width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(0,0,0,0.2);', onAria: on ? 'true' : 'false' });
+    const issues = [
+      ['Missed pickup', 'Recolección omitida', '24 hours', 1], ['Trash in hallway', 'Basura en el pasillo', '24 hours', 1], ['Container damaged or missing', 'Contenedor dañado o perdido', '24 hours', 1], ['Spill or mess', 'Derrame o suciedad', '12 hours', 1],
+      ['Item taken by mistake', 'Artículo recogido por error', '12 hours', 1], ['Valet conduct or noise', 'Conducta o ruido del valet', '12 hours', 1], ['Bulk pickup request', 'Solicitud de recolección grande', '24 hours', 1], ['Other', 'Otro', '24 hours', 1],
+    ].map(t => ({ label: t[0], es: t[1], target: t[2], ...sw(!!t[3]) }));
+    const card = (on) => 'display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 12px; border: 1px solid #E4E4EC; ' + (on ? 'background: #FFFFFF;' : 'background: #F8F8FB; opacity: 0.75;');
+    const owP = (on) => 'font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; ' + (on ? 'background: #FDECEA; color: #B42318;' : 'background: #F0F0F4; color: #4A4C63;');
+    const viol = [['Bag not tied', 'Bolsa sin amarrar', 1, 1, 31], ['Trash outside container', 'Basura fuera del contenedor', 1, 1, 24], ['Container over-filled', 'Contenedor demasiado lleno', 1, 1, 12], ['Set out after 8 PM', 'Sacada después de las 8 PM', 1, 1, 18], ['Prohibited item', 'Artículo prohibido', 1, 1, 9], ['Bulk item at door', 'Artículo grande en la puerta', 1, 1, 14], ['Container not out', 'Contenedor no sacado (solo registro)', 1, 0, 40]].map(v => ({ label: v[0], es: v[1], n: v[4], ow: v[3] ? 'Counts for Overwatch' : 'Log only', owStyle: owP(v[3]), card: card(v[2]), ...sw(!!v[2]) }));
+    const dOn = 'position: relative; display: flex; align-items: center; justify-content: center; width: 56px; height: 44px; border-radius: 10px; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px;';
+    const dOff = 'position: relative; display: flex; align-items: center; justify-content: center; width: 56px; height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #4A4C63; font-weight: 600; font-size: 14px;';
+    const days = [['Sun', 1], ['Mon', 1], ['Tue', 1], ['Wed', 1], ['Thu', 1], ['Fri', 0], ['Sat', 0]].map(d => ({ label: d[0], on: !!d[1], style: d[1] ? dOn : dOff }));
+    const holidays = [['NOV', '26', 'Thanksgiving Day', 'Thu, 2026 · made up Fri'], ['DEC', '25', 'Christmas Day', 'Fri, 2026 · not a service night'], ['JAN', '1', 'New Year\'s Day', 'Fri, 2027 · not a service night'], ['MAY', '31', 'Memorial Day', 'Mon, 2027 · made up Tue'], ['JUL', '4', 'Independence Day', 'Sun, 2027 · made up Mon'], ['SEP', '6', 'Labor Day', 'Mon, 2027 · made up Tue']].map(h => ({ mon: h[0], day: h[1], name: h[2], note: h[3] }));
+    return { nav, issues, viol, days, holidays };
+  }
+}
+</script>
+</body>
+</html>

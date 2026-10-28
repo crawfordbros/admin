@@ -39,7 +39,9 @@ export default defineConfig(({ command, mode }) => ({
     strictPort: true,
     allowedHosts: ["testadmin.cbenvironments.com", "test.cbenvironments.com", "localhost"],
     ws: mode === "tunnel" ? { protocol: "wss", host: "testadmin.cbenvironments.com", clientPort: 443 } : undefined,
-    proxy: { "/api": { target: API_DEV_URL } },
+    // Give Wrangler the upstream Host so its dev proxy does not rewrite the
+    // browser's HTTPS Origin to HTTP after Cloudflare Tunnel terminates TLS.
+    proxy: { "/api": { target: API_DEV_URL, changeOrigin: true } },
   },
   preview: {
     port: 4175,

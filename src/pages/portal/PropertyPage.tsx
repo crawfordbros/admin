@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { ApiError, errorMessage, useApi, type Property, type PropertyOverview } from "../../lib/api";
 import { CONTRACT_LABELS, formatDate } from "../../lib/format";
 import { Alert, Button, ButtonLink, Card, Loading, Stat, TextField } from "../../components/ui";
+import { PropertyViolations } from "../violations/PortalViolations";
 
 /** A property manager's home: their property's details and resident reports. Representatives can edit the basics. */
 export function PropertyPage() {
@@ -57,6 +58,7 @@ export function PropertyPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
+        <div className="flex min-w-0 flex-col gap-5">
         <Card title="Latest resident reports">
           {recentReports.length === 0 ? (
             <p className="m-0 text-muted">No resident reports yet.</p>
@@ -79,6 +81,8 @@ export function PropertyPage() {
             </ul>
           )}
         </Card>
+        <PropertyViolations propertyId={property.id} />
+        </div>
 
         <Card
           title="Property details"

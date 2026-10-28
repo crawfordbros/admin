@@ -5,6 +5,8 @@ import type { PropertyOverview } from "../../lib/api";
 import { mockFetch, renderRoute } from "../../test/render";
 import { PropertyPage } from "./PropertyPage";
 
+const noViolations = { items: [], total: 0, page: 1, pageSize: 25 };
+
 const overview = (canManage: boolean): PropertyOverview => ({
   property: {
     id: "p1",
@@ -31,7 +33,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("PropertyPage", () => {
   it("lets a representative edit the basics", async () => {
-    const calls = mockFetch((_url, method) => (method === "PATCH" ? [200, {}] : [200, overview(true)]));
+    const calls = mockFetch((url, method) => (url.endsWith("/violations") ? [200, noViolations] : method === "PATCH" ? [200, {}] : [200, overview(true)]));
     renderRoute("/portal/properties/:id", "/portal/properties/p1", <PropertyPage />);
     expect(await screen.findByRole("link", { name: "Demo Management" })).toHaveAttribute("href", "/portal/organizations/org1");
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -47,7 +49,7 @@ describe("PropertyPage", () => {
   });
 
   it("gives property managers no edit button", async () => {
-    mockFetch(() => [200, overview(false)]);
+    mockFetch((url) => (url.endsWith("/violations") ? [200, noViolations] : [200, overview(false)]));
     renderRoute("/portal/properties/:id", "/portal/properties/p1", <PropertyPage />);
     expect(await screen.findByText(/Something out of date\? Email/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();

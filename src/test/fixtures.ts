@@ -1,0 +1,167 @@
+import type { OrganizationDetail, OrganizationRow, PropertyDetail, ReportDetail, ReportRow, ReportsSummary, ViolationDetail, ViolationRow } from "../lib/api";
+
+// Sample API responses shared by the Organizations and property tests.
+
+export const orgDetail = (overrides: Partial<OrganizationDetail> = {}): OrganizationDetail => ({
+  organization: { id: "org1", name: "Demo Management", status: "active", serviceArea: "Clarkston, Tucker", customerSince: "2026-03-01", propertyLimit: 100, logoVersion: null, createdAt: "2026-03-01T12:00:00Z" },
+  kpis: { properties: 2, units: 30, openReports: 2, oldestOpenHours: 21, avgReplyHours: 4.9 },
+  properties: [
+    { id: "p1", name: "Demo Community", slug: "demo-community", city: "Clarkston", status: "active", starting: false, serviceStartDate: "2026-04-01", unitCount: 30, contractType: "36_month", photoVersion: null, openReports: 2, manager: { id: "user_pm", name: "Pat Manager" }, steward: { id: "user_lead", name: "Dana Brooks" } },
+    { id: "p2", name: "Willow Bend", slug: "willow-bend", city: "Tucker", status: "active", starting: true, serviceStartDate: "2027-01-04", unitCount: null, contractType: null, photoVersion: null, openReports: 0, manager: null, steward: null },
+  ],
+  representatives: [{ id: "user_rep", email: "riley@demo-mgmt.com", name: "Riley Rep", addedAt: "2026-10-02T12:00:00Z" }],
+  staff: [{ id: "user_pm", email: "pat@demo-mgmt.com", name: "Pat Manager", role: "manager", propertyId: "p1", propertyName: "Demo Community" }],
+  invitations: [{ id: "i1", email: "boss@demo-mgmt.com", name: null, role: "representative", propertyId: null, propertyName: null, createdAt: "2026-10-03T12:00:00Z" }],
+  ...overrides,
+});
+
+export const orgRow = (overrides: Partial<OrganizationRow> = {}): OrganizationRow => ({
+  id: "org1",
+  name: "Demo Management",
+  status: "active",
+  serviceArea: "Clarkston, Tucker",
+  logoVersion: null,
+  properties: 2,
+  propertyLimit: 100,
+  units: 1752,
+  representatives: [{ id: "user_rep", name: "Riley Rep" }],
+  pendingInvitations: 1,
+  openReports: 3,
+  violations30d: null,
+  avgReplyHours: 4.9,
+  createdAt: "2026-03-01T12:00:00Z",
+  ...overrides,
+});
+
+export const propertyDetail = (overrides: Partial<PropertyDetail> = {}): PropertyDetail => ({
+  property: {
+    id: "p1",
+    name: "Demo Community",
+    slug: "demo-community",
+    address: "215 Commerce Dr",
+    city: "Decatur",
+    county: "DeKalb",
+    zip: "30030",
+    lat: null,
+    lng: null,
+    googlePlaceId: null,
+    unitCount: 312,
+    buildingCount: 6,
+    propertyType: "garden",
+    organizationId: "org1",
+    organizationName: "Demo Management",
+    serviceStartDate: "2026-04-01",
+    contractType: "36_month",
+    status: "active",
+    starting: false,
+    connecteamJobId: "48107",
+    photoVersion: null,
+    stewardUserId: "user_lead",
+  },
+  canManage: true,
+  steward: { id: "user_lead", name: "Dana Brooks", email: "dana@cbenvironments.com", propertyCount: 4 },
+  valets: [{ id: "user_valet", name: "Marcus Hill", email: "marcus@cbenvironments.com" }],
+  members: [{ id: "user_pm", email: "pat@demo-mgmt.com", name: "Pat Manager", role: "manager" }],
+  invitations: [],
+  stats: { openReports: 1, oldestOpenHours: 21, avgReplyHours: 5.8 },
+  recentReports: [{ refNo: 1042, createdAt: "2026-10-27T00:00:00Z", issueLabel: "Missed pickup", unit: "305", status: "in_progress", statusLabel: "In progress" }],
+  ...overrides,
+});
+
+export const violationRow = (overrides: Partial<ViolationRow> = {}): ViolationRow => ({
+  id: "v1",
+  refNo: 2041,
+  typeKey: "bag_not_tied",
+  typeLabel: "Bag not tied",
+  loggedAt: "2026-10-27T00:47:00Z",
+  orgId: "org1",
+  orgName: "Peachtree",
+  propertyId: "p1",
+  propertyName: "The Oaks at Decatur",
+  building: "4",
+  unit: "412",
+  valet: { id: "user_valet", name: "Marcus Hill", role: "valet" },
+  steward: { id: "user_lead", name: "Dana Brooks", role: "lead" },
+  photoCount: 2,
+  thumbPhotoId: null,
+  unitCount30d: 3,
+  overwatchThreshold: 3,
+  overwatchDays: 30,
+  notesCount: 2,
+  status: "new",
+  ...overrides,
+});
+
+export const violationDetail = (overrides: Partial<ViolationDetail> = {}): ViolationDetail => ({
+  ...violationRow(),
+  note: "Left in place, bag torn.",
+  syncedAt: "2026-10-27T00:49:00Z",
+  gps: { lat: 33.7748, lng: -84.2963, accuracyM: 6 },
+  photos: [],
+  people: {
+    valet: { id: "user_valet", name: "Marcus Hill", role: "valet" },
+    steward: { id: "user_lead", name: "Dana Brooks", role: "lead" },
+    propertyManagers: [{ id: "user_pm", name: "Chris Patel", role: "manager" }],
+    representatives: [{ id: "user_rep", name: "Lauren Kim", role: "representative" }],
+    admins: [{ id: "user_admin", name: "Nigel Crawford", role: "admin" }],
+  },
+  events: [
+    { id: "e2", kind: "note", actor: { id: "user_admin", name: "Nigel Crawford", role: "admin" }, body: "Retake photo 2 from further back.", visibility: "cbes", fromStatus: null, toStatus: null, mentions: [{ id: "user_valet", name: "Marcus Hill", role: "valet" }], createdAt: "2026-10-27T01:05:00Z" },
+    { id: "e1", kind: "logged", actor: { id: "user_valet", name: "Marcus Hill", role: "valet" }, body: null, visibility: "cbes", fromStatus: null, toStatus: "new", mentions: [], createdAt: "2026-10-27T00:47:00Z" },
+  ],
+  unitHistory: [
+    { id: "v1", refNo: 2041, typeLabel: "Bag not tied", loggedAt: "2026-10-27T00:47:00Z", status: "new" },
+    { id: "v0", refNo: 1987, typeLabel: "Trash outside container", loggedAt: "2026-10-19T00:20:00Z", status: "resolved" },
+  ],
+  ...overrides,
+});
+
+export const reportRow = (overrides: Partial<ReportRow> = {}): ReportRow => ({
+  id: "r1",
+  refNo: 1042,
+  issueKey: "missed_pickup",
+  issueLabel: "Missed pickup",
+  createdAt: new Date(Date.now() - 21 * 3_600_000).toISOString(),
+  orgId: "org1",
+  orgName: "Peachtree Residential",
+  propertyId: "p1",
+  propertyName: "The Oaks at Decatur",
+  building: "3",
+  unit: "305",
+  source: "web",
+  replyClock: { state: "open", hoursLeft: 3, targetHours: 24 },
+  assignee: null,
+  status: "new",
+  ...overrides,
+});
+
+export const reportsSummary = (): ReportsSummary => ({
+  kpis: {
+    total: { value: 63, previous: 55 },
+    open: { value: 7, nearingDue: 3 },
+    avgFirstReplyHours: { value: 5.8, previous: 6.4 },
+    avgResolveDays: { value: 1.6, previous: 2 },
+    topIssue: { key: "missed_pickup", label: "Missed pickup", count: 19, share: 0.3 },
+  },
+  byWeek: Array.from({ length: 12 }, (_, i) => ({ weekStart: `2026-08-${String(2 + i).padStart(2, "0")}`, resolved: 9, inProgress: 2, new: i > 9 ? 1 : 0 })),
+  replyBuckets: { under4h: 29, h4to12: 14, h12to24: 4, over24h: 3, onTimePct: 94 },
+  byType: [
+    { key: "missed_pickup", label: "Missed pickup", count: 19 },
+    { key: "trash_in_hallway", label: "Trash in hallway", count: 13 },
+  ],
+  byProperty: [{ propertyId: "p1", name: "The Oaks at Decatur", orgName: "Peachtree Residential", count: 14, per100Units: 4.4, avgReplyHours: 4.1, spark: [3, 5, 4, 2] }],
+});
+
+export const reportDetail = (overrides: Partial<ReportDetail> = {}): ReportDetail => ({
+  ...reportRow(),
+  reporterName: "Jordan Lee",
+  reporterContact: "jordan@example.com",
+  contactMethod: "email",
+  issueDate: "2026-10-26",
+  description: "Bags were left at the door overnight.",
+  firstResponseAt: null,
+  resolvedAt: null,
+  photos: [],
+  events: [{ id: "e1", kind: "created", actor: null, body: null, fromStatus: null, toStatus: "new", assignee: null, createdAt: reportRow().createdAt }],
+  ...overrides,
+});

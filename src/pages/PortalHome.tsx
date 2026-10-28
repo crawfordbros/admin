@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
-import { ROLE_LABELS, roleFrom } from "../access";
+import { ROLE_LABELS, isAdmin as isAdminRole, roleFrom } from "../access";
 import { errorMessage, useApi, type Me } from "../lib/api";
 import { Alert, Loading } from "../components/ui";
 
@@ -16,14 +16,14 @@ export function PortalHome() {
   if (error) return <Alert>{errorMessage(error)}</Alert>;
 
   const { user, organizations, properties } = data;
-  const isAdmin = user.role === "admin";
+  const role = roleFrom({ role: user.role });
+  const isAdmin = isAdminRole(role);
   // A representative of one organization goes straight to it; a manager with one property, to that.
   if (!isAdmin && organizations.length === 1) return <Navigate to={`/portal/organizations/${organizations[0].id}`} replace />;
   if (!isAdmin && organizations.length === 0 && properties.length === 1) {
     return <Navigate to={`/portal/properties/${properties[0].id}`} replace />;
   }
 
-  const role = roleFrom({ role: user.role });
   const firstName = user.name?.split(" ")[0];
   return (
     <div className="mx-auto max-w-4xl">

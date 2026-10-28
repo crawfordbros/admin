@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Overwatch</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1100px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="overwatch" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Overwatch" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<section style="background: #1A1C5E; color: #FFFFFF; border-radius: 18px; padding: 36px; display: flex; flex-wrap: wrap; gap: 32px; align-items: center;">
+<div style="flex: 1 1 420px;">
+<span style="display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; background: #928064; color: #FFFFFF; padding: 4px 10px; border-radius: 999px;">COMING IN PHASE 2</span>
+<h1 style="margin: 14px 0 10px; font-family: 'Fira Sans', sans-serif; font-size: 34px;">Overwatch</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.6; color: #E6E7F2; max-width: 560px;">Units that keep breaking the trash rules get flagged automatically, so property managers can step in before it becomes a lease problem. Today the flag shows on violations and in weekly reports. The full workspace arrives in Phase 2.</p>
+<div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+<a href="Admin-Settings.dc.html" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 10px; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 14px; text-decoration: none;">Threshold: 3 in 30 days · Edit</a>
+<button type="button" disabled style="height: 42px; padding: 0 16px; border-radius: 10px; border: 1.5px solid #6E72C4; background: transparent; color: #C9CAF0; font-weight: 700; font-size: 14px; cursor: not-allowed;">Create Overwatch case</button>
+</div>
+</div>
+<svg aria-hidden="true" viewBox="0 0 200 160" style="flex: 0 1 240px; width: 240px; height: auto;">
+<circle cx="100" cy="80" r="70" fill="none" stroke="#3A3E99" stroke-width="2"></circle>
+<circle cx="100" cy="80" r="46" fill="none" stroke="#3A3E99" stroke-width="2"></circle>
+<path d="M30 80s28-40 70-40 70 40 70 40-28 40-70 40-70-40-70-40z" fill="none" stroke="#C8BBA5" stroke-width="4" stroke-linejoin="round"></path>
+<circle cx="100" cy="80" r="16" fill="#928064"></circle>
+<circle cx="100" cy="80" r="6" fill="#1A1C5E"></circle>
+</svg>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+<sc-for list="{{plans}}" as="p" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<span style="width: 40px; height: 40px; border-radius: 11px; background: #EEEFF8; color: #272B84; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{p.icon}}"></path></svg></span>
+<h2 style="margin: 12px 0 6px; font-family: 'Fira Sans', sans-serif; font-size: 17px;">{{p.title}}</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.55; color: #4A4C63;">{{p.body}}</p>
+</div>
+</sc-for>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 12px;"><div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 18px;">Units at the threshold today</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A4C63;">Read-only preview from current violations</p></div><span style="font-size: 12px; font-weight: 700; color: #4A4C63; background: #F0F0F4; padding: 4px 10px; border-radius: 999px; align-self: flex-start;">Preview</span></div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px;"><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Unit</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Property · Organization</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Violations in 30 days</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Most common</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Last</th></tr></thead>
+<tbody>
+<sc-for list="{{units}}" as="u" hint-placeholder-count="5">
+<tr><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5; font-weight: 700;">{{u.unit}}</td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;">{{u.prop}} <span style="color: #4A4C63;">· {{u.org}}</span></td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;"><span style="display: flex; align-items: center; gap: 8px;"><span style="display: flex; gap: 3px;"><sc-for list="{{u.marks}}" as="m" hint-placeholder-count="4"><span style="{{m}}"></span></sc-for></span><strong>{{u.n}}</strong></span></td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;">{{u.common}}</td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5; color: #4A4C63;">{{u.last}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const plans = [
+      { title: 'Automatic flags', body: 'Units over the threshold in Settings are flagged the moment a valet logs the violation.', icon: 'M4 21V4M4 4h12l-2 4 2 4H4' },
+      { title: 'Cases for managers', body: 'Property managers open an Overwatch case, add notes and track the unit until it clears.', icon: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11' },
+      { title: 'Courtesy notices via the property', body: 'Templates the property sends to its resident. CBES never contacts residents directly.', icon: 'M4 6h16v12H4zM4 7l8 6 8-6' },
+      { title: 'Clears on its own', body: 'Once a unit goes 30 days without a violation it leaves Overwatch and the case closes.', icon: 'M20 6L9 17l-5-5' },
+    ];
+    const mark = (on) => 'width: 10px; height: 10px; border-radius: 3px; background: ' + (on ? '#B42318' : '#E4E4EC') + ';';
+    const units = [
+      ['412', 'The Oaks at Decatur', 'Peachtree', 3, 'Bag not tied', 'Tonight'],
+      ['2207', 'Brookhaven Terrace', 'Peachtree', 4, 'Set out after 8 PM', 'Mon'],
+      ['221', 'Lakeside Crossing', 'Magnolia', 3, 'Prohibited item', 'Sun'],
+      ['118', 'Lakeside Crossing', 'Magnolia', 3, 'Trash outside container', 'Oct 22'],
+      ['305', 'Marietta Pines', 'Summit Ridge', 3, 'Container over-filled', 'Oct 21'],
+    ].map(u => ({ unit: u[0], prop: u[1], org: u[2], n: u[3], common: u[4], last: u[5], marks: [1, 2, 3, 4].map(i => mark(i <= u[3])) }));
+    return { plans, units };
+  }
+}
+</script>
+</body>
+</html>

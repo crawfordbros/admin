@@ -8,8 +8,9 @@ dist
 /.env
 /.env.*
 /.env.example
-# Docs stay local
+# Docs stay local, except the project docs in docs/ (spec, brief, design notes) so agents and clones can read them
 *.md
+!docs/**/*.md
 /claude.md
 *.tsbuildinfo
 test-results

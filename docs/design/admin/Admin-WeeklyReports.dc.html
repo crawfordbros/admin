@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Weekly Reports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1700px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="weekly" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Weekly Reports" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Weekly reports</h1>
+<p style="margin: 6px 0 0; font-size: 15px; color: #4A4C63;">Sent every Monday at 7:00 AM Eastern to each property's Management Director. Send again or download any property or organization.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 600; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>Download all (ZIP)</button>
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 10px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"></path></svg>Send all again</button>
+</div>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between;">
+<div style="display: flex; align-items: center; gap: 10px;">
+<button type="button" aria-label="Previous week" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<div><p style="margin: 0; font-size: 12px; color: #4A4C63; font-weight: 600;">REPORT WEEK</p><p style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 20px; font-weight: 700; color: #1A1C5E;">Sun Oct 18 – Sat Oct 24, 2026</p></div>
+<button type="button" aria-label="Next week" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 28px;">
+<sc-for list="{{summary}}" as="s" hint-placeholder-count="5"><div><p style="margin: 0; font-size: 12.5px; color: #4A4C63;">{{s.label}}</p><p style="{{s.style}}">{{s.value}}</p></div></sc-for>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+<label style="flex: 1 1 260px; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 14px; color: #4A4C63;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input type="search" aria-label="Filter properties" placeholder="Filter properties" style="flex: 1; border: none; outline: none; font-size: 14px; background: transparent;"></label>
+<div role="group" aria-label="Delivery status" style="display: flex; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 10px; padding: 3px;">
+<button type="button" aria-pressed="true" style="border: none; background: #272B84; color: #FFFFFF; padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;">All 14</button>
+<button type="button" style="border: none; background: transparent; padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #1A1C3D;">Sent 13</button>
+<button type="button" style="border: none; background: transparent; padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #B42318;">Bounced 1</button>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">Group by<select style="height: 40px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; background: #FFFFFF; font-size: 13px;"><option>Organization</option><option>None</option></select></label>
+</div>
+
+<sc-for list="{{orgs}}" as="o" hint-placeholder-count="3">
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; overflow: hidden;">
+<div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; padding: 16px 20px; background: #FAFAFD; border-bottom: 1px solid #E4E4EC;">
+<div style="display: flex; align-items: center; gap: 12px;">
+<span style="{{o.logoStyle}}">{{o.initials}}</span>
+<div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 18px;">{{o.name}}</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A4C63;">{{o.meta}}</p></div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button type="button" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 600; font-size: 13px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>Org PDF</button>
+<button type="button" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1.5px solid #272B84; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"></path></svg>Send org report</button>
+</div>
+</div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; min-width: 1040px; border-collapse: collapse; font-size: 13.5px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px;"><th style="padding: 10px 20px;">Property</th><th style="padding: 10px 8px;">Nights</th><th style="padding: 10px 8px;">Avg clock-in</th><th style="padding: 10px 8px;">Resident reports</th><th style="padding: 10px 8px;">Avg reply</th><th style="padding: 10px 8px;">Violations</th><th style="padding: 10px 8px;">Overwatch</th><th style="padding: 10px 8px;">Sent to</th><th style="padding: 10px 8px;">Delivery</th><th style="padding: 10px 20px 10px 8px; text-align: right;">Actions</th></tr></thead>
+<tbody>
+<sc-for list="{{o.rows}}" as="p" hint-placeholder-count="3">
+<tr style="border-top: 1px solid #F0F0F5;">
+<td style="padding: 12px 20px;"><span style="display: flex; align-items: center; gap: 10px;"><span aria-hidden="true" style="flex: none; width: 34px; height: 34px; border-radius: 8px; background: #ECECF4; border: 1px dashed #A9ABC9;"></span><span><strong style="display: block;">{{p.name}}</strong><span style="font-size: 12px; color: #4A4C63;">{{p.units}} units · {{p.city}}</span></span></span></td>
+<td style="padding: 12px 8px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="display: flex; gap: 2px;"><sc-for list="{{p.nights}}" as="n" hint-placeholder-count="5"><span style="{{n}}"></span></sc-for></span>{{p.nightsText}}</span></td>
+<td style="padding: 12px 8px;">{{p.clockIn}}</td>
+<td style="padding: 12px 8px;"><strong>{{p.reports}}</strong> <span style="color: #4A4C63;">({{p.resolved}} resolved)</span></td>
+<td style="padding: 12px 8px;">{{p.reply}}</td>
+<td style="padding: 12px 8px;"><span style="display: flex; align-items: center; gap: 8px;"><span style="width: 46px; height: 7px; background: #EEEFF8; border-radius: 4px; overflow: hidden;"><span style="{{p.violBar}}"></span></span>{{p.viol}}</span></td>
+<td style="padding: 12px 8px;">{{p.overwatch}}</td>
+<td style="padding: 12px 8px;"><span style="display: flex; align-items: center; gap: 6px;"><span style="{{p.avStyle}}">{{p.av}}</span><span style="font-size: 12.5px;">{{p.director}}</span></span></td>
+<td style="padding: 12px 8px;"><span style="{{p.deliveryStyle}}">{{p.delivery}}</span></td>
+<td style="padding: 12px 20px 12px 8px;"><span style="display: flex; gap: 6px; justify-content: flex-end;">
+<a href="WeeklyReport.dc.html" aria-label="Preview report" style="width: 34px; height: 34px; border-radius: 9px; border: 1px solid #E4E4EC; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></a>
+<button type="button" aria-label="Download PDF" style="width: 34px; height: 34px; border-radius: 9px; border: 1px solid #E4E4EC; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg></button>
+<button type="button" aria-label="Send again" style="width: 34px; height: 34px; border-radius: 9px; border: none; background: #272B84; display: flex; align-items: center; justify-content: center; color: #FFFFFF;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"></path></svg></button>
+</span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+</sc-for>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+<span style="flex: none; width: 44px; height: 44px; border-radius: 12px; background: #F4F1EC; color: #7A6A50; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path></svg></span>
+<div style="flex: 1 1 300px;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Next run: Monday, November 2 at 7:00 AM Eastern</h2><p style="margin: 2px 0 0; font-size: 13.5px; color: #4A4C63;">Covers Oct 25 – Oct 31. Organization roll-ups go to each Representative; the all-properties roll-up goes to Nick and Nigel.</p></div>
+<a href="Admin-Settings.dc.html" style="font-weight: 700; font-size: 14px;">Change schedule</a>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const v = (c) => 'margin: 2px 0 0; font-family: \'Fira Sans\', sans-serif; font-size: 22px; font-weight: 700; color: ' + c + ';';
+    const summary = [['Properties', '14', '#1A1C5E'], ['Sent Mon 7:00 AM', '13', '#1F6B3A'], ['Bounced', '1', '#B42318'], ['Resident reports', '19', '#1A1C5E'], ['Violations', '41', '#1A1C5E']].map(s => ({ label: s[0], value: s[1], style: v(s[2]) }));
+    const dot = (on) => 'width: 7px; height: 14px; border-radius: 2px; background: ' + (on ? '#1F6B3A' : '#E4E4EC') + ';';
+    const pill = (c) => 'font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: ' + c[0] + '; color: ' + c[1] + ';';
+    const av = 'flex: none; width: 26px; height: 26px; border-radius: 50%; background: #3A3E99; color: #FFFFFF; font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const row = (name, units, city, n, clockIn, reports, resolved, reply, viol, ow, director, delivery) => ({
+      name, units, city, clockIn, reports, resolved, reply, viol, overwatch: ow ? ow + ' units' : '—', director, av: director.split(' ').map(x => x[0]).join(''), avStyle: av,
+      nights: [1, 2, 3, 4, 5].map(i => dot(i <= n)), nightsText: n + '/5',
+      violBar: 'display: block; height: 100%; width: ' + Math.min(100, viol * 8) + '%; background: #272B84;',
+      delivery, deliveryStyle: pill(delivery === 'Bounced' ? ['#FDECEA', '#B42318'] : delivery === 'Sent' ? ['#E3F2E8', '#1F6B3A'] : ['#EEEFF8', '#272B84']),
+    });
+    const logo = (c) => 'flex: none; width: 40px; height: 40px; border-radius: 10px; background: ' + c + '; color: #FFFFFF; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;';
+    const orgs = [
+      { name: 'Peachtree Residential', initials: 'PR', c: '#272B84', meta: '6 properties · Representative Lauren Kim · roll-up sent Mon 7:02 AM', rows: [
+        row('The Oaks at Decatur', 312, 'Decatur', 5, '8:06 PM', 5, 4, '4.1h', 11, 2, 'Chris Patel', 'Sent'),
+        row('Brookhaven Terrace', 280, 'Brookhaven', 5, '8:11 PM', 3, 3, '3.9h', 7, 1, 'Renee Ford', 'Sent'),
+        row('Clarkston Commons', 196, 'Clarkston', 5, '8:04 PM', 2, 2, '5.5h', 4, 0, 'Chris Patel', 'Sent'),
+      ] },
+      { name: 'Magnolia Living', initials: 'ML', c: '#7A6A50', meta: '4 properties · Representative Marcus Bell · roll-up sent Mon 7:02 AM', rows: [
+        row('Lakeside Crossing', 268, 'Tucker', 4, '8:23 PM', 6, 4, '7.2h', 9, 2, 'Tina Owens', 'Bounced'),
+        row('Tucker Station', 320, 'Tucker', 5, '8:09 PM', 2, 2, '6.0h', 5, 0, 'Sam Ortiz', 'Sent'),
+      ] },
+      { name: 'Summit Ridge Communities', initials: 'SR', c: '#3A3E99', meta: '3 properties · Representative Alicia Grant · roll-up sent Mon 7:02 AM', rows: [
+        row('Marietta Pines', 240, 'Marietta', 5, '8:14 PM', 1, 1, '5.2h', 5, 0, 'Jordan Hale', 'Sent'),
+      ] },
+    ].map(o => ({ ...o, logoStyle: logo(o.c) }));
+    return { summary, orgs };
+  }
+}
+</script>
+</body>
+</html>

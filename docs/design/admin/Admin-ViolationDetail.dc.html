@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Violation V-2041</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1700px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="violations" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Violations / V-2041" hint-size="100%,64px"></dc-import>
+<main style="padding: 24px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<a href="Admin-Violations.dc.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; text-decoration: none;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"></path></svg>All violations</a>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: flex-start;">
+<div style="display: flex; gap: 14px; align-items: center;">
+<span style="flex: none; width: 52px; height: 52px; border-radius: 14px; background: #FFF4DB; color: #7A4B00; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3zM12 10v4M12 17.5v.01"></path></svg></span>
+<div>
+<p style="margin: 0; font-size: 13px; font-weight: 700; color: #4A4C63;">V-2041 · Logged tonight at 8:47 PM</p>
+<h1 style="margin: 2px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 28px; color: #1A1C5E;">Bag not tied · Unit 412</h1>
+<p style="margin: 4px 0 0; font-size: 14px; color: #4A4C63;">The Oaks at Decatur · Building 4 · Peachtree Residential</p>
+</div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700;">Status
+<select style="height: 42px; border-radius: 10px; border: 1.5px solid #272B84; padding: 0 12px; font-size: 14px; font-weight: 700; color: #1A1C5E; background: #EEEFF8;"><option>New</option><option>In review</option><option>Sent to property</option><option>Resolved</option><option>Dismissed</option></select></label>
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 600; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg>Print</button>
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 10px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"></path></svg>Send to property</button>
+</div>
+</div>
+
+<ol aria-label="Progress" style="margin: 0; padding: 14px 18px; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px;">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+<li style="display: flex; align-items: center; gap: 8px; flex: 1 1 160px;"><span style="{{s.dot}}">{{s.n}}</span><span><span style="display: block; font-size: 13.5px; font-weight: 700;">{{s.label}}</span><span style="display: block; font-size: 12px; color: #4A4C63;">{{s.sub}}</span></span><span aria-hidden="true" style="{{s.line}}"></span></li>
+</sc-for>
+</ol>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+
+<div style="flex: 1.4 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 16px;">
+<div style="aspect-ratio: 4 / 3; border-radius: 12px; background: #1E2160; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #C9CAF0; font-size: 14px; position: relative;">
+<svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+Photo 1 of 2: untied bag beside container, Unit 412
+<span style="position: absolute; left: 12px; bottom: 12px; font-size: 12px; font-weight: 700; color: #FFFFFF; background: rgba(0,0,0,0.45); padding: 4px 8px; border-radius: 6px;">Oct 27, 2026 · 8:47:12 PM · GPS ±6 m</span>
+<span style="position: absolute; right: 12px; top: 12px; display: flex; gap: 6px;"><button type="button" aria-label="Zoom" style="width: 34px; height: 34px; border-radius: 9px; border: none; background: rgba(255,255,255,0.9); color: #1A1C5E; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"></path></svg></button><button type="button" aria-label="Download photo" style="width: 34px; height: 34px; border-radius: 9px; border: none; background: rgba(255,255,255,0.9); color: #1A1C5E; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg></button></span>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 12px;">
+<button type="button" aria-label="Photo 1" style="width: 84px; height: 64px; border-radius: 10px; border: 2.5px solid #272B84; background: #1E2160; color: #C9CAF0; font-size: 11px;">1</button>
+<button type="button" aria-label="Photo 2" style="width: 84px; height: 64px; border-radius: 10px; border: 1px solid #E4E4EC; background: #2A2E78; color: #C9CAF0; font-size: 11px;">2</button>
+<span style="margin-left: auto; align-self: center; font-size: 12.5px; color: #4A4C63;">Photos show trash and doorways only, never people.</span>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 18px;">Notes and activity</h2><span style="font-size: 12.5px; color: #4A4C63;">Notes ping the people you choose by email and in their portal</span></div>
+<div style="border: 1.5px solid #272B84; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+<label style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);" for="note">Add a note</label>
+<textarea id="note" rows="3" placeholder="Add a note… type @ to mention someone" style="border: none; outline: none; resize: vertical; font-family: inherit; font-size: 14px; color: #1A1C3D;">@Marcus please retake photo 2 from further back so the unit number is in frame.</textarea>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+<span style="font-size: 12.5px; font-weight: 700; color: #4A4C63;">Notify:</span>
+<sc-for list="{{notify}}" as="n" hint-placeholder-count="3"><label style="{{n.style}}"><input type="checkbox" checked="{{n.on}}" style="accent-color: #272B84;"><span style="{{n.av}}">{{n.i}}</span>{{n.name}} <span style="font-weight: 600; color: #4A4C63;">· {{n.role}}</span></label></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; border-top: 1px solid #F0F0F5; padding-top: 10px;">
+<div role="group" aria-label="Who can see this note" style="display: flex; background: #F4F5FA; border-radius: 9px; padding: 3px;">
+<button type="button" aria-pressed="true" style="border: none; background: #FFFFFF; color: #1A1C5E; padding: 6px 10px; border-radius: 7px; font-size: 12.5px; font-weight: 700; box-shadow: 0 1px 2px rgba(26,28,94,0.12);">CBES team only</button>
+<button type="button" style="border: none; background: transparent; color: #4A4C63; padding: 6px 10px; border-radius: 7px; font-size: 12.5px; font-weight: 600;">Also show property</button>
+</div>
+<div style="display: flex; gap: 8px;"><button type="button" aria-label="Attach photo" style="width: 38px; height: 38px; border-radius: 9px; border: 1px solid #C9CAD6; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12l-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"></path></svg></button><button type="button" style="height: 38px; padding: 0 16px; border-radius: 9px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 13.5px;">Add note and notify 2</button></div>
+</div>
+</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px;">
+<sc-for list="{{feed}}" as="f" hint-placeholder-count="4">
+<li style="display: flex; gap: 12px;"><span style="{{f.av}}">{{f.i}}</span><div style="flex: 1; min-width: 0;"><p style="margin: 0; font-size: 13.5px;"><strong>{{f.who}}</strong> <span style="color: #4A4C63;">{{f.what}}</span> <span style="color: #8A8CA3; font-size: 12px;">· {{f.when}}</span></p><sc-if value="{{f.body}}" hint-placeholder-val="{{ true }}"><p style="{{f.bodyStyle}}">{{f.body}}</p></sc-if></div></li>
+</sc-for>
+</ol>
+</section>
+</div>
+
+<div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<h2 style="margin: 0 0 14px; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Details</h2>
+<dl style="margin: 0; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px 12px; font-size: 14px;">
+<dt style="color: #4A4C63;">Organization</dt><dd style="margin: 0; font-weight: 600;"><a href="Admin-OrgDetail.dc.html">Peachtree Residential</a></dd>
+<dt style="color: #4A4C63;">Property</dt><dd style="margin: 0; font-weight: 600;"><a href="Admin-PropertyDetail.dc.html">The Oaks at Decatur</a></dd>
+<dt style="color: #4A4C63;">Building · Unit</dt><dd style="margin: 0; font-weight: 600;">Building 4 · 412</dd>
+<dt style="color: #4A4C63;">Type</dt><dd style="margin: 0; font-weight: 600;">Bag not tied</dd>
+<dt style="color: #4A4C63;">Valet note</dt><dd style="margin: 0;">Left in place, bag torn.</dd>
+<dt style="color: #4A4C63;">Logged</dt><dd style="margin: 0;">Oct 27, 8:47 PM (synced 8:49 PM)</dd>
+<dt style="color: #4A4C63;">Location</dt><dd style="margin: 0;">33.7748, −84.2963 · ±6 m</dd>
+</dl>
+<div aria-hidden="true" style="margin-top: 14px; height: 120px; border-radius: 12px; background: #EEF0F6; border: 1px dashed #A9ABC9; display: flex; align-items: center; justify-content: center; color: #4A4C63; font-size: 13px;">Map: pin at Building 4</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<h2 style="margin: 0 0 14px; font-family: 'Fira Sans', sans-serif; font-size: 17px;">People</h2>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px;">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+<li style="display: flex; gap: 12px; align-items: center;"><span style="{{p.av}}">{{p.i}}</span><span style="flex: 1; min-width: 0;"><span style="display: block; font-weight: 700; font-size: 14px;">{{p.name}}</span><span style="display: block; font-size: 12.5px; color: #4A4C63;">{{p.role}}</span></span><span style="{{p.tagStyle}}">{{p.tag}}</span></li>
+</sc-for>
+</ul>
+<button type="button" style="margin-top: 14px; width: 100%; height: 38px; border-radius: 9px; border: 1px dashed #A9ABC9; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;">Reassign valet or Steward</button>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Unit 412 history</h2><span style="font-size: 12px; font-weight: 700; color: #B42318; background: #FDECEA; padding: 3px 9px; border-radius: 999px;">3 in 30 days</span></div>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+<li style="display: flex; justify-content: space-between;"><span>Bag not tied · tonight</span><span style="color: #4A4C63;">V-2041</span></li>
+<li style="display: flex; justify-content: space-between;"><span>Trash outside container · Oct 19</span><span style="color: #4A4C63;">V-1987</span></li>
+<li style="display: flex; justify-content: space-between;"><span>Set out after 8 PM · Oct 6</span><span style="color: #4A4C63;">V-1902</span></li>
+</ul>
+<p style="margin: 12px 0 0; font-size: 12.5px; color: #4A4C63;">At the Overwatch threshold. Overwatch tools arrive in Phase 2.</p>
+</section>
+</div>
+</div>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const av = (c, s) => 'flex: none; width: ' + (s || 36) + 'px; height: ' + (s || 36) + 'px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-size: ' + (s ? 10 : 12.5) + 'px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const steps = [['1', 'Logged', 'Marcus Hill · 8:47 PM', 'done'], ['2', 'In review', 'CBES checks photo and type', 'now'], ['3', 'Sent to property', 'Chris Patel, Property manager', 'todo'], ['4', 'Resolved', 'Closed by property or CBES', 'todo']].map((s, i, a) => ({
+      n: s[3] === 'done' ? '✓' : s[0], label: s[1], sub: s[2],
+      dot: 'flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; ' + (s[3] === 'done' ? 'background: #1F6B3A; color: #FFFFFF;' : s[3] === 'now' ? 'background: #272B84; color: #FFFFFF; box-shadow: 0 0 0 4px #E3E4F6;' : 'background: #F0F0F4; color: #4A4C63;'),
+      line: i < a.length - 1 ? 'flex: 1; height: 2px; min-width: 16px; background: ' + (s[3] === 'done' ? '#1F6B3A' : '#E4E4EC') + ';' : 'display: none;',
+    }));
+    const chipOn = 'display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border-radius: 999px; border: 1.5px solid #272B84; background: #EEEFF8; font-size: 12.5px; font-weight: 700;';
+    const chipOff = 'display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border-radius: 999px; border: 1px solid #C9CAD6; background: #FFFFFF; font-size: 12.5px; font-weight: 700;';
+    const notify = [['Marcus Hill', 'MH', 'Valet', '#3A3E99', true], ['Dana Brooks', 'DB', 'Steward', '#1A1C5E', true], ['Chris Patel', 'CP', 'Property manager', '#7A6A50', false]].map(n => ({ name: n[0], i: n[1], role: n[2], av: av(n[3], 22), on: n[4], style: n[4] ? chipOn : chipOff }));
+    const bodyBox = (internal) => 'margin: 6px 0 0; font-size: 14px; line-height: 1.5; padding: 10px 12px; border-radius: 10px; background: ' + (internal ? '#F4F5FA' : '#E6F0FF') + ';';
+    const feed = [
+      ['NG', '#272B84', 'Nigel Crawford', 'changed status to In review', '8:55 PM', '', false],
+      ['DB', '#1A1C5E', 'Dana Brooks', 'added a note', '8:52 PM', 'Third one at 412 this month. Bag was torn open, so Marcus left it in place for safety.', true],
+      ['MH', '#3A3E99', 'Marcus Hill', 'logged this violation from the valet app with 2 photos', '8:47 PM', '', false],
+      ['∙', '#A9ABC9', 'System', 'matched Unit 412 to Building 4 using the property unit list', '8:47 PM', '', false],
+    ].map(f => ({ i: f[0], av: av(f[1]), who: f[2], what: f[3], when: f[4], body: f[5], bodyStyle: bodyBox(f[6]) }));
+    const tag = (bg, fg) => 'font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: ' + bg + '; color: ' + fg + ';';
+    const people = [
+      ['Marcus Hill', 'MH', '#3A3E99', 'Valet · logged this', 'On shift', ['#E3F2E8', '#1F6B3A']],
+      ['Dana Brooks', 'DB', '#1A1C5E', 'Steward · Marcus\'s direct manager', 'Notified', ['#EEEFF8', '#272B84']],
+      ['Chris Patel', 'CP', '#7A6A50', 'Property manager, The Oaks', 'Gets it when sent', ['#F0F0F4', '#4A4C63']],
+      ['Lauren Kim', 'LK', '#928064', 'Representative, Peachtree', 'Weekly report', ['#F0F0F4', '#4A4C63']],
+    ].map(p => ({ name: p[0], i: p[1], av: av(p[2]), role: p[3], tag: p[4], tagStyle: tag(p[5][0], p[5][1]) }));
+    return { steps, notify, feed, people };
+  }
+}
+</script>
+</body>
+</html>

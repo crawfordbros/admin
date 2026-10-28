@@ -6,16 +6,27 @@ import { RequireArea } from "./components/RequireArea";
 import { RequireSecurity } from "./components/RequireSecurity";
 import { UserScopedQueries } from "./components/UserScopedQueries";
 import { Shell } from "./components/Shell";
+import { AdminShell } from "./components/admin/AdminShell";
+import { ToastProvider } from "./components/Toast";
 import { LoginPage } from "./pages/LoginPage";
 import { PortalHome } from "./pages/PortalHome";
 import { AdminHome } from "./pages/AdminHome";
 import { ComingSoon } from "./pages/ComingSoon";
 import { ADMIN_SECTIONS } from "./pages/adminSections";
 import { AcceptInvitePage } from "./pages/AcceptInvitePage";
-import { PropertiesPage } from "./pages/admin/PropertiesPage";
 import { OrganizationAdminPage, OrganizationsPage } from "./pages/admin/OrganizationsPage";
 import { OrganizationPage } from "./pages/portal/OrganizationPage";
-import { NewPropertyPage, PropertyAdminPage } from "./pages/admin/PropertyAdminPage";
+import { PropertyAdminPage } from "./pages/admin/PropertyAdminPage";
+import { PropertyDetailPage } from "./pages/admin/PropertyDetailPage";
+import { AddPropertyModal } from "./pages/org/AddPropertyModal";
+import { ViolationsPage } from "./pages/violations/ViolationsPage";
+import { ViolationDetailPage } from "./pages/violations/ViolationDetailPage";
+import { PortalViolationPage } from "./pages/violations/PortalViolations";
+import { ReportsPage } from "./pages/reports/ReportsPage";
+import { ReportDrawer } from "./pages/reports/ReportDrawer";
+import { UsersPage } from "./pages/users/UsersPage";
+import { AddAdminModal } from "./pages/users/AddAdminModal";
+import { NewPropertyRedirect, PropertyRedirect } from "./pages/admin/redirects";
 import { PropertyPage } from "./pages/portal/PropertyPage";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
 
@@ -38,7 +49,7 @@ function ClerkWithRouter({ children }: { children: ReactNode }) {
   );
 }
 
-const BUILT = new Set(["/admin", "/admin/organizations", "/admin/properties"]);
+const BUILT = new Set(["/admin", "/admin/organizations", "/admin/violations", "/admin/reports", "/admin/users"]);
 
 export function App() {
   if (!config.clerkPublishableKey.startsWith("pk_")) {
@@ -52,6 +63,7 @@ export function App() {
     <BrowserRouter>
       <ClerkWithRouter>
         <UserScopedQueries>
+        <ToastProvider>
         <Routes>
           <Route
             path="/portal/login/sso-callback"
@@ -60,28 +72,45 @@ export function App() {
           <Route path="/portal/login/*" element={<LoginPage />} />
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
           <Route element={<RequireSecurity><Outlet /></RequireSecurity>}>
-          <Route element={<Shell />}>
-            <Route path="/portal" element={<RequireArea area="portal"><PortalHome /></RequireArea>} />
-            <Route path="/portal/organizations/:id" element={<RequireArea area="organization"><OrganizationPage /></RequireArea>} />
-            <Route path="/portal/properties/:id" element={<RequireArea area="manager"><PropertyPage /></RequireArea>} />
-            <Route path="/portal/properties/:id/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
-            <Route path="/admin" element={<RequireArea area="admin"><AdminHome /></RequireArea>} />
-            <Route path="/admin/organizations" element={<RequireArea area="admin"><OrganizationsPage /></RequireArea>} />
-            <Route path="/admin/organizations/:id" element={<RequireArea area="admin"><OrganizationAdminPage /></RequireArea>} />
-            <Route path="/admin/properties" element={<RequireArea area="admin"><PropertiesPage /></RequireArea>} />
-            <Route path="/admin/properties/new" element={<RequireArea area="admin"><NewPropertyPage /></RequireArea>} />
-            <Route path="/admin/properties/:id" element={<RequireArea area="admin"><PropertyAdminPage /></RequireArea>} />
-            {ADMIN_SECTIONS.filter((s) => !BUILT.has(s.path)).map((s) => (
-              <Route
-                key={s.path}
-                path={s.path}
-                element={<RequireArea area="admin"><ComingSoon title={s.label} detail={s.detail} /></RequireArea>}
-              />
-            ))}
+            <Route element={<Shell />}>
+              <Route path="/portal" element={<RequireArea area="portal"><PortalHome /></RequireArea>} />
+              <Route path="/portal/organizations/:id" element={<RequireArea area="organization"><OrganizationPage /></RequireArea>}>
+                <Route path="properties/new" element={<AddPropertyModal />} />
+              </Route>
+              <Route path="/portal/properties/:id" element={<RequireArea area="manager"><PropertyPage /></RequireArea>} />
+              <Route path="/portal/properties/:id/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
+              <Route path="/portal/violations/:id" element={<RequireArea area="portal"><PortalViolationPage /></RequireArea>} />
+            </Route>
+            <Route path="/admin" element={<RequireArea area="admin" standalone><AdminShell /></RequireArea>}>
+              <Route index element={<AdminHome />} />
+              <Route path="organizations" element={<OrganizationsPage />} />
+              <Route path="organizations/:orgId" element={<OrganizationAdminPage />}>
+                <Route path="properties/new" element={<AddPropertyModal />} />
+              </Route>
+              {/* Properties from before Organizations open on the old page until they're moved into one. */}
+              <Route path="organizations/unassigned/properties/:propertyId" element={<PropertyAdminPage />} />
+              <Route path="organizations/:orgId/properties/:propertyId" element={<PropertyDetailPage />} />
+              <Route path="reports" element={<ReportsPage />}>
+                <Route path=":id" element={<ReportDrawer />} />
+              </Route>
+              <Route path="users" element={<UsersPage />}>
+                <Route path="add-admin" element={<AddAdminModal />} />
+              </Route>
+              <Route path="violations" element={<ViolationsPage />} />
+              <Route path="violations/:id" element={<ViolationDetailPage />} />
+              {/* Properties moved inside Organizations (ADMIN_PORTAL_SPEC section 3.2). */}
+              <Route path="properties" element={<Navigate to="/admin/organizations" replace />} />
+              <Route path="properties/new" element={<NewPropertyRedirect />} />
+              <Route path="properties/:id" element={<PropertyRedirect />} />
+              {ADMIN_SECTIONS.filter((s) => !BUILT.has(s.path)).map((s) => (
+                <Route key={s.path} path={s.path} element={<ComingSoon title={s.label} detail={s.detail} icon={s.icon} />} />
+              ))}
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </Route>
             <Route path="*" element={<Navigate to="/portal" replace />} />
           </Route>
-          </Route>
         </Routes>
+        </ToastProvider>
         </UserScopedQueries>
       </ClerkWithRouter>
     </BrowserRouter>

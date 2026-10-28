@@ -1,0 +1,186 @@
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { ApiError, errorMessage, useApi, type SearchResult } from "../../lib/api";
+import { Icon } from "../icons";
+import { useFocusTrap } from "../useFocusTrap";
+import { cx } from "../styles";
+
+const GROUPS: { kind: SearchResult["kind"]; label: string }[] = [
+  { kind: "org", label: "Organizations" },
+  { kind: "property", label: "Properties" },
+  { kind: "unit", label: "Units" },
+  { kind: "report", label: "Reports" },
+  { kind: "violation", label: "Violations" },
+  { kind: "user", label: "Users" },
+  { kind: "quote", label: "Quotes" },
+];
+
+const RECENT_KEY = "cbes-admin:recent-searches";
+
+function readRecent(): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
+    return Array.isArray(v) ? v.filter((s): s is string => typeof s === "string").slice(0, 5) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(q: string) {
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...readRecent().filter((s) => s !== q)].slice(0, 5)));
+  } catch {
+    // Private windows can refuse storage; recent searches are only a convenience.
+  }
+}
+
+function useDebounced(value: string, ms: number) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
+
+/** The ⌘K command palette: find an organization, property, unit, ticket, person or quote. */
+export function SearchPalette({ onClose }: { onClose: () => void }) {
+  const api = useApi();
+  const navigate = useNavigate();
+  const panel = useRef<HTMLDivElement>(null);
+  const listId = useId();
+  const [q, setQ] = useState("");
+  const [active, setActive] = useState(0);
+  const [recent] = useState(readRecent);
+  useFocusTrap(panel, onClose);
+
+  const term = useDebounced(q.trim(), 200);
+  const search = useQuery({
+    queryKey: ["admin", "search", term],
+    queryFn: () => api<{ results: SearchResult[] }>(`/search?q=${encodeURIComponent(term)}`),
+    enabled: term.length >= 2,
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const results = term.length >= 2 ? (search.data?.results ?? []) : [];
+  // Results in display order, so arrow keys follow what's on screen.
+  const ordered = GROUPS.flatMap((g) => results.filter((r) => r.kind === g.kind));
+  const at = Math.min(active, Math.max(0, ordered.length - 1));
+
+  const open = (r: SearchResult) => {
+    saveRecent(term);
+    onClose();
+    navigate(r.link);
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (ordered.length) setActive((at + (e.key === "ArrowDown" ? 1 : -1) + ordered.length) % ordered.length);
+    } else if (e.key === "Enter" && ordered[at]) {
+      e.preventDefault();
+      open(ordered[at]);
+    }
+  };
+
+  const optionId = (i: number) => `${listId}-${i}`;
+  const notReady = search.error instanceof ApiError && search.error.status === 404;
+
+  return createPortal(
+    <div className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-navy-night/60 p-4 pt-[10vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div ref={panel} role="dialog" aria-modal="true" aria-label="Search the Admin Portal" className="w-full max-w-[640px] overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_rgba(10,12,40,0.45)]">
+        <div className="flex items-center gap-2.5 border-b border-line px-4">
+          <Icon name="search" size={20} strokeWidth={2} className="flex-none text-muted" />
+          <input
+            data-autofocus
+            type="text"
+            role="combobox"
+            aria-label="Search"
+            aria-expanded={ordered.length > 0}
+            aria-controls={listId}
+            aria-activedescendant={ordered.length ? optionId(at) : undefined}
+            aria-autocomplete="list"
+            placeholder="Search orgs, properties, units, tickets…"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setActive(0);
+            }}
+            onKeyDown={onKeyDown}
+            className="h-14 min-w-0 flex-1 border-0 bg-transparent text-[16px] text-ink outline-none placeholder:text-muted"
+          />
+          <kbd className="rounded-md border border-field bg-white px-1.5 py-px font-sans text-[11px] text-muted">Esc</kbd>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-2">
+          {term.length < 2 && (
+            <div className="px-2 py-2">
+              {recent.length > 0 ? (
+                <>
+                  <h2 className="m-0 mb-1 px-2 font-sans text-[12px] font-bold text-muted">Recent searches</h2>
+                  <ul className="m-0 list-none p-0">
+                    {recent.map((r) => (
+                      <li key={r}>
+                        <button type="button" onClick={() => setQ(r)} className="flex min-h-10 w-full items-center gap-2.5 rounded-lg px-2 text-left text-[14px] hover:bg-canvas">
+                          <Icon name="clock" size={16} className="text-muted" />
+                          {r}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p className="m-0 px-2 py-4 text-center text-[14px] text-muted">Type a name, unit, ticket number (#1042) or violation (V-2041).</p>
+              )}
+            </div>
+          )}
+
+          {term.length >= 2 && search.isPending && <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">Searching…</p>}
+          {term.length >= 2 && search.error && (
+            <p role="alert" className="m-0 px-4 py-6 text-center text-[14px] text-muted">
+              {notReady ? "Search isn't available yet. It turns on once the API adds it." : errorMessage(search.error)}
+            </p>
+          )}
+          {term.length >= 2 && search.isSuccess && ordered.length === 0 && (
+            <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">
+              Nothing matches “{term}”. Try a unit number, a ticket number or part of a name.
+            </p>
+          )}
+
+          <div id={listId} role="listbox" aria-label="Results" hidden={ordered.length === 0}>
+            {GROUPS.map((g) => {
+              const items = ordered.map((r, i) => ({ r, i })).filter(({ r }) => r.kind === g.kind);
+              if (!items.length) return null;
+              return (
+                <div key={g.kind} role="group" aria-labelledby={`${listId}-${g.kind}`} className="mb-1">
+                  <div id={`${listId}-${g.kind}`} className="px-2 pt-2 pb-1 text-[12px] font-bold text-muted">
+                    {g.label}
+                  </div>
+                  {items.map(({ r, i }) => (
+                    <div
+                      key={`${r.kind}-${r.id}`}
+                      id={optionId(i)}
+                      role="option"
+                      aria-selected={i === at}
+                      onMouseEnter={() => setActive(i)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => open(r)}
+                      className={cx("flex min-h-12 cursor-pointer flex-col justify-center rounded-lg px-3 py-1.5", i === at && "bg-tint-2")}
+                    >
+                      <span className="text-[14px] font-semibold">{r.title}</span>
+                      <span className="text-[12.5px] text-muted">{r.subtitle}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}

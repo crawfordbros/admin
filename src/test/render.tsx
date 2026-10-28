@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { ToastProvider } from "../components/Toast";
 import { vi } from "vitest";
 
 // Clerk is mocked in setup.ts: useAuth().getToken() resolves to "session-token".
@@ -31,17 +32,22 @@ function Location() {
   return <output data-testid="location">{location.pathname + location.search}</output>;
 }
 
-export function renderRoute(path: string, url: string, element: ReactNode) {
+/** Renders `element` at `path`; `children` are nested routes (such as a modal over the page). */
+export function renderRoute(path: string, url: string, element: ReactNode, children?: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[url]}>
-        <Routes>
-          <Route path={path} element={element} />
-          <Route path="*" element={<p>Elsewhere</p>} />
-        </Routes>
-        <Location />
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter initialEntries={[url]}>
+          <Routes>
+            <Route path={path} element={element}>
+              {children}
+            </Route>
+            <Route path="*" element={<p>Elsewhere</p>} />
+          </Routes>
+          <Location />
+        </MemoryRouter>
+      </ToastProvider>
     </QueryClientProvider>,
   );
 }

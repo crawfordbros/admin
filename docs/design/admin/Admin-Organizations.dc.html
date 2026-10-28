@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Organizations</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1500px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="organizations" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Organizations" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Organizations</h1>
+<p style="margin: 6px 0 0; font-size: 15px; color: #4A4C63; max-width: 720px;">The management companies CBES works with. Every property belongs to an organization. Representatives run their organization and can add up to 100 properties.</p>
+</div>
+<button type="button" style="height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 10px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>New organization<span style="font-size: 11px; font-weight: 700; background: #928064; padding: 2px 7px; border-radius: 999px;">Admins</span></button>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px;">
+<sc-for list="{{stats}}" as="s" hint-placeholder-count="5">
+<div style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 16px; display: flex; gap: 12px; align-items: center;">
+<span style="flex: none; width: 40px; height: 40px; border-radius: 11px; background: #EEEFF8; color: #272B84; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{s.icon}}"></path></svg></span>
+<span><span style="display: block; font-family: 'Fira Sans', sans-serif; font-size: 24px; font-weight: 700; color: #1A1C5E; line-height: 1.1;">{{s.value}}</span><span style="display: block; font-size: 12.5px; color: #4A4C63;">{{s.label}}</span></span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+<label style="flex: 1 1 260px; display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 14px; color: #4A4C63;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input type="search" aria-label="Search organizations" placeholder="Search organizations or Representatives" style="flex: 1; border: none; outline: none; font-size: 14px; background: transparent;"></label>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">Status<select style="height: 42px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; background: #FFFFFF; font-size: 13px;"><option>Active</option><option>Onboarding</option><option>All</option></select></label>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">Sort<select style="height: 42px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; background: #FFFFFF; font-size: 13px;"><option>Most properties</option><option>Name A–Z</option><option>Most open items</option><option>Newest</option></select></label>
+<div role="group" aria-label="Layout" style="display: flex; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 10px; padding: 3px;">
+<button type="button" aria-pressed="{{tilePressed}}" onClick="{{showTiles}}" style="{{tileBtn}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"></path></svg>Tiles</button>
+<button type="button" aria-pressed="{{listPressed}}" onClick="{{showList}}" style="{{listBtn}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>List</button>
+</div>
+</div>
+
+<sc-if value="{{isTiles}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 18px;">
+<sc-for list="{{orgs}}" as="o" hint-placeholder-count="6">
+<a href="Admin-OrgDetail.dc.html" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 16px; text-decoration: none; color: #1A1C3D; display: flex; flex-direction: column; overflow: hidden;">
+<div style="{{o.banner}}"></div>
+<div style="padding: 0 20px 20px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: -28px;">
+<span style="{{o.logo}}">{{o.initials}}</span>
+<span style="{{o.statusStyle}}">{{o.status}}</span>
+</div>
+<div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">{{o.name}}</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A4C63;">{{o.area}}</p></div>
+<div>
+<div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px;"><span style="font-weight: 700;">{{o.props}} of 100 properties</span><span style="color: #4A4C63;">{{o.units}} units</span></div>
+<div style="height: 8px; border-radius: 999px; background: #EEEFF8; overflow: hidden;"><div style="{{o.meter}}"></div></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center;">
+<div style="background: #F8F8FB; border-radius: 10px; padding: 8px 4px;"><span style="display: block; font-family: 'Fira Sans', sans-serif; font-size: 18px; font-weight: 700; color: #1A1C5E;">{{o.open}}</span><span style="font-size: 11.5px; color: #4A4C63;">Open reports</span></div>
+<div style="background: #F8F8FB; border-radius: 10px; padding: 8px 4px;"><span style="display: block; font-family: 'Fira Sans', sans-serif; font-size: 18px; font-weight: 700; color: #1A1C5E;">{{o.viol}}</span><span style="font-size: 11.5px; color: #4A4C63;">Violations 30d</span></div>
+<div style="background: #F8F8FB; border-radius: 10px; padding: 8px 4px;"><span style="display: block; font-family: 'Fira Sans', sans-serif; font-size: 18px; font-weight: 700; color: #1A1C5E;">{{o.reply}}</span><span style="font-size: 11.5px; color: #4A4C63;">Avg reply</span></div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #F0F0F5; padding-top: 12px;">
+<span style="display: flex; align-items: center; gap: 8px;"><span style="display: flex;"><sc-for list="{{o.reps}}" as="r" hint-placeholder-count="3"><span style="{{r.style}}">{{r.i}}</span></sc-for></span><span style="font-size: 12.5px; color: #4A4C63;">{{o.repText}}</span></span>
+<span style="font-size: 13px; font-weight: 700; color: #272B84; display: flex; align-items: center; gap: 4px;">Open<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></span>
+</div>
+</div>
+</a>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{isList}}" hint-placeholder-val="{{ false }}">
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; overflow-x: auto;">
+<table style="width: 100%; min-width: 980px; border-collapse: collapse; font-size: 14px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px; background: #FAFAFD;"><th style="padding: 12px 16px;">Organization</th><th style="padding: 12px 8px;">Status</th><th style="padding: 12px 8px;">Properties</th><th style="padding: 12px 8px;">Units</th><th style="padding: 12px 8px;">Representatives</th><th style="padding: 12px 8px;">Open reports</th><th style="padding: 12px 8px;">Violations 30d</th><th style="padding: 12px 8px;">Avg reply</th><th style="padding: 12px 16px 12px 8px;"></th></tr></thead>
+<tbody>
+<sc-for list="{{orgs}}" as="o" hint-placeholder-count="6">
+<tr style="border-top: 1px solid #F0F0F5;">
+<td style="padding: 12px 16px;"><span style="display: flex; align-items: center; gap: 12px;"><span style="{{o.logoSm}}">{{o.initials}}</span><span><a href="Admin-OrgDetail.dc.html" style="font-weight: 700; color: #1A1C3D; text-decoration: none;">{{o.name}}</a><span style="display: block; font-size: 12px; color: #4A4C63;">{{o.area}}</span></span></span></td>
+<td style="padding: 12px 8px;"><span style="{{o.statusStyle}}">{{o.status}}</span></td>
+<td style="padding: 12px 8px;"><span style="display: flex; align-items: center; gap: 8px;"><span style="width: 56px; height: 6px; border-radius: 999px; background: #EEEFF8; overflow: hidden;"><span style="{{o.meterSm}}"></span></span>{{o.props}}/100</span></td>
+<td style="padding: 12px 8px;">{{o.units}}</td>
+<td style="padding: 12px 8px;"><span style="display: flex;"><sc-for list="{{o.reps}}" as="r" hint-placeholder-count="3"><span style="{{r.style}}">{{r.i}}</span></sc-for></span></td>
+<td style="padding: 12px 8px;">{{o.open}}</td>
+<td style="padding: 12px 8px;">{{o.viol}}</td>
+<td style="padding: 12px 8px;">{{o.reply}}</td>
+<td style="padding: 12px 16px 12px 8px;"><a href="Admin-OrgDetail.dc.html" aria-label="Open organization" style="width: 34px; height: 34px; border-radius: 9px; border: 1px solid #E4E4EC; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></a></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</section>
+</sc-if>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { view: 'tiles' }; }
+  renderVals() {
+    const tiles = this.state.view === 'tiles';
+    const on = 'display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #272B84; color: #FFFFFF; font-size: 13px; font-weight: 700;';
+    const off = 'display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: transparent; color: #1A1C3D; font-size: 13px; font-weight: 600;';
+    const stats = [
+      ['Organizations', '6', 'M3 21h18M5 21V7l7-4 7 4v14'],
+      ['Properties', '17', 'M3 12l9-8 9 8M5 10v10h14V10'],
+      ['Units under service', '4,812', 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z'],
+      ['Representatives', '9', 'M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
+      ['Pending invitations', '4', 'M4 6h16v12H4zM4 7l8 6 8-6'],
+    ].map(s => ({ label: s[0], value: s[1], icon: s[2] }));
+    const repAv = (c, i) => 'width: 28px; height: 28px; border-radius: 50%; border: 2px solid #FFFFFF; margin-left: ' + (i ? -8 : 0) + 'px; background: ' + c + '; color: #FFFFFF; font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const pill = (s) => 'font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; ' + (s === 'Active' ? 'background: #E3F2E8; color: #1F6B3A;' : 'background: #FFF4DB; color: #7A4B00;');
+    const orgs = [
+      ['Peachtree Residential', 'PR', '#272B84', 'Decatur, Brookhaven, Clarkston', 'Active', 6, '1,752', 3, 58, '4.9h', [['LK', '#928064'], ['JW', '#3A3E99']], 'Lauren Kim + 1'],
+      ['Magnolia Living', 'ML', '#7A6A50', 'Tucker, Stone Mountain', 'Active', 4, '1,104', 2, 41, '6.1h', [['MB', '#272B84']], 'Marcus Bell'],
+      ['Summit Ridge Communities', 'SR', '#3A3E99', 'Marietta, Smyrna', 'Active', 3, '858', 1, 27, '5.2h', [['AG', '#1F6B3A'], ['KS', '#7A6A50']], 'Alicia Grant + 1'],
+      ['Harbor Point Management', 'HP', '#1F6B3A', 'Sandy Springs', 'Active', 1, '220', 1, 9, '8.4h', [['DW', '#272B84']], 'Devon Walsh'],
+      ['Oakline Properties', 'OP', '#5A4A8A', 'Lawrenceville, Duluth', 'Onboarding', 2, '644', 0, 0, '—', [['RN', '#928064']], 'Invite pending'],
+      ['Cedar Grove Partners', 'CG', '#8A5A2A', 'South Fulton', 'Onboarding', 1, '234', 0, 0, '—', [['TB', '#3A3E99']], 'Tara Banks'],
+    ].map(o => ({
+      name: o[0], initials: o[1], area: o[3], status: o[4], props: o[5], units: o[6], open: o[7], viol: o[8], reply: o[9], repText: o[11],
+      reps: o[10].map((r, i) => ({ i: r[0], style: repAv(r[1], i) })),
+      banner: 'height: 64px; background: ' + o[2] + '; opacity: 0.92;',
+      logo: 'width: 56px; height: 56px; border-radius: 14px; border: 3px solid #FFFFFF; background: ' + o[2] + '; color: #FFFFFF; font-family: \'Fira Sans\', sans-serif; font-size: 19px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(26,28,94,0.18);',
+      logoSm: 'flex: none; width: 36px; height: 36px; border-radius: 10px; background: ' + o[2] + '; color: #FFFFFF; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center;',
+      meter: 'height: 100%; width: ' + Math.max(2, o[5]) + '%; background: #272B84; border-radius: 999px;',
+      meterSm: 'display: block; height: 100%; width: ' + Math.max(4, o[5] * 4) + '%; background: #272B84;',
+      statusStyle: pill(o[4]),
+    }));
+    return {
+      stats, orgs, isTiles: tiles, isList: !tiles,
+      tileBtn: tiles ? on : off, listBtn: tiles ? off : on,
+      tilePressed: tiles ? 'true' : 'false', listPressed: tiles ? 'false' : 'true',
+      showTiles: () => this.setState({ view: 'tiles' }), showList: () => this.setState({ view: 'list' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

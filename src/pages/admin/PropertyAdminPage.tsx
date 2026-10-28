@@ -1,42 +1,14 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { errorMessage, useApi, type AdminPropertyDetail, type Property } from "../../lib/api";
 import { CONTRACT_LABELS, PROPERTY_ROLE_LABELS } from "../../lib/format";
 import { Alert, Button, ButtonLink, Card, Loading } from "../../components/ui";
+import { PageHeader } from "../../components/display";
+import { useAdminPage } from "../../components/admin/adminPage";
 import { PropertyForm } from "./PropertyForm";
 import { propertyPayload } from "./propertyPayload";
-
-export function NewPropertyPage() {
-  const api = useApi();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    document.title = "Add a property | CBES Admin";
-  }, []);
-
-  return (
-    <div className="mx-auto max-w-3xl">
-      <p className="mt-0 mb-2 text-[15px]">
-        <Link to="/admin/properties">Properties</Link>
-      </p>
-      <h1 className="mt-0 mb-6 text-3xl font-bold text-navy">Add a property</h1>
-      <Card>
-        <PropertyForm
-          submitLabel="Add property"
-          onSubmit={async (values) => {
-            const { property } = await api<{ property: Property }>("/admin/properties", {
-              method: "POST",
-              body: JSON.stringify(propertyPayload(values)),
-            });
-            await queryClient.invalidateQueries({ queryKey: ["admin", "properties"] });
-            navigate(`/admin/properties/${property.id}`);
-          }}
-        />
-      </Card>
-    </div>
-  );
-}
+import { propertyPath } from "./paths";
 
 function Details({ property }: { property: Property }) {
   const rows: [string, ReactNode][] = [
@@ -61,8 +33,9 @@ function Details({ property }: { property: Property }) {
   );
 }
 
+/** /admin/organizations/:orgId/properties/:propertyId (orgId is "unassigned" until it has one). */
 export function PropertyAdminPage() {
-  const { id = "" } = useParams();
+  const { orgId, propertyId: id = "" } = useParams();
   const api = useApi();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -76,27 +49,37 @@ export function PropertyAdminPage() {
       queryClient.invalidateQueries({ queryKey: ["admin", "properties"] }),
     ]);
 
-  useEffect(() => {
-    if (data) document.title = `${data.property.name} | CBES Admin`;
-  }, [data]);
+  const p = data?.property;
+  useAdminPage(
+    p?.name ?? null,
+    p && [
+      { label: "Organizations", to: "/admin/organizations" },
+      p.organizationId ? { label: p.organizationName ?? "Organization", to: `/admin/organizations/${p.organizationId}` } : { label: "Unassigned", to: "/admin/organizations?unassigned=1" },
+      { label: p.name },
+    ],
+  );
 
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
   const { property, members, invitations } = data;
+  // An old link, or the property just moved to another organization.
+  if ((orgId === "unassigned" ? null : orgId) !== property.organizationId) return <Navigate to={propertyPath(property.organizationId, property.id)} replace />;
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
-      <div>
-        <p className="mt-0 mb-2 text-[15px]">
-          <Link to="/admin/properties">Properties</Link>
-        </p>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="m-0 text-3xl font-bold text-navy">{property.name}</h1>
-          <ButtonLink to={`/portal/properties/${property.id}`} variant="outline" className="w-full sm:w-auto">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+      <PageHeader
+        title={property.name}
+        back={
+          property.organizationId
+            ? { to: `/admin/organizations/${property.organizationId}`, label: property.organizationName ?? "Organization" }
+            : { to: "/admin/organizations?unassigned=1", label: "Unassigned properties" }
+        }
+        actions={
+          <ButtonLink to={`/portal/properties/${property.id}`} variant="secondary" className="w-full sm:w-auto">
             See what managers see
           </ButtonLink>
-        </div>
-      </div>
+        }
+      />
 
       {notice && <Alert tone="success">{notice}</Alert>}
 
