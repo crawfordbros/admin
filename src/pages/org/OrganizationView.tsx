@@ -205,7 +205,7 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
               </AsideCard>
               <AsideCard title="Property staff">
                 {staff.length === 0 ? (
-                  <p className="m-0 text-[14px] text-muted">No property managers or Directors yet.</p>
+                  <p className="m-0 text-[14px] text-muted">No property managers yet.</p>
                 ) : (
                   <PersonList>
                     {groupStaff(staff).map((s) => (

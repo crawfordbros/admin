@@ -92,7 +92,7 @@ describe("PropertyPage", () => {
     expect(calls.some((c) => c.url === "/api/portal/properties/p1/violations?as=manager")).toBe(true);
   });
 
-  it.each(["admin", "representative", "manager", "director", "lead", "valet"])("rejects a direct manager-preview URL for %s", (role) => {
+  it.each(["admin", "representative", "manager", "lead", "valet"])("rejects a direct manager-preview URL for %s", (role) => {
     vi.stubGlobal("__clerkRole", role);
     const calls = mockFetch(() => [200, overview(true)]);
     renderRoute("/portal/properties/:id", "/portal/properties/p1?as=manager", <PropertyPage />);

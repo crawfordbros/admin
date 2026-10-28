@@ -2,12 +2,17 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { ApiError, errorMessage, useApi, type SearchResult } from "../../lib/api";
+import { errorMessage, useApi, type SearchResult } from "../../lib/api";
+import { ADMIN_SECTIONS } from "../../pages/adminSections";
 import { Icon } from "../icons";
 import { useFocusTrap } from "../useFocusTrap";
 import { cx } from "../styles";
 
-const GROUPS: { kind: SearchResult["kind"]; label: string }[] = [
+/** A search hit: an API result, or one of the Admin Portal's own pages. */
+type Hit = Omit<SearchResult, "kind"> & { kind: SearchResult["kind"] | "page" };
+
+const GROUPS: { kind: Hit["kind"]; label: string }[] = [
+  { kind: "page", label: "Pages" },
   { kind: "org", label: "Organizations" },
   { kind: "property", label: "Properties" },
   { kind: "unit", label: "Units" },
@@ -16,6 +21,21 @@ const GROUPS: { kind: SearchResult["kind"]; label: string }[] = [
   { kind: "user", label: "Users" },
   { kind: "quote", label: "Quotes" },
 ];
+
+const PAGES = [
+  ...ADMIN_SECTIONS.map((s) => ({ path: s.path, label: s.label, detail: s.detail })),
+  { path: "/admin/settings/account", label: "Account settings", detail: "Your name, password, passkeys and two-step verification." },
+];
+
+/** Pages whose name or description has every word typed, names that start with it first. */
+function matchPages(term: string): Hit[] {
+  const words = term.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  return PAGES.filter((p) => words.every((w) => `${p.label} ${p.detail}`.toLowerCase().includes(w)))
+    .sort((a, b) => Number(b.label.toLowerCase().startsWith(words[0])) - Number(a.label.toLowerCase().startsWith(words[0])))
+    .slice(0, 4)
+    .map((p) => ({ kind: "page", id: p.path, title: p.label, subtitle: p.detail, link: p.path }));
+}
 
 const RECENT_KEY = "cbes-admin:recent-searches";
 
@@ -59,18 +79,18 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
   const term = useDebounced(q.trim(), 200);
   const search = useQuery({
     queryKey: ["admin", "search", term],
-    queryFn: () => api<{ results: SearchResult[] }>(`/search?q=${encodeURIComponent(term)}`),
+    queryFn: () => api<{ results: SearchResult[] }>(`/admin/search?q=${encodeURIComponent(term)}`),
     enabled: term.length >= 2,
     retry: false,
     staleTime: 30_000,
   });
 
-  const results = term.length >= 2 ? (search.data?.results ?? []) : [];
+  const results: Hit[] = term.length >= 2 ? [...matchPages(term), ...(search.data?.results ?? [])] : [];
   // Results in display order, so arrow keys follow what's on screen.
   const ordered = GROUPS.flatMap((g) => results.filter((r) => r.kind === g.kind));
   const at = Math.min(active, Math.max(0, ordered.length - 1));
 
-  const open = (r: SearchResult) => {
+  const open = (r: Hit) => {
     saveRecent(term);
     onClose();
     navigate(r.link);
@@ -80,6 +100,10 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       if (ordered.length) setActive((at + (e.key === "ArrowDown" ? 1 : -1) + ordered.length) % ordered.length);
+    } else if (e.key === "Escape") {
+      // The focus trap leaves Escape to an expanded combobox, and this one is expanded while it shows results.
+      e.preventDefault();
+      onClose();
     } else if (e.key === "Enter" && ordered[at]) {
       e.preventDefault();
       open(ordered[at]);
@@ -87,11 +111,10 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
   };
 
   const optionId = (i: number) => `${listId}-${i}`;
-  const notReady = search.error instanceof ApiError && search.error.status === 404;
 
   return createPortal(
     <div className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-navy-night/60 p-4 pt-[10vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panel} role="dialog" aria-modal="true" aria-label="Search the Admin Portal" className="w-full max-w-[640px] overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_rgba(10,12,40,0.45)]">
+      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Search the Admin Portal" className="w-full max-w-[640px] overflow-hidden rounded-2xl bg-white outline-none shadow-[0_24px_60px_rgba(10,12,40,0.45)]">
         <div className="flex items-center gap-2.5 border-b border-line px-4">
           <Icon name="search" size={20} strokeWidth={2} className="flex-none text-muted" />
           <input
@@ -112,7 +135,15 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
             onKeyDown={onKeyDown}
             className="h-14 min-w-0 flex-1 border-0 bg-transparent text-[16px] text-ink outline-none placeholder:text-muted"
           />
-          <kbd className="rounded-md border border-field bg-white px-1.5 py-px font-sans text-[11px] text-muted">Esc</kbd>
+          <kbd className="hidden rounded-md border border-field bg-white px-1.5 py-px font-sans text-[11px] text-muted sm:block">Esc</kbd>
+          <button
+            type="button"
+            aria-label="Close search"
+            onClick={onClose}
+            className="-mr-1 flex size-9 flex-none items-center justify-center rounded-[10px] text-muted hover:bg-canvas hover:text-ink"
+          >
+            <Icon name="x" size={18} strokeWidth={2.2} />
+          </button>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
@@ -138,13 +169,8 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          {term.length >= 2 && search.isPending && <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">Searching…</p>}
-          {term.length >= 2 && search.error && (
-            <p role="alert" className="m-0 px-4 py-6 text-center text-[14px] text-muted">
-              {notReady ? "Search isn't available yet. It turns on once the API adds it." : errorMessage(search.error)}
-            </p>
-          )}
-          {term.length >= 2 && search.isSuccess && ordered.length === 0 && (
+          {term.length >= 2 && search.isPending && ordered.length === 0 && <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">Searching…</p>}
+          {term.length >= 2 && !search.isPending && !search.error && ordered.length === 0 && (
             <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">
               Nothing matches “{term}”. Try a unit number, a ticket number or part of a name.
             </p>
@@ -178,6 +204,11 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
               );
             })}
           </div>
+          {term.length >= 2 && search.error && (
+            <p role="alert" className="m-0 px-4 py-6 text-center text-[14px] text-muted">
+              {errorMessage(search.error)}
+            </p>
+          )}
         </div>
       </div>
     </div>,

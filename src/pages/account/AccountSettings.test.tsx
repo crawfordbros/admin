@@ -68,7 +68,7 @@ describe("identity", () => {
     setup({ user: { externalAccounts: [{ provider: "google" }] } });
     const card = screen.getByRole("complementary", { name: "Signed in as" });
     expect(card).toHaveTextContent("rep@example.com");
-    expect(card).toHaveTextContent("Representative");
+    expect(card).toHaveTextContent("Rep");
     expect(card).toHaveTextContent("Password or Google");
     expect(within(card).getByRole("button", { name: "Sign out" })).toBeEnabled();
   });

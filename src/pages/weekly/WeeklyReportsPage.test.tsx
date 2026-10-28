@@ -14,14 +14,14 @@ const row = (o: Partial<WeeklyRow>): WeeklyRow => ({
   propertyId: "p1", name: "The Oaks at Decatur", units: 312, city: "Decatur", photoVersion: null,
   nights: { scheduled: 5, serviced: 4, byNight: [true, true, false, true, true] }, valetStatus: "ok", avgClockIn: "8:06 PM",
   residentReports: 5, resolved: 4, avgReplyHours: 4.1, violations: 22, overwatchUnits: 2,
-  director: { name: "Tom Reyes", email: "t.reyes@peachtreeres.com" }, recipients: 1, delivery: "sent", lastRunAt: "2026-10-26T11:00:00Z", lastError: null, ...o,
+  manager: { name: "Tom Reyes", email: "t.reyes@peachtreeres.com" }, recipients: 1, delivery: "sent", lastRunAt: "2026-10-26T11:00:00Z", lastError: null, ...o,
 });
 const view = (week = lastCompletedWeek()): WeeklyAdminView => ({
   week: { start: week, end: addDays(week, 6), label: "Sun Oct 18 – Sat Oct 24, 2026" },
-  summary: { properties: 3, sent: 1, failed: 1, residentReports: 9, violations: 30, noDirector: 1 },
+  summary: { properties: 3, sent: 1, failed: 1, residentReports: 9, violations: 30, noManager: 1 },
   groups: [
-    { org: { id: "org1", name: "Peachtree Residential", logoVersion: null, representative: "Lauren Kim", rollupSentAt: null }, rows: [row({}), row({ propertyId: "p2", name: "Brookhaven Terrace", delivery: "failed", lastError: "Mailbox full", director: { name: "Renee Ford", email: "r@x" } })] },
-    { org: { id: "org2", name: "Magnolia Living", logoVersion: null, representative: null, rollupSentAt: null }, rows: [row({ propertyId: "p3", name: "Tucker Station", director: null, recipients: 0, delivery: "not_sent" })] },
+    { org: { id: "org1", name: "Peachtree Residential", logoVersion: null, representative: "Lauren Kim", rollupSentAt: null }, rows: [row({}), row({ propertyId: "p2", name: "Brookhaven Terrace", delivery: "failed", lastError: "Mailbox full", manager: { name: "Renee Ford", email: "r@x" } })] },
+    { org: { id: "org2", name: "Magnolia Living", logoVersion: null, representative: null, rollupSentAt: null }, rows: [row({ propertyId: "p3", name: "Tucker Station", manager: null, recipients: 0, delivery: "not_sent" })] },
   ],
 });
 
@@ -31,10 +31,10 @@ function handler(url: string, method: string): [number, unknown] {
   if (url.startsWith("/api/admin/weekly-reports/recipients")) {
     const scope = new URL(url, "http://x").searchParams.get("scope");
     return [200, scope === "all"
-      ? { recipients: [{ email: "t.reyes@peachtreeres.com", name: "Tom Reyes", kind: "director", propertyName: "The Oaks at Decatur" }, { email: "nick@cbenvironments.com", name: "Nick Crawford", kind: "admin", propertyName: null }], skippedNoDirector: ["Tucker Station"] }
-      : { recipients: [{ email: "t.reyes@peachtreeres.com", name: "Tom Reyes", kind: "director", propertyName: "The Oaks at Decatur" }], skippedNoDirector: [] }];
+      ? { recipients: [{ email: "t.reyes@peachtreeres.com", name: "Tom Reyes", kind: "manager", propertyName: "The Oaks at Decatur" }, { email: "nick@cbenvironments.com", name: "Nick Crawford", kind: "admin", propertyName: null }], skippedNoManager: ["Tucker Station"] }
+      : { recipients: [{ email: "t.reyes@peachtreeres.com", name: "Tom Reyes", kind: "manager", propertyName: "The Oaks at Decatur" }], skippedNoManager: [] }];
   }
-  if (url === "/api/admin/weekly-reports/send" && method === "POST") return [200, { sent: 1, failed: 0, recipients: 1, skippedNoDirector: [] }];
+  if (url === "/api/admin/weekly-reports/send" && method === "POST") return [200, { sent: 1, failed: 0, recipients: 1, skippedNoManager: [] }];
   return [404, { error: "Not found" }];
 }
 
@@ -54,8 +54,8 @@ describe("WeeklyReportsPage", () => {
     expect(within(oaks).getByRole("img", { name: "4 of 5 nights serviced" })).toBeInTheDocument();
     expect(within(oaks).getByRole("link", { name: /Preview The Oaks at Decatur report/ })).toHaveAttribute("href", `/portal/properties/p1/report?week=${lastCompletedWeek()}`);
     expect(screen.getByRole("heading", { name: "Peachtree Residential" }).closest("section")).toHaveTextContent("Representative Lauren Kim");
-    expect((screen.getByText("Tucker Station")).closest("tr")).toHaveTextContent("No Director");
-    expect(screen.getByText(/1 property has no Management Director to receive the report/)).toBeInTheDocument();
+    expect((screen.getByText("Tucker Station")).closest("tr")).toHaveTextContent("No Property Manager");
+    expect(screen.getByText(/1 property has no Property Manager to receive the report/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Fix recipient" })).toHaveAttribute("href", "/admin/organizations/org1/properties/p2?tab=team");
     expect(screen.getByText(/Next run: Monday, November 2/)).toBeInTheDocument();
     expect(calls[0].url).toBe(`/api/admin/weekly-reports?week=${lastCompletedWeek()}`);
@@ -108,7 +108,7 @@ describe("WeeklyReportsPage", () => {
     show();
     await userEvent.click(await screen.findByRole("button", { name: "Send all again" }));
     const dialog = screen.getByRole("dialog", { name: "Send every report again" });
-    expect(await within(dialog).findByText("Skipped, no Management Director: Tucker Station")).toBeInTheDocument();
+    expect(await within(dialog).findByText("Skipped, no Property Manager: Tucker Station")).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Send to 2 people" })).toBeEnabled();
   });
 });

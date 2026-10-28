@@ -43,7 +43,7 @@ describe("organization PDF", () => {
     propertyId: "p1", name: "Demo Community", units: 30, city: "Clarkston", photoVersion: null,
     nights: { scheduled: 5, serviced: 5, byNight: [true, true, true, true, true] }, valetStatus: "ok", avgClockIn: "8:00 PM",
     residentReports: 1, resolved: 0, avgReplyHours: null, violations: 4, overwatchUnits: 1,
-    director: null, recipients: 0, delivery: "not_sent", lastRunAt: null, lastError: null,
+    manager: null, recipients: 0, delivery: "not_sent", lastRunAt: null, lastError: null,
   };
 
   it("starts with a summary page, then each property on its own pages", () => {

@@ -24,6 +24,7 @@ function renderShell(url = "/admin") {
             <Route path="/admin" element={<AdminShell />}>
               <Route index element={<p>Overview page</p>} />
               <Route path="reports" element={<p>Reports page</p>} />
+              <Route path="settings" element={<p>Settings page</p>} />
               <Route path="organizations/:orgId" element={<Page />} />
             </Route>
           </Routes>
@@ -73,16 +74,51 @@ describe("AdminShell", () => {
     expect(document.title).toBe("Demo Management | CBES Admin");
   });
 
-  it("opens search with Ctrl+K and says when search isn't available yet", async () => {
-    mockFetch(() => notFound);
+  it("opens search with Ctrl+K and closes it with Ctrl+K again", async () => {
+    const calls = mockFetch(() => [200, { results: [] }]);
     renderShell();
     await userEvent.keyboard("{Control>}k{/Control}");
     const dialog = screen.getByRole("dialog", { name: "Search the Admin Portal" });
     const box = within(dialog).getByRole("combobox", { name: "Search" });
     expect(box).toHaveFocus();
     await userEvent.type(box, "412");
-    expect(await within(dialog).findByText(/Search isn't available yet/)).toBeInTheDocument();
+    expect(await within(dialog).findByText(/Nothing matches “412”/)).toBeInTheDocument();
+    expect(calls.some((c) => c.url === "/api/admin/search?q=412")).toBe(true);
+    await userEvent.keyboard("{Control>}k{/Control}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await userEvent.keyboard("{Meta>}k{/Meta}");
+    expect(screen.getByRole("dialog", { name: "Search the Admin Portal" })).toBeInTheDocument();
+  });
+
+  it("closes search with the X button", async () => {
+    mockFetch(() => [200, { results: [] }]);
+    renderShell();
+    await userEvent.keyboard("{Control>}k{/Control}");
+    await userEvent.click(screen.getByRole("button", { name: "Close search" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("closes search with Escape while results are showing", async () => {
+    const results = [{ kind: "org", id: "o1", title: "Peachtree Residential", subtitle: "6 properties", link: "/admin/organizations/o1" }];
+    mockFetch((url) => (url.startsWith("/api/admin/search?q=pea") ? [200, { results }] : [200, { results: [] }]));
+    renderShell();
+    await userEvent.keyboard("{Control>}k{/Control}");
+    await userEvent.type(screen.getByRole("combobox"), "pea");
+    expect(await screen.findByRole("option", { name: /Peachtree Residential/ })).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toHaveAttribute("aria-expanded", "true");
     await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("finds the portal's own pages and goes to one", async () => {
+    mockFetch(() => [200, { results: [] }]);
+    renderShell();
+    await userEvent.keyboard("{Control>}k{/Control}");
+    await userEvent.type(screen.getByRole("combobox"), "sett");
+    const pages = within(await screen.findByRole("group", { name: "Pages" })).getAllByRole("option");
+    expect(pages.map((o) => o.querySelector("span")?.textContent)).toEqual(["Settings", "Account settings"]);
+    await userEvent.keyboard("{Enter}");
+    expect(await screen.findByText("Settings page")).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -91,7 +127,7 @@ describe("AdminShell", () => {
       { kind: "property", id: "p1", title: "The Oaks at Decatur", subtitle: "Peachtree Residential", link: "/admin/organizations/o1/properties/p1" },
       { kind: "org", id: "o1", title: "Peachtree Residential", subtitle: "6 properties", link: "/admin/organizations/o1" },
     ];
-    mockFetch((url) => (url.startsWith("/api/search?q=oak") ? [200, { results }] : notFound));
+    mockFetch((url) => (url.startsWith("/api/admin/search?q=oak") ? [200, { results }] : notFound));
     renderShell();
     await userEvent.click(screen.getAllByRole("button", { name: /Search/ })[0]);
     await userEvent.type(screen.getByRole("combobox"), "oak");

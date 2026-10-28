@@ -37,7 +37,8 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export function roleFrom(publicMetadata: Record<string, unknown> | undefined): Role | null {
-  const role = publicMetadata?.role;
+  // Older sessions may still carry the retired role until Clerk refreshes.
+  const role = publicMetadata?.role === "director" ? "manager" : publicMetadata?.role;
   return typeof role === "string" && (ROLES as readonly string[]).includes(role) ? (role as Role) : null;
 }
 

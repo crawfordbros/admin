@@ -111,7 +111,7 @@ export function PropertyAdminPage() {
 
       <Card title="Who can see it">
         {members.length === 0 && invitations.length === 0 ? (
-          <p className="mt-0 mb-4 text-muted">No property managers or Directors yet.</p>
+          <p className="mt-0 mb-4 text-muted">No property managers yet.</p>
         ) : (
           <ul className="m-0 mb-4 flex list-none flex-col divide-y divide-line p-0">
             {members.map((m) => (

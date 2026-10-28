@@ -76,8 +76,8 @@ describe("OrganizationView", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Invite people" }));
     const dialog = screen.getByRole("dialog", { name: "Invite people" });
     const role = within(dialog).getByLabelText("Role");
-    // Only CBES invites Representatives and Directors; a Representative invites property managers.
-    expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property manager"]);
+    // Only CBES invites Reps; a Rep invites Property Managers.
+    expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property Manager"]);
     expect(role).toBeDisabled();
     await userEvent.type(within(dialog).getByLabelText("Email"), "sam@demo-mgmt.com");
     await userEvent.click(within(dialog).getByRole("checkbox", { name: "Willow Bend" }));

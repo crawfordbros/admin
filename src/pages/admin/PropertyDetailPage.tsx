@@ -244,7 +244,7 @@ function Overview({ detail, onTeam }: { detail: PropertyDetail; onTeam: () => vo
               </button>
             </div>
             {members.length + invitations.length === 0 ? (
-              <p className="m-0 text-[14px] text-muted">No property managers or Directors yet.</p>
+              <p className="m-0 text-[14px] text-muted">No property managers yet.</p>
             ) : (
               <ul className="m-0 flex list-none flex-col gap-3 p-0">
                 {members.map((m) => (

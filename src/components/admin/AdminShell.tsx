@@ -99,9 +99,10 @@ export function AdminShell() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setSearch(true);
+        // ⌘K again closes it, like most command palettes. Holding the keys down doesn't flicker it.
+        if (!e.repeat) setSearch((open) => !open);
       }
     };
     window.addEventListener("keydown", onKey);

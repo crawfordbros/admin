@@ -48,7 +48,7 @@ describe("AddPropertyModal", () => {
     expect(within(dialog).getByLabelText("Resident report web address")).toHaveValue("north-druid-flats");
     await userEvent.type(within(dialog).getByLabelText("Connecteam job ID"), "48213");
     await userEvent.type(within(dialog).getByLabelText("Email for person 1"), "k.james@demo-mgmt.com");
-    await userEvent.selectOptions(within(dialog).getByLabelText("Role for person 1"), "director");
+    await userEvent.selectOptions(within(dialog).getByLabelText("Role for person 1"), "manager");
     await userEvent.selectOptions(await within(dialog).findByLabelText("Steward"), "user_lead");
     await userEvent.click(within(dialog).getByRole("button", { name: "Add property and send 1 invite" }));
 
@@ -64,7 +64,7 @@ describe("AddPropertyModal", () => {
       slug: "north-druid-flats",
       connecteamJobId: "48213",
       stewardUserId: "user_lead",
-      invites: [{ email: "k.james@demo-mgmt.com", role: "director" }],
+      invites: [{ email: "k.james@demo-mgmt.com", role: "manager" }],
     });
   });
 
@@ -72,7 +72,7 @@ describe("AddPropertyModal", () => {
     const { calls, dialog } = open(false, api());
     // Representatives invite property managers only.
     const role = within(dialog).getByLabelText("Role for person 1");
-    expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property manager"]);
+    expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property Manager"]);
     expect(role).toBeDisabled();
     expect(within(dialog).queryByLabelText("Connecteam job ID")).not.toBeInTheDocument();
     expect(within(dialog).queryByLabelText("Steward")).not.toBeInTheDocument();

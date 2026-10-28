@@ -440,15 +440,13 @@ export type AdminUserRow = {
   name: string | null;
   email: string;
   role: "super_admin" | "admin" | "representative" | "lead" | "valet" | "manager";
-  /** All held roles, including organization and property memberships. */
-  roles?: AdminUserRow["role"][];
   access: string;
   orgId: string | null;
   mfa: "passkey" | "authenticator" | "none";
   lastActiveAt: string | null;
   status: "active" | "invited" | "removed";
   invitedAt: string | null;
-  /** Steward is its own role, kept alongside Admin (an admin can also be a property's Steward). */
+  /** True only when the account role is Steward. */
   steward?: boolean;
 };
 
