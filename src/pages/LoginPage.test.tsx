@@ -32,6 +32,14 @@ describe("LoginPage", () => {
     expect(clerk.setActive).toHaveBeenCalledWith(expect.objectContaining({ session: "sess_1" }));
   });
 
+  it("confirms a sign-out from the account menu", () => {
+    fakeClerk();
+    fakeSignIn();
+    login("/portal/login?reason=signout&redirect_url=%2Fadmin%2Freports");
+    expect(screen.getByText("You signed out.")).toHaveAttribute("role", "status");
+    expect(screen.getByLabelText("Email address")).toBeInTheDocument();
+  });
+
   it("explains that accounts are by invitation when the email is unknown", async () => {
     fakeClerk();
     const signIn = fakeSignIn();

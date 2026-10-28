@@ -80,7 +80,7 @@ export function Menu({ label, items, trigger }: { label: string; items: MenuItem
   );
 }
 
-function MenuList({ label, items, close }: { label: string; items: MenuItem[]; close: () => void }) {
+export function MenuList({ label, items, close }: { label: string; items: MenuItem[]; close: () => void }) {
   const list = useRef<HTMLUListElement>(null);
   const enabled = () => [...(list.current?.querySelectorAll<HTMLElement>("[role=menuitem]:not([aria-disabled=true])") ?? [])];
   useEffect(() => {

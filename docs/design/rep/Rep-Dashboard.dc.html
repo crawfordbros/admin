@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Property Portal – Representative dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1800px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="RepSidebar" role="rep" active="dashboard" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="RepTopbar" role="rep" crumb="Dashboard" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 22px;">
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;">
+<div>
+<p style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: #7A6A50;">PEACHTREE RESIDENTIAL · WEEK OF OCT 25</p>
+<h1 style="margin: 6px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Good morning, Lauren</h1>
+<p style="margin: 6px 0 0; font-size: 14.5px; color: #4A4C63;">5 violations and 3 resident issues are waiting across your properties. Last service night finished at 11:48 PM.</p>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+<a href="Rep-Reports.dc.html" style="height: 46px; display: inline-flex; align-items: center; gap: 10px; padding: 0 18px; border-radius: 12px; border: 2px solid #272B84; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 15px; text-decoration: none;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Reports</a>
+<a href="Rep-AddProperty.dc.html" style="height: 46px; display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 12px; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 15px; text-decoration: none;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add property</a>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+<a href="{{k.href}}" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 16px; text-decoration: none; color: #1A1C3D; display: flex; flex-direction: column; gap: 2px;">
+<span style="display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: #4A4C63;">{{k.label}}<span style="{{k.dot}}"></span></span>
+<span style="font-family: 'Fira Sans', sans-serif; font-size: 28px; font-weight: 700; color: #1A1C5E;">{{k.value}}</span>
+<span style="font-size: 12px; color: #4A4C63;">{{k.sub}}</span>
+</a>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+<div style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px;">
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 16px; overflow: hidden;">
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #F0F0F5;">
+<div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Needs your attention</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A4C63;">Violations for your team to handle, plus resident issues CBES is working on.</p></div>
+<div role="tablist" aria-label="Filter" style="display: flex; background: #F4F5FA; border-radius: 10px; padding: 3px;">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{f.sel}}" style="{{f.style}}">{{f.label}}</button></sc-for>
+</div>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none;">
+<sc-for list="{{attention}}" as="a" hint-placeholder-count="6">
+<li style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 14px 20px; border-bottom: 1px solid #F0F0F5;">
+<span style="{{a.iconWrap}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{a.d}}"></path></svg></span>
+<span style="flex: 1 1 260px; min-width: 0;">
+<span style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;"><strong style="font-size: 14.5px;">{{a.title}}</strong><span style="{{a.tagStyle}}">{{a.tag}}</span></span>
+<span style="display: block; font-size: 12.5px; color: #4A4C63; margin-top: 2px;">{{a.id}} · {{a.prop}} · {{a.where}}</span>
+</span>
+<span style="{{a.ageStyle}}">{{a.age}}</span>
+<a href="{{a.href}}" style="height: 36px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 700; font-size: 13px; text-decoration: none;">{{a.cta}}</a>
+</li>
+</sc-for>
+</ul>
+<div style="display: flex; gap: 18px; padding: 12px 20px; font-size: 13.5px; font-weight: 700;"><a href="Rep-Violations.dc.html" style="text-decoration: none;">All violations →</a><a href="Rep-Issues.dc.html" style="text-decoration: none;">All resident issues →</a></div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+<div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 19px;">Your properties</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A4C63;">6 of 100 · Open a property to see its violations, issues, reports and CBES team.</p></div>
+<label style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 13px; color: #4A4C63;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input type="search" aria-label="Search properties" placeholder="Search properties" style="border: none; outline: none; width: 150px; font-size: 13px; background: transparent;"></label>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
+<sc-for list="{{props}}" as="p" hint-placeholder-count="6">
+<div style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;">
+<a href="Rep-ManagerDashboard.dc.html" style="position: relative; aspect-ratio: 16 / 8; background: #E9EAF4; display: flex; align-items: center; justify-content: center; color: #6E72C4; text-decoration: none;"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"></path></svg><span style="{{p.statusStyle}}">{{p.status}}</span></a>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; flex: 1;">
+<div><a href="Rep-ManagerDashboard.dc.html" style="font-family: 'Fira Sans', sans-serif; font-size: 16.5px; font-weight: 700; color: #1A1C3D; text-decoration: none;">{{p.name}}</a><p style="margin: 2px 0 0; font-size: 12.5px; color: #4A4C63;">{{p.city}} · {{p.units}} units</p></div>
+<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+<span style="{{p.violStyle}}">{{p.viol}} to review</span>
+<span style="{{p.issueStyle}}">{{p.issues}} open issues</span>
+</div>
+<div style="margin-top: auto; border-top: 1px solid #F0F0F5; padding-top: 10px; font-size: 12.5px;">
+<sc-if value="{{p.hasPm}}" hint-placeholder-val="{{ true }}"><div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><span style="display: flex; align-items: center; gap: 6px; min-width: 0;"><span style="{{p.pmAv}}">{{p.pmI}}</span><span style="min-width: 0;"><span style="display: block; font-weight: 700;">{{p.pm}}</span><span style="display: block; color: #4A4C63; font-size: 11.5px;">Property manager</span></span></span><button type="button" style="border: none; background: none; color: #272B84; font-weight: 700; font-size: 12.5px;">Change</button></div></sc-if>
+<sc-if value="{{p.noPm}}" hint-placeholder-val="{{ false }}"><div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><span style="display: flex; align-items: center; gap: 6px; color: #7A4B00; font-weight: 700;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3zM12 10v4M12 17.5v.01"></path></svg>No manager yet</span><button type="button" style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 12.5px;">Assign manager</button></div></sc-if>
+</div>
+</div>
+</div>
+</sc-for>
+<a href="Rep-AddProperty.dc.html" style="border: 2px dashed #A9ABC9; border-radius: 14px; min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-decoration: none; color: #272B84; background: #FAFAFD;">
+<span style="width: 48px; height: 48px; border-radius: 50%; background: #EEEFF8; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+<span style="font-weight: 700; font-size: 15px;">Add a property</span>
+<span style="font-size: 12.5px; color: #4A4C63;">94 of 100 slots left</span>
+</a>
+</div>
+</section>
+</div>
+
+<aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+<section style="background: #1A1C5E; color: #FFFFFF; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 10px;"><span style="width: 40px; height: 40px; border-radius: 12px; background: #272B84; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C8BBA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v15H4zM4 9h16M9 3v4M15 3v4M8 13h3M8 16h6"></path></svg></span><div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Weekly report</h2><p style="margin: 0; font-size: 12.5px; color: #C9CAF0;">Next: Monday, Nov 2 at 7 AM ET</p></div></div>
+<p style="margin: 0; font-size: 13.5px; color: #E6E7F2;">Last week across 5 active properties: 25 of 25 service nights, 19 violations sent, 4 resident issues, all replied to within 24 hours.</p>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;"><a href="Rep-Reports.dc.html" style="height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 10px; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 13.5px; text-decoration: none;">Open reports</a><button type="button" style="height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 10px; border: 1px solid #4A4FB0; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13.5px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Last week PDF</button></div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Violations this week</h2><span style="font-size: 12.5px; color: #4A4C63;">Sent to property</span></div>
+<div role="img" aria-label="Violations by night: Sunday 2, Monday 5, Tuesday 3. Wednesday to Saturday not yet" style="margin-top: 14px; display: flex; align-items: flex-end; gap: 10px; height: 120px; border-bottom: 1px solid #E4E4EC;">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="7"><span style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%;"><span style="font-size: 11.5px; font-weight: 700; color: #4A4C63;">{{b.v}}</span><span style="{{b.style}}"></span></span></sc-for>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 6px;"><sc-for list="{{bars}}" as="b" hint-placeholder-count="7"><span style="flex: 1; text-align: center; font-size: 11.5px; color: #4A4C63;">{{b.d}}</span></sc-for></div>
+<p style="margin: 12px 0 0; font-size: 12.5px; color: #4A4C63;">Most common: <strong style="color: #1A1C3D;">Bag not tied</strong> (4) and <strong style="color: #1A1C3D;">Out after 8 PM</strong> (3).</p>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Invitations waiting</h2><a href="Rep-Settings.dc.html" style="font-weight: 700; font-size: 13px; text-decoration: none;">Manage team</a></div>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px;">
+<li style="display: flex; justify-content: space-between; gap: 8px; align-items: center;"><span><strong style="display: block;">m.ortega@peachtreeres.com</strong><span style="font-size: 12px; color: #4A4C63;">Property manager · Clarkston Commons · sent 9 days ago</span></span><button type="button" style="height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid #C9CAD6; background: #FFFFFF; font-size: 12.5px; font-weight: 700; color: #272B84;">Resend</button></li>
+</ul>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<h2 style="margin: 0 0 12px; font-family: 'Fira Sans', sans-serif; font-size: 17px;">Your CBES contacts</h2>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px;">
+<sc-for list="{{contacts}}" as="c" hint-placeholder-count="3"><li style="display: flex; gap: 10px; align-items: center;"><span style="{{c.av}}">{{c.i}}</span><span style="flex: 1; min-width: 0;"><span style="display: block; font-weight: 700; font-size: 14px;">{{c.name}}</span><span style="display: block; font-size: 12px; color: #4A4C63;">{{c.role}}</span></span></li></sc-for>
+</ul>
+<a href="mailto:office@cbenvironments.com" style="display: inline-block; margin-top: 14px; font-weight: 700; font-size: 13.5px; text-decoration: none;">Email office@cbenvironments.com</a>
+</section>
+</aside>
+</div>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dot = (c) => 'width: 10px; height: 10px; border-radius: 50%; background: ' + c + ';';
+    const kpis = [
+      ['Properties', '6 of 100', '1,752 units under service', '#272B84', 'Rep-Dashboard.dc.html'],
+      ['Violations to review', '5', 'Sent by CBES, not resolved', '#B42318', 'Rep-Violations.dc.html'],
+      ['Open resident issues', '3', 'Oldest 21 hours', '#B26B00', 'Rep-Issues.dc.html'],
+      ['Service nights', '15 of 15', 'Sun–Tue, 5 active properties', '#1F6B3A', 'Rep-Reports.dc.html'],
+      ['CBES first reply', '4.9h', 'Average, last 30 days', '#1C4FA0', 'Rep-Reports.dc.html'],
+    ].map(k => ({ label: k[0], value: k[1], sub: k[2], dot: dot(k[3]), href: k[4] }));
+    const fOn = 'border: none; padding: 7px 12px; border-radius: 8px; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 13px; box-shadow: 0 1px 2px rgba(26,28,94,0.15);';
+    const fOff = 'border: none; padding: 7px 12px; border-radius: 8px; background: transparent; color: #4A4C63; font-weight: 600; font-size: 13px;';
+    const filters = [['All 8', 1], ['Violations 5', 0], ['Issues 3', 0]].map(f => ({ label: f[0], sel: f[1] ? 'true' : 'false', style: f[1] ? fOn : fOff }));
+    const tag = (bg, fg) => 'font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: ' + bg + '; color: ' + fg + ';';
+    const vD = 'M12 3l9 16H3zM12 10v4M12 17.5v.01';
+    const iD = 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z';
+    const wrap = (bg, fg) => 'flex: none; width: 38px; height: 38px; border-radius: 10px; background: ' + bg + '; color: ' + fg + '; display: flex; align-items: center; justify-content: center;';
+    const age = (hot) => 'font-size: 12.5px; font-weight: 700; white-space: nowrap; color: ' + (hot ? '#B42318' : '#4A4C63') + ';';
+    const attention = [
+      ['v', 'Bag not tied', 'Sent to property', 'V-2041', 'The Oaks at Decatur', 'Bldg 4 · Unit 412', '2 days', 1],
+      ['i', 'Missed pickup', 'CBES replied', '#1042', 'The Oaks at Decatur', 'Bldg 3 · Unit 305', '9 hours', 0],
+      ['v', 'Out after 8 PM', 'Sent to property', 'V-2038', 'Brookhaven Terrace', 'Bldg B · Unit 214', '2 days', 0],
+      ['v', 'Overflowing container', 'Sent to property', 'V-2035', 'Decatur Station Lofts', 'Floor 6 · Unit 611', '3 days', 0],
+      ['i', 'Trash left in hallway', 'New', '#1047', 'Brookhaven Terrace', 'Bldg A · 2nd floor', '6 hours', 0],
+      ['v', 'Loose trash in bin', 'Sent to property', 'V-2033', 'The Oaks at Decatur', 'Bldg 1 · Unit 108', '4 days', 0],
+    ].map(a => ({
+      title: a[1], tag: a[2], id: a[3], prop: a[4], where: a[5], age: a[6], ageStyle: age(a[7]),
+      d: a[0] === 'v' ? vD : iD,
+      iconWrap: a[0] === 'v' ? wrap('#FDECEA', '#B42318') : wrap('#E6F0FF', '#1C4FA0'),
+      tagStyle: a[2] === 'Sent to property' ? tag('#FFF4DB', '#7A4B00') : a[2] === 'New' ? tag('#E6F0FF', '#1C4FA0') : tag('#E3F2E8', '#1F6B3A'),
+      href: a[0] === 'v' ? 'Rep-ViolationDetail.dc.html' : 'Rep-Issues.dc.html',
+      cta: a[0] === 'v' ? 'Review' : 'View',
+    }));
+    const av = (c, s) => 'flex: none; width: ' + (s || 34) + 'px; height: ' + (s || 34) + 'px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-size: ' + (s ? 10 : 12) + 'px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const st = (s) => 'position: absolute; top: 10px; left: 10px; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; ' + (s === 'Active' ? 'background: #E3F2E8; color: #1F6B3A;' : 'background: #FFF4DB; color: #7A4B00;');
+    const cnt = (n, red) => 'font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; ' + (n ? (red ? 'background: #FDECEA; color: #B42318;' : 'background: #E6F0FF; color: #1C4FA0;') : 'background: #F0F0F4; color: #3A3C50;');
+    const props = [
+      ['The Oaks at Decatur', 'Decatur', 312, 'Active', 2, 1, 'Chris Patel', 'CP'],
+      ['Brookhaven Terrace', 'Brookhaven', 280, 'Active', 1, 1, 'Renee Ford', 'RF'],
+      ['Clarkston Commons', 'Clarkston', 196, 'Active', 0, 0, 'Chris Patel', 'CP'],
+      ['Decatur Station Lofts', 'Decatur', 344, 'Active', 1, 0, 'Ana Lopez', 'AL'],
+      ['Scottdale Gardens', 'Scottdale', 260, 'Active', 0, 1, 'Renee Ford', 'RF'],
+      ['North Druid Flats', 'Brookhaven', 360, 'Starting Nov 9', 0, 0, '', ''],
+    ].map(p => ({ name: p[0], city: p[1], units: p[2], status: p[3], statusStyle: st(p[3]), viol: p[4], violStyle: cnt(p[4], true), issues: p[5], issueStyle: cnt(p[5], false), pm: p[6], pmI: p[7], pmAv: av('#7A6A50', 28), hasPm: !!p[6], noPm: !p[6] }));
+    const vals = [['Sun', 2], ['Mon', 5], ['Tue', 3], ['Wed', 0], ['Thu', 0], ['Fri', 0], ['Sat', 0]];
+    const bars = vals.map((b, i) => ({ d: b[0], v: i > 2 ? '–' : b[1], style: 'width: 100%; max-width: 28px; border-radius: 6px 6px 0 0; height: ' + (i > 2 ? 2 : Math.round(b[1] / 5 * 86)) + 'px; background: ' + (i === 2 ? '#272B84' : i > 2 ? '#E4E4EC' : '#9396D6') + ';' }));
+    const contacts = [['Nigel Crawford', 'NC', 'Co-Founder, VP of Operations', '#272B84'], ['Dana Brooks', 'DB', 'Steward · Oaks, Brookhaven, Clarkston', '#1A1C5E'], ['Andre Lewis', 'AL', 'Steward · Lofts, Scottdale', '#3A3E99']].map(c => ({ name: c[0], i: c[1], role: c[2], av: av(c[3]) }));
+    return { kpis, filters, attention, props, bars, contacts };
+  }
+}
+</script>
+</body>
+</html>

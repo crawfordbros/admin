@@ -8,10 +8,10 @@ export type SecurityStatus = { passkey: boolean; authenticator: boolean; verifie
 /** These limited endpoints can enroll a pending user; regular API access still requires completed MFA. */
 export function useSecurityApi() {
   const clerk = useClerk();
-  return useCallback(async <T,>(path: string, body?: unknown): Promise<T> => {
+  return useCallback(async <T,>(path: string, body?: unknown, method?: "DELETE"): Promise<T> => {
     const session = clerk.session;
     const res = await authenticatedRequest({ sessionId: session?.id, getToken: async (options) => await session?.getToken(options) ?? null }, `/auth/mfa${path}`, {
-      method: body === undefined ? "GET" : "POST",
+      method: method ?? (body === undefined ? "GET" : "POST"),
       headers: { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: "same-origin",

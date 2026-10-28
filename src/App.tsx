@@ -37,6 +37,8 @@ const QuoteDetailPage = lazy(() => import("./pages/quotes/QuoteDetailPage").then
 const OverviewPage = lazy(() => import("./pages/overview/OverviewPage").then((m) => ({ default: m.OverviewPage })));
 const OverwatchPage = lazy(() => import("./pages/overwatch/OverwatchPage").then((m) => ({ default: m.OverwatchPage })));
 const SettingsPage = lazy(() => import("./pages/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const AccountSettingsPage = lazy(() => import("./pages/settings/SettingsPage").then((m) => ({ default: m.AccountSettingsPage })));
+const PortalAccountPage = lazy(() => import("./pages/account/PortalAccountPage").then((m) => ({ default: m.PortalAccountPage })));
 const WeeklyReportsPage = lazy(() => import("./pages/weekly/WeeklyReportsPage").then((m) => ({ default: m.WeeklyReportsPage })));
 
 
@@ -90,6 +92,7 @@ export function App() {
               <Route path="/portal/properties/:id" element={<RequireArea area="manager"><PropertyPage /></RequireArea>} />
               <Route path="/portal/properties/:id/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
               <Route path="/portal/violations/:id" element={<RequireArea area="portal"><PortalViolationPage /></RequireArea>} />
+              <Route path="/portal/settings" element={<RequireArea area="portal"><PortalAccountPage /></RequireArea>} />
             </Route>
             <Route path="/admin" element={<RequireArea area="admin" standalone><AdminShell /></RequireArea>}>
               <Route index element={<OverviewPage />} />
@@ -113,6 +116,7 @@ export function App() {
               <Route path="violations/:id" element={<ViolationDetailPage />} />
               <Route path="overwatch" element={<OverwatchPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="settings/account" element={<AccountSettingsPage />} />
               {/* Properties moved inside Organizations (ADMIN_PORTAL_SPEC section 3.2). */}
               <Route path="properties" element={<Navigate to="/admin/organizations" replace />} />
               <Route path="properties/new" element={<NewPropertyRedirect />} />

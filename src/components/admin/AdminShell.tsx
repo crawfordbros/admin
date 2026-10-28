@@ -1,8 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { UserButton, useUser } from "@clerk/clerk-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { ROLE_LABELS, roleFrom } from "../../access";
 import { sectionFor } from "../../pages/adminSections";
+import { AccountMenu } from "../account/AccountMenu";
 import { Icon } from "../icons";
 import { Loading } from "../ui";
 import { useFocusTrap } from "../useFocusTrap";
@@ -50,20 +49,6 @@ function Breadcrumb() {
   );
 }
 
-function UserBlock() {
-  const { user } = useUser();
-  const role = roleFrom(user?.publicMetadata);
-  return (
-    <div className="flex flex-none items-center gap-2.5">
-      <UserButton appearance={{ elements: { avatarBox: { width: 38, height: 38 } } }} />
-      <span className="hidden flex-col leading-tight md:flex">
-        <span className="text-[14px] font-bold">{user?.fullName ?? user?.primaryEmailAddress?.emailAddress}</span>
-        {role && <span className="text-[12px] font-semibold text-gold-text">{ROLE_LABELS[role]}</span>}
-      </span>
-    </div>
-  );
-}
-
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
 function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void }) {
@@ -87,7 +72,7 @@ function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void
         <Icon name="search" strokeWidth={2} />
       </button>
       <Notifications />
-      <UserBlock />
+      <AccountMenu settingsPath="/admin/settings/account" />
     </header>
   );
 }

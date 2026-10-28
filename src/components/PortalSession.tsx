@@ -91,8 +91,8 @@ export function PortalSessionBoundary({ children }: { children: ReactNode }) {
   }, [clerk, id, navigate, queryClient]);
 
   if (id && blocked) return <AuthLayout>
-    <p role="status">{blocked === "idle" ? INACTIVITY_NOTICE : "Please sign in again to continue."}</p>
-    {failed ? <><p>Connect to the internet to finish signing out.</p><Button onClick={() => retry.current()}>Return to sign in</Button></> : <Loading label="Returning to sign in…" />}
+    {blocked !== "signout" && <p role="status">{blocked === "idle" ? INACTIVITY_NOTICE : "Please sign in again to continue."}</p>}
+    {failed ? <><p>Connect to the internet to finish signing out.</p><Button onClick={() => retry.current()}>Return to sign in</Button></> : <Loading label={blocked === "signout" ? "Signing you out…" : "Returning to sign in…"} />}
   </AuthLayout>;
   return <>{children}</>;
 }

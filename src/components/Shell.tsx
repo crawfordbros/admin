@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import { UserButton, useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 import { Link, Outlet } from "react-router-dom";
 import { canAccess, roleFrom } from "../access";
 import { config } from "../config";
+import { AccountMenu } from "./account/AccountMenu";
 import { Loading } from "./ui";
 
 /** The portal layout for property managers, Directors and representatives. Admins use AdminShell. */
@@ -27,14 +28,14 @@ export function Shell() {
             <a href={config.siteUrl || "/"} className="hidden text-[15px] font-semibold text-gold-light no-underline hover:text-white sm:inline">
               Website
             </a>
-            <UserButton />
+            <AccountMenu settingsPath="/portal/settings" tone="navy" />
           </div>
         </div>
       </header>
       <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 print:p-0">
         <Suspense fallback={<Loading />}>
-              <Outlet />
-            </Suspense>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

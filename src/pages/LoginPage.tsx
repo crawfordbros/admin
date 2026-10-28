@@ -49,6 +49,7 @@ export function LoginPage() {
     <AuthLayout>
       {params.get("reason") === "inactivity" && <p role="status">{INACTIVITY_NOTICE}</p>}
       {params.get("reason") === "expired" && <p role="status">Please sign in again to continue.</p>}
+      {params.get("reason") === "signout" && <p role="status">You signed out.</p>}
       <SignInSteps signIn={signIn} to={to} ticket={params.get("__clerk_ticket")} pendingMfa={pendingMfa} />
     </AuthLayout>
   );

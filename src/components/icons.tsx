@@ -42,6 +42,8 @@ const PATHS = {
   trash: "M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14",
   more: "M12 6h.01M12 12h.01M12 18h.01",
   lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
+  monitor: "M3 4h18v12H3zM8 20h8M12 16v4",
+  smartphone: "M7 2h10v20H7zM11 18h2",
   droplet: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z",
   truck: "M1 16V6h13v10M14 9h4l3 4v3h-7M5.5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z",
   volume: "M11 5L6 9H2v6h4l5 4zM16 9a5 5 0 0 1 0 6",

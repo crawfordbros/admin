@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Property Portal – Resident issues</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1500px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="RepSidebar" role="rep" active="issues" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="RepTopbar" role="rep" crumb="Resident issues" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 18px;">
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;">
+<div>
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Resident issues</h1>
+<p style="margin: 6px 0 0; font-size: 14.5px; color: #4A4C63;">What residents report from the QR code on their container. CBES staff handle every issue and reply within 24 hours. You can see everything, as it happens.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<label style="display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 13.5px;"><span style="color: #4A4C63; font-weight: 600;">Property</span><select style="border: none; outline: none; background: transparent; font-size: 13.5px; font-weight: 700; color: #1A1C3D;"><option>All 6 properties</option></select></label>
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 700; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Export CSV</button>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+<section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 16px; overflow: hidden;">
+<div role="tablist" aria-label="Issue status" style="display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid #E4E4EC;">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}}<span style="{{t.countStyle}}">{{t.count}}</span></button></sc-for>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none;">
+<sc-for list="{{list}}" as="r" hint-placeholder-count="7">
+<li><a href="Rep-Issues.dc.html" aria-current="{{r.cur}}" style="{{r.style}}">
+<span style="display: flex; justify-content: space-between; gap: 8px; align-items: baseline;"><strong style="font-size: 14.5px; color: #1A1C3D;">{{r.title}}</strong><span style="font-size: 12px; color: #4A4C63; white-space: nowrap;">{{r.when}}</span></span>
+<span style="display: block; font-size: 12.5px; color: #4A4C63; margin-top: 2px;">{{r.id}} · {{r.prop}} · {{r.where}}</span>
+<span style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;"><span style="{{r.stStyle}}">{{r.st}}</span><span style="{{r.clockStyle}}">{{r.clock}}</span></span>
+</a></li>
+</sc-for>
+</ul>
+</section>
+
+<section aria-labelledby="iss-h" style="flex: 2 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 16px; overflow: hidden;">
+<div style="padding: 20px 24px; border-bottom: 1px solid #F0F0F5; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: flex-start;">
+<div>
+<p style="margin: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;"><span style="font-size: 13px; font-weight: 700; color: #4A4C63;">#1042</span><span style="font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #E6F0FF; color: #1C4FA0;">CBES replied · fix scheduled</span></p>
+<h2 id="iss-h" style="margin: 6px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 24px; color: #1A1C5E;">Missed pickup</h2>
+<p style="margin: 4px 0 0; font-size: 13.5px; color: #4A4C63;">The Oaks at Decatur · Building 3 · Unit 305 · Tue, Oct 27 at 10:31 PM</p>
+</div>
+<span style="font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 10px; background: #E3F2E8; color: #1F6B3A;">First reply in 3h 12m</span>
+</div>
+
+<div style="padding: 20px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; border-bottom: 1px solid #F0F0F5; font-size: 14px;">
+<div><span style="display: block; font-size: 12.5px; font-weight: 600; color: #4A4C63;">Resident</span><strong>Jasmine Carter</strong></div>
+<div><span style="display: block; font-size: 12.5px; font-weight: 600; color: #4A4C63;">Email</span><strong>j.carter@email.com</strong></div>
+<div><span style="display: block; font-size: 12.5px; font-weight: 600; color: #4A4C63;">Phone</span><strong>(470) 555-0147</strong><span style="display: block; font-size: 12px; color: #1F6B3A; font-weight: 700;">OK to call</span></div>
+<div><span style="display: block; font-size: 12.5px; font-weight: 600; color: #4A4C63;">Assigned at CBES</span><strong>Dana Brooks, Steward</strong></div>
+</div>
+
+<ol aria-label="Conversation" style="margin: 0; padding: 20px 24px; list-style: none; display: flex; flex-direction: column; gap: 16px;">
+<sc-for list="{{thread}}" as="m" hint-placeholder-count="3">
+<li style="{{m.wrap}}">
+<span style="{{m.av}}">{{m.i}}</span>
+<span style="{{m.bubble}}"><span style="display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;"><strong style="font-size: 13.5px;">{{m.name}}</strong><span style="font-size: 12px; color: #4A4C63;">{{m.when}}</span></span><span style="display: block; font-size: 14px; line-height: 1.55; margin-top: 4px;">{{m.text}}</span><sc-if value="{{m.photo}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display: flex; margin-top: 10px; width: 160px; height: 100px; border-radius: 10px; background: #DCDDEB; align-items: center; justify-content: center; color: #6E72C4; font-size: 12px;">Resident photo</span></sc-if></span>
+</li>
+</sc-for>
+</ol>
+
+<div style="padding: 0 24px 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+<div style="flex: 1 1 320px; display: flex; gap: 10px; align-items: flex-start; background: #F8F8FB; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #4A4C63;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>View only. CBES staff reply to the resident and close the issue once it's fixed.</div>
+<button type="button" style="height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 700; font-size: 13.5px; color: #272B84;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"></path></svg>Email me updates</button>
+</div>
+</section>
+</div>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tOn = 'display: flex; align-items: center; gap: 6px; padding: 12px 10px; border: none; border-bottom: 3px solid #272B84; background: transparent; color: #1A1C5E; font-weight: 700; font-size: 14px; white-space: nowrap;';
+    const tOff = 'display: flex; align-items: center; gap: 6px; padding: 12px 10px; border: none; border-bottom: 3px solid transparent; background: transparent; color: #4A4C63; font-weight: 600; font-size: 14px; white-space: nowrap;';
+    const tabs = [['Open', 3, 1], ['Resolved', 21, 0], ['All', 24, 0]].map(t => ({ label: t[0], count: t[1], sel: t[2] ? 'true' : 'false', style: t[2] ? tOn : tOff, countStyle: 'font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: ' + (t[2] ? '#272B84; color: #FFFFFF;' : '#F0F0F4; color: #4A4C63;') }));
+    const tag = (bg, fg) => 'font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: ' + bg + '; color: ' + fg + ';';
+    const base = 'display: block; padding: 14px 16px; text-decoration: none; border-bottom: 1px solid #F0F0F5;';
+    const list = [
+      ['Missed pickup', '#1042', 'The Oaks at Decatur', 'Unit 305', 'Tue 10:31 PM', 'CBES replied', 'Replied in 3h', 1],
+      ['Trash left in hallway', '#1047', 'Brookhaven Terrace', 'Bldg A, 2nd floor', '6h ago', 'New', 'Reply due in 18h', 0],
+      ['Container damaged', '#1045', 'Scottdale Gardens', 'Unit 118', 'Yesterday', 'CBES replied', 'Replied in 5h', 0],
+    ].map(r => ({
+      title: r[0], id: r[1], prop: r[2], where: r[3], when: r[4], st: r[5], clock: r[6], cur: r[7] ? 'true' : 'false',
+      style: base + (r[7] ? ' background: #EEEFF8; box-shadow: inset 4px 0 0 #272B84;' : ''),
+      stStyle: r[5] === 'New' ? tag('#E6F0FF', '#1C4FA0') : tag('#E3F2E8', '#1F6B3A'),
+      clockStyle: r[5] === 'New' ? tag('#FFF4DB', '#7A4B00') : tag('#F0F0F4', '#3A3C50'),
+    }));
+    const av = (c) => 'flex: none; width: 34px; height: 34px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const msg = (who, name, i, when, text, photo) => ({
+      name, i, when, text, photo,
+      av: av(who === 'res' ? '#4A4C63' : who === 'pm' ? '#7A6A50' : '#272B84'),
+      wrap: 'display: flex; gap: 10px; align-items: flex-start;' + (who === 'res' ? '' : ' flex-direction: row-reverse;'),
+      bubble: 'max-width: 78%; padding: 12px 14px; border-radius: 14px; ' + (who === 'res' ? 'background: #F4F5FA;' : 'background: #EEEFF8;'),
+    });
+    const thread = [
+      msg('res', 'Jasmine Carter · Resident', 'JC', 'Tue 10:31 PM', 'My trash was out by 7 and it is still at my door. This is the second time this month.', true),
+      msg('cbes', 'Dana Brooks · CBES Steward', 'DB', 'Wed 1:43 AM', 'Sorry about that, Jasmine. Building 3 was skipped on the 4th floor tonight. A valet is coming back by 2:30 AM, and I am checking our route so it does not happen again.', false),
+      msg('cbes', 'Dana Brooks · CBES Steward', 'DB', 'Wed 2:24 AM', 'Picked up. Thanks for letting us know.', false),
+    ];
+    return { tabs, list, thread };
+  }
+}
+</script>
+</body>
+</html>

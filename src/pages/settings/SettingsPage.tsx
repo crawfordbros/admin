@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ApiError, errorMessage, useApi, type AdminSettings } from "../../lib/api";
 import { useUnsavedWarning } from "../../lib/useUnsavedWarning";
 import { useAdminPage } from "../../components/admin/adminPage";
@@ -11,6 +11,7 @@ import { Alert, Button } from "../../components/ui";
 import { cx } from "../../components/styles";
 import { changes, SECTION_NAV, toDraft, validate, type Draft } from "./model";
 import { CalendarSection, IssueTypesSection, OverwatchSection, ReportsSection, ViolationTypesSection } from "./sections";
+import { AccountSettings } from "../account/AccountSettings";
 
 /** /admin/settings: rules that apply across every organization (ADMIN_PORTAL_SPEC 7.15). */
 export function SettingsPage() {
@@ -23,6 +24,7 @@ export function SettingsPage() {
     return (
       <>
         <Header />
+        <SettingsTabs />
         <Alert>{errorMessage(settings.error)}</Alert>
       </>
     );
@@ -30,6 +32,7 @@ export function SettingsPage() {
     return (
       <>
         <Header />
+        <SettingsTabs />
         <div role="status" aria-label="Loading" className="flex flex-col gap-5">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-44 rounded-[14px]" />
@@ -42,6 +45,51 @@ export function SettingsPage() {
 
 function Header({ actions }: { actions?: ReactNode }) {
   return <PageHeader title="Settings" description="Rules that apply across every organization. Changes are logged with who made them." actions={actions} />;
+}
+
+const TABS = [
+  { to: "/admin/settings", label: "Portal rules" },
+  { to: "/admin/settings/account", label: "Your account" },
+];
+
+/** Portal-wide rules and the admin's own account share the Settings screen. */
+function SettingsTabs() {
+  const { pathname } = useLocation();
+  return (
+    <nav aria-label="Settings" className="-mt-2 border-b border-line">
+      <ul className="m-0 flex list-none gap-1 overflow-x-auto p-0">
+        {TABS.map((t) => {
+          const on = pathname === t.to;
+          return (
+            <li key={t.to}>
+              <Link
+                to={t.to}
+                aria-current={on ? "page" : undefined}
+                className={cx(
+                  "-mb-px block border-b-[3px] px-3 py-3 text-[14px] whitespace-nowrap no-underline",
+                  on ? "border-navy font-bold text-navy-ink" : "border-transparent font-semibold text-muted hover:text-ink",
+                )}
+              >
+                {t.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+/** /admin/settings/account: the signed-in admin's password, two-step verification and devices. */
+export function AccountSettingsPage() {
+  useAdminPage("Your account", [{ label: "Settings", to: "/admin/settings" }, { label: "Your account" }]);
+  return (
+    <>
+      <PageHeader title="Settings" description="Your password, two-step verification and signed-in devices. Changes here apply only to you." />
+      <SettingsTabs />
+      <AccountSettings />
+    </>
+  );
 }
 
 function SettingsForm({ saved }: { saved: AdminSettings }) {
@@ -160,6 +208,7 @@ function SettingsForm({ saved }: { saved: AdminSettings }) {
           }
         />
       </div>
+      <SettingsTabs />
       {saveError && <Alert>{saveError}</Alert>}
 
       <div className="flex flex-wrap items-start gap-6">
