@@ -116,7 +116,7 @@ export function WeeklyReportsPage() {
     <>
       <PageHeader
         title="Weekly reports"
-        description="Sent every Monday at 7:00 AM Eastern to each property's Management Director. Send again or download any property or organization."
+        description="Sent every Monday at 7:00 AM Eastern to each property's Property Manager. Send again or download any property or organization."
         actions={
           <>
             <Button variant="secondary" disabled={!all.length || Boolean(busy)} onClick={zipAll}>
@@ -166,9 +166,9 @@ export function WeeklyReportsPage() {
         )}
       </section>
 
-      {data && data.summary.noDirector > 0 && (
+      {data && data.summary.noManager > 0 && (
         <p role="status" className="m-0 rounded-lg bg-warning-bg px-4 py-3 text-[15px] font-semibold text-warning">
-          {data.summary.noDirector} {data.summary.noDirector === 1 ? "property has" : "properties have"} no Management Director to receive the report. Invite one from the property's Team tab.
+          {data.summary.noManager} {data.summary.noManager === 1 ? "property has" : "properties have"} no Property Manager to receive the report. Invite one from the property's Team tab.
         </p>
       )}
 
@@ -361,14 +361,14 @@ function OrgCard({
             key: "to",
             header: "Sent to",
             cell: (r) =>
-              r.director ? (
+              r.manager ? (
                 <span className="flex items-center gap-1.5 text-[12.5px]">
-                  <Avatar name={r.director.name} seed={r.director.email} size={24} />
-                  {r.director.name}
+                  <Avatar name={r.manager.name} seed={r.manager.email} size={24} />
+                  {r.manager.name}
                   {r.recipients > 1 && <span className="text-muted">+{r.recipients - 1}</span>}
                 </span>
               ) : (
-                <Pill tone="warning">No Director</Pill>
+                <Pill tone="warning">No Property Manager</Pill>
               ),
           },
           {
@@ -410,7 +410,7 @@ function OrgCard({
   );
 }
 
-const KIND_LABELS = { director: "Management Director", member: "Gets the report", representative: "Representative", admin: "CBES admin" } as const;
+const KIND_LABELS = { manager: "Property Manager", member: "Gets the report", representative: "Rep", admin: "CBES admin" } as const;
 
 /** Shows exactly who will get the email before anything is sent. */
 function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLabel: string; target: SendTarget; onClose: () => void }) {
@@ -452,7 +452,7 @@ function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLab
       {who.data && (
         <div className="flex flex-col gap-3">
           {list.length === 0 ? (
-            <p className="m-0 text-muted">Nobody would get this report. Invite a Management Director from the property's Team tab.</p>
+            <p className="m-0 text-muted">Nobody would get this report. Invite a Property Manager from the property's Team tab.</p>
           ) : (
             <ul aria-label="Recipients" className="m-0 flex max-h-72 list-none flex-col gap-2 overflow-y-auto p-0">
               {list.map((r) => (
@@ -466,9 +466,9 @@ function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLab
               ))}
             </ul>
           )}
-          {who.data.skippedNoDirector.length > 0 && (
+          {who.data.skippedNoManager.length > 0 && (
             <p className="m-0 rounded-lg bg-warning-bg px-3 py-2 text-[13px] font-semibold text-warning">
-              Skipped, no Management Director: {who.data.skippedNoDirector.join(", ")}
+              Skipped, no Property Manager: {who.data.skippedNoManager.join(", ")}
             </p>
           )}
           {send.error && <Alert>{errorMessage(send.error)}</Alert>}

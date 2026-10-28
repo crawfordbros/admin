@@ -7,12 +7,11 @@ export const CONTRACT_LABELS: Record<ContractType, string> = {
 };
 
 export const PROPERTY_ROLE_LABELS: Record<PropertyRole, string> = {
-  manager: "Property manager",
-  director: "Management Director",
+  manager: "Property Manager",
 };
 
 export const INVITE_ROLE_LABELS: Record<InviteRole, string> = {
-  representative: "Representative",
+  representative: "Rep",
   ...PROPERTY_ROLE_LABELS,
 };
 

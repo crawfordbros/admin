@@ -158,7 +158,7 @@ function Stats({ summary }: { summary: OrganizationsSummary | undefined }) {
     ["Organizations", summary?.organizations, "building"],
     ["Properties", summary?.properties, "home"],
     ["Units under service", summary?.units, "photo-grid"],
-    ["Representatives", summary?.representatives, "users"],
+    ["Reps", summary?.representatives, "users"],
     ["Pending invitations", summary?.pendingInvitations, "mail"],
   ];
   return (
@@ -275,7 +275,7 @@ function OrganizationList({ rows }: { rows: OrganizationRow[] }) {
             ),
           },
           { key: "units", header: "Units", cell: (o) => formatCount(o.units) },
-          { key: "reps", header: "Representatives", cell: (o) => (o.representatives.length ? <AvatarStack people={o.representatives} max={3} /> : <span className="text-muted">None</span>) },
+          { key: "reps", header: "Reps", cell: (o) => (o.representatives.length ? <AvatarStack people={o.representatives} max={3} /> : <span className="text-muted">None</span>) },
           { key: "open", header: "Open reports", cell: (o) => o.openReports },
           { key: "violations", header: "Violations 30d", cell: (o) => o.violations30d ?? "—" },
           { key: "reply", header: "Avg reply", cell: (o) => replyHours(o.avgReplyHours) },

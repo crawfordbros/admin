@@ -558,7 +558,7 @@ export function ReportsSection({
   changed: boolean;
 }) {
   return (
-    <SettingsSection id="reports" title="Weekly reports and email" description="When the weekly report goes to every Management Director, and the addresses CBES email comes from." changed={changed}>
+    <SettingsSection id="reports" title="Weekly reports and email" description="When the weekly report goes to every Property Manager, and the addresses CBES email comes from." changed={changed}>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
         <SelectField label="Send day" value={weeklyReport.day} onChange={(e) => onWeekly({ ...weeklyReport, day: e.target.value as Day })}>
           {DAYS.map((d) => (

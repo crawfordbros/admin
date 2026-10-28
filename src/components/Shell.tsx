@@ -6,7 +6,7 @@ import { config } from "../config";
 import { AccountMenu } from "./account/AccountMenu";
 import { Loading } from "./ui";
 
-/** The portal layout for property managers, Directors and representatives. Admins use AdminShell. */
+/** The portal layout for property managers and Reps. Admins use AdminShell. */
 export function Shell() {
   const { user } = useUser();
   const role = roleFrom(user?.publicMetadata);

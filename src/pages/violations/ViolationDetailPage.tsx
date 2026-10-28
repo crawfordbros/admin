@@ -221,9 +221,8 @@ export function Gallery({ area, v }: { area: ViolationArea; v: ViolationDetail }
 const ROLE_NAMES: Record<string, string> = {
   valet: "Valet",
   lead: "Steward",
-  manager: "Property manager",
-  director: "Management Director",
-  representative: "Representative",
+  manager: "Property Manager",
+  representative: "Rep",
   admin: "Admin",
   super_admin: "Admin",
 };
@@ -476,7 +475,7 @@ export function People({ v, action }: { v: ViolationDetail; action?: ReactNode }
   const rows: { p: Person; role: string; tag?: ReactNode }[] = [
     { p: v.valet, role: "Valet · logged this" },
     ...(v.steward ? [{ p: v.steward, role: `Steward · ${valetName}'s direct manager` }] : []),
-    ...v.people.propertyManagers.map((p) => ({ p, role: `${ROLE_NAMES[p.role] ?? "Property manager"} · gets it when sent` })),
+    ...v.people.propertyManagers.map((p) => ({ p, role: `${ROLE_NAMES[p.role] ?? "Property Manager"} · gets it when sent` })),
     ...v.people.representatives.map((p) => ({ p, role: "Representative · weekly report" })),
   ];
   return (

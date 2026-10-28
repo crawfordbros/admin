@@ -71,7 +71,7 @@ export function useApiBlob() {
 
 export const errorMessage = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong. Please try again.");
 
-export type PropertyRole = "manager" | "director";
+export type PropertyRole = "manager";
 export type InviteRole = "representative" | PropertyRole;
 
 export type Me = {
@@ -439,7 +439,9 @@ export type AdminUserRow = {
   invitationId: string | null;
   name: string | null;
   email: string;
-  role: "super_admin" | "admin" | "representative" | "lead" | "valet" | "director" | "manager";
+  role: "super_admin" | "admin" | "representative" | "lead" | "valet" | "manager";
+  /** All held roles, including organization and property memberships. */
+  roles?: AdminUserRow["role"][];
   access: string;
   orgId: string | null;
   mfa: "passkey" | "authenticator" | "none";
@@ -472,7 +474,7 @@ export type WeeklyRow = {
   avgReplyHours: number | null;
   violations: number;
   overwatchUnits: number;
-  director: { name: string; email: string } | null;
+  manager: { name: string; email: string } | null;
   recipients: number;
   delivery: Delivery;
   lastRunAt: string | null;
@@ -481,16 +483,16 @@ export type WeeklyRow = {
 
 export type WeeklyAdminView = {
   week: { start: string; end: string; label: string };
-  summary: { properties: number; sent: number; failed: number; residentReports: number; violations: number; noDirector: number };
+  summary: { properties: number; sent: number; failed: number; residentReports: number; violations: number; noManager: number };
   groups: { org: { id: string | null; name: string; logoVersion: string | null; representative: string | null; rollupSentAt: string | null }; rows: WeeklyRow[] }[];
 };
 
 export type WeeklyScope = "property" | "organization" | "all";
 export type WeeklyRecipients = {
-  recipients: { email: string; name: string | null; kind: "director" | "member" | "representative" | "admin"; propertyName: string | null }[];
-  skippedNoDirector: string[];
+  recipients: { email: string; name: string | null; kind: "manager" | "member" | "representative" | "admin"; propertyName: string | null }[];
+  skippedNoManager: string[];
 };
-export type WeeklySendResult = { sent: number; failed: number; recipients: number; skippedNoDirector: string[] };
+export type WeeklySendResult = { sent: number; failed: number; recipients: number; skippedNoManager: string[] };
 
 // Quotes (ADMIN_PORTAL_SPEC sections 6.9, 7.13 and 7.14).
 

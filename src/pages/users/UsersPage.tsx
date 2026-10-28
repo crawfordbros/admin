@@ -2,7 +2,7 @@ import { Suspense, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { ROLE_LABELS, isSuperAdmin, roleFrom } from "../../access";
+import { ROLE_LABELS, isAdmin, isSuperAdmin, roleFrom } from "../../access";
 import { errorMessage, useApi, type AdminPropertyRow, type AdminUserList, type AdminUserRow, type AuditEntry, type UserGroup } from "../../lib/api";
 import { timeAgo } from "../../lib/format";
 import { useFormSubmit } from "../../lib/useFormSubmit";
@@ -20,6 +20,7 @@ import { useAdminPage } from "../../components/admin/adminPage";
 import { cx } from "../../components/styles";
 import { StepUpField } from "./StepUp";
 import { useStepUp } from "../../lib/stepUp";
+import { AddRoleModal } from "./AddRoleModal";
 
 type Role = AdminUserRow["role"];
 
@@ -30,20 +31,19 @@ const ROLE_STYLE: Record<Role, string> = {
   lead: "bg-tint-2 text-navy",
   valet: "bg-neutral-bg text-neutral",
   representative: "bg-gold-tint text-gold-text",
-  director: "bg-info-bg text-info",
   manager: "bg-success-bg text-success",
 };
 
 const CBES_ROLES: { role: Role; label: string; note: string }[] = [
-  { role: "super_admin", label: "Super Admin", note: "Adds admins" },
+  { role: "super_admin", label: "Super Admin", note: "Manages admin access" },
   { role: "admin", label: "Admin", note: "Everything else" },
   { role: "lead", label: "Stewards", note: "Lead valets on site" },
   { role: "valet", label: "Valets", note: "Log violations" },
 ];
 const ORG_ROLES: { role: Role; label: string; note: string }[] = [
-  { role: "representative", label: "Representatives", note: "Run an organization" },
-  { role: "director", label: "Management Directors", note: "Get weekly reports" },
-  { role: "manager", label: "Property managers", note: "Run one property" },
+  { role: "representative", label: "Reps", note: "Run an organization" },
+  { role: label: "Property Managers", note: "Get weekly reports" },
+  { role: "manager", label: "Property Managers", note: "Run one property" },
 ];
 
 export function RoleBadge({ role }: { role: Role }) {
@@ -59,10 +59,12 @@ export function UsersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const isSuper = isSuperAdmin(roleFrom(user?.publicMetadata));
+  const actorRole = roleFrom(user?.publicMetadata);
+  const isSuper = isSuperAdmin(actorRole);
   const { params, update } = useQueryState();
   const [inviting, setInviting] = useState(false);
   const [changing, setChanging] = useState<AdminUserRow | null>(null);
+  const [addingRole, setAddingRole] = useState<AdminUserRow | null>(null);
   const [removing, setRemoving] = useState<AdminUserRow | null>(null);
   const [demoting, setDemoting] = useState<AdminUserRow | null>(null);
   const [activity, setActivity] = useState<AdminUserRow | null>(null);
@@ -80,6 +82,7 @@ export function UsersPage() {
   const counts = useQuery({ queryKey: ["admin", "users", "role-counts"], queryFn: () => api<Partial<Record<Role, number>>>("/admin/users/role-counts") });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+  const canAddRole = (u: AdminUserRow) => isAdmin(actorRole) && Boolean(u.id) && u.status === "active" && (isSuper || !isAdminRole(u.role) || u.id === user?.id);
   const act = useMutation({
     mutationFn: ({ path, method, body }: { path: string; method: string; done: string; body?: unknown }) => api(path, { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }),
     onSuccess: async (_r, { done }) => {
@@ -107,6 +110,7 @@ export function UsersPage() {
       ];
     const protectedAdmin = isAdminRole(u.role) && !isSuper;
     const items: MenuItem[] = [];
+    if (canAddRole(u)) items.push({ label: "Add role", onSelect: () => setAddingRole(u) });
     if (isSuper && !isAdminRole(u.role)) items.push({ label: "Upgrade to Admin", onSelect: () => navigate(`/admin/users/add-admin?user=${u.id}${u.email ? `&q=${encodeURIComponent(u.email)}` : ""}`) });
     if (u.role === "lead" || u.role === "valet") items.push({ label: "Change role", onSelect: () => setChanging(u) });
     // Admin and Steward are separate roles: removing admin leaves a Steward a Steward.
@@ -118,7 +122,7 @@ export function UsersPage() {
           ? { label: "Remove Steward role", disabled: protectedAdmin, onSelect: () => act.mutate({ path: `/admin/users/${u.id}/steward`, method: "PUT", body: { steward: false }, done: `${who} is no longer a Steward and has been taken off their properties.` }) }
           : { label: "Make Steward", disabled: protectedAdmin, onSelect: () => act.mutate({ path: `/admin/users/${u.id}/steward`, method: "PUT", body: { steward: true }, done: `${who} can now be chosen as a property's Steward.` }) },
       );
-    if (u.orgId && ["representative", "director", "manager"].includes(u.role)) items.push({ label: "Change access", to: `/admin/organizations/${u.orgId}?tab=people` });
+    if (u.orgId && ["representative", "manager"].includes(u.role)) items.push({ label: "Change access", to: `/admin/organizations/${u.orgId}?tab=people` });
     items.push(
       { label: "Reset two-step verification", disabled: protectedAdmin, onSelect: () => act.mutate({ path: `/admin/users/${u.id}/reset-mfa`, method: "POST", done: `${who} will set up two-step verification again at their next sign-in.` }) },
       { label: "View activity", onSelect: () => setActivity(u) },
@@ -246,9 +250,9 @@ export function UsersPage() {
               key: "role",
               header: "Role",
               cell: (u) => (
-                <span className="flex flex-wrap gap-1">
-                  <RoleBadge role={u.role} />
-                  {u.steward && u.role !== "lead" && <RoleBadge role="lead" />}
+                <span className="flex flex-wrap items-center gap-1">
+                  {(u.roles ?? [u.role, ...(u.steward && u.role !== "lead" ? ["lead" as const] : [])]).map((held) => <RoleBadge key={held} role={held} />)}
+                  {canAddRole(u) && <button type="button" aria-label={`Add role for ${u.name ?? u.email}`} onClick={() => setAddingRole(u)} className="rounded-md px-2 py-1 text-[12px] font-semibold text-navy hover:bg-tint-2">+ Add role</button>}
                 </span>
               ),
             },
@@ -288,6 +292,18 @@ export function UsersPage() {
             setInviting(false);
             toast.success(`Invitation sent to ${email}.`);
             await refresh();
+          }}
+        />
+      )}
+      {addingRole && actorRole && (
+        <AddRoleModal
+          user={addingRole}
+          actorRole={actorRole}
+          onClose={() => setAddingRole(null)}
+          onDone={async (message) => {
+            setAddingRole(null);
+            toast.success(message);
+            await queryClient.invalidateQueries();
           }}
         />
       )}
@@ -542,6 +558,7 @@ function RemoveAccessModal({ user, onClose, onDone }: { user: AdminUserRow; onCl
 }
 
 const ACTIONS: Record<string, string> = {
+  "user.add_role": "added a role",
   "user.upgrade_admin": "made them an admin",
   "user.invite_admin": "invited them as an admin",
   "user.role": "changed their role",

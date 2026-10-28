@@ -1,10 +1,10 @@
 // Roles from BUILD_BRIEF section 6, plus representatives of an organization (management company)
-// and the one Super Admin who adds admins (ADMIN_PORTAL_SPEC section 2).
+// and Super Admins who can grant Admin and Super Admin access.
 // The role comes from the Clerk user's public metadata ({ "role": "admin" }); the API sets it when
 // someone is invited and checks organization and property access on every request. These client
 // checks only decide what to show.
 
-export const ROLES = ["super_admin", "admin", "representative", "lead", "valet", "director", "manager"] as const;
+export const ROLES = ["super_admin", "admin", "representative", "lead", "valet", "manager"] as const;
 export type Role = (typeof ROLES)[number];
 
 export type Area = "portal" | "admin" | "valet" | "manager" | "organization";
@@ -13,7 +13,7 @@ const AREA_ROLES: Record<Area, readonly Role[]> = {
   portal: ROLES,
   admin: ["super_admin", "admin"],
   valet: ["super_admin", "admin", "lead", "valet"],
-  manager: ["super_admin", "admin", "representative", "director", "manager"],
+  manager: ["super_admin", "admin", "representative", "manager"],
   organization: ["super_admin", "admin", "representative"],
 };
 
@@ -29,12 +29,11 @@ export const AREA_DENIED: Record<Area, string> = {
 export const ROLE_LABELS: Record<Role, string> = {
   super_admin: "Super Admin",
   admin: "Admin",
-  representative: "Representative",
+  representative: "Rep",
   // Stored as "lead": a valet's direct supervisor.
   lead: "Steward",
   valet: "Valet",
-  director: "Management Director",
-  manager: "Property manager",
+  manager: "Property Manager",
 };
 
 export function roleFrom(publicMetadata: Record<string, unknown> | undefined): Role | null {

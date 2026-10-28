@@ -80,8 +80,8 @@ export function PortalViolationPage() {
   if (error) return <Alert>{errorMessage(error)}</Alert>;
 
   // Valets and Stewards reply here with CBES-only notes; resolving is for the property's team.
-  const propertySide = role === "manager" || role === "director" || role === "representative";
-  const canResolve = !preview.on && (role === "manager" || role === "director") && v.status === "sent";
+  const propertySide = role === "manager" || role === "representative";
+  const canResolve = !preview.on && (role === "manager") && v.status === "sent";
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">

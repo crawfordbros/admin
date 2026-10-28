@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { PageHeader } from "../../components/display";
 import { AccountSettings } from "./AccountSettings";
 
-/** /portal/settings: Account settings for representatives, Directors and property managers. */
+/** /portal/settings: Account settings for Reps and property managers. */
 export function PortalAccountPage() {
   useEffect(() => {
     document.title = "Account settings | CBES Portal";

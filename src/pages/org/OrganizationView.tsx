@@ -183,7 +183,7 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
             <PropertyGrid org={organization} properties={properties} linkTo={propertyLink} addTo={slots > 0 ? "properties/new" : null} slots={slots} />
             <aside className="flex min-w-0 flex-[1_1_320px] flex-col gap-4">
               <AsideCard
-                title="Representatives"
+                title="Reps"
                 action={
                   isAdmin && (
                     <button type="button" onClick={() => setInviting(true)} className="text-[13px] font-bold text-navy hover:underline">
@@ -241,7 +241,7 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
         {tab === "people" && (
           <section className="rounded-[14px] border border-line bg-white">
             {representatives.length + staff.length === 0 ? (
-              <EmptyState icon="users" title="Nobody yet" body="Invite a Representative to run this organization, or its property managers and Directors." action={<Button onClick={() => setInviting(true)}>Invite people</Button>} />
+              <EmptyState icon="users" title="Nobody yet" body="Invite a Representative to run this organization, or its property managers." action={<Button onClick={() => setInviting(true)}>Invite people</Button>} />
             ) : (
               <ul className="m-0 list-none divide-y divide-row-line p-0">
                 {representatives.map((r) => (
@@ -250,7 +250,7 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
                     id={r.id}
                     name={r.name ?? r.email}
                     email={r.email}
-                    role="Representative"
+                    role="Rep"
                     detail={`Every property · since ${monthYear(r.addedAt)}`}
                     action={
                       isAdmin && (
@@ -679,7 +679,7 @@ function InviteModal({
 }) {
   const api = useApi();
   const [role, setRole] = useState<InviteRole>(isAdmin ? "representative" : "manager");
-  // Only CBES adds Representatives and Directors; Representatives invite property managers.
+  // Only CBES adds Reps; Representatives invite property managers.
   const roles: InviteRole[] = isAdmin ? (Object.keys(INVITE_ROLE_LABELS) as InviteRole[]) : ["manager"];
   const forProperties = role !== "representative";
 
@@ -726,7 +726,7 @@ function InviteModal({
               ? `Sees and manages every property in ${organizationName}.`
               : isAdmin
                 ? "Sees only the properties you choose."
-                : "Sees only the properties you choose. To add a Director or another Representative, ask CBES."
+                : "Sees only the properties you choose. To add another Rep, ask CBES."
           }
           className="sm:col-span-2"
         >

@@ -248,7 +248,7 @@ function Overview({ detail, onTeam }: { detail: PropertyDetail; onTeam: () => vo
             ) : (
               <ul className="m-0 flex list-none flex-col gap-3 p-0">
                 {members.map((m) => (
-                  <PersonLine key={m.id} id={m.id} name={m.name ?? m.email} detail={m.role === "director" ? "Management Director · gets the weekly report" : PROPERTY_ROLE_LABELS[m.role]} />
+                  <PersonLine key={m.id} id={m.id} name={m.name ?? m.email} detail={PROPERTY_ROLE_LABELS[m.role]} />
                 ))}
                 {invitations.map((i) => (
                   <PersonLine key={i.id} id={i.email} name={i.name ?? i.email} detail={`${PROPERTY_ROLE_LABELS[i.role]} · invited ${timeAgo(i.createdAt)}`} tag={<Pill tone="warning">Invited</Pill>} />
@@ -392,7 +392,7 @@ function Team({ orgId, detail, onChanged }: { orgId: string; detail: PropertyDet
           </Button>
         </div>
         {members.length + invitations.length === 0 ? (
-          <EmptyState icon="users" title="No property staff yet" body="Invite the property manager and the Management Director, who gets the weekly report." />
+          <EmptyState icon="users" title="No property staff yet" body="Invite the Property Manager, who gets the weekly report." />
         ) : (
           <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
             {members.map((m) => (
@@ -482,8 +482,8 @@ function PropertyInviteModal({ orgId, property, onClose, onDone }: { orgId: stri
       <form id="property-invite" onSubmit={onSubmit} noValidate className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TextField label="Email" name="email" type="email" autoComplete="off" required error={errors.email} />
         <TextField label="Name" name="name" autoComplete="off" optional error={errors.name} />
-        <SelectField label="Role" name="role" defaultValue="manager" error={errors.role} hint="Management Directors get the weekly report by email." className="sm:col-span-2">
-          {(["manager", "director"] as const).map((r) => (
+        <SelectField label="Role" name="role" defaultValue="manager" error={errors.role} hint="Property Managers get the weekly report by email." className="sm:col-span-2">
+          {(["manager"] as const).map((r) => (
             <option key={r} value={r}>
               {PROPERTY_ROLE_LABELS[r]}
             </option>
@@ -505,7 +505,7 @@ function WeeklyList({ property }: { property: PropertyProfile }) {
   return (
     <section className={card}>
       <h2 className="m-0 text-lg text-ink">Weekly reports</h2>
-      <p className="mt-1 mb-4 text-[13.5px] text-muted">Each week runs Sunday to Saturday. Management Directors get theirs Monday at 7:00 AM.</p>
+      <p className="mt-1 mb-4 text-[13.5px] text-muted">Each week runs Sunday to Saturday. Property Managers get theirs Monday at 7:00 AM.</p>
       <ul className="m-0 list-none p-0">
         {weeks.map((w, i) => (
           <li key={w} className="flex flex-wrap items-center justify-between gap-3 border-t border-row-line py-3 first:border-t-0">

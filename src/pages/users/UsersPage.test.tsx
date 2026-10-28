@@ -47,6 +47,92 @@ afterEach(() => {
 });
 
 describe("UsersPage", () => {
+  it("lets an Admin add a scoped role without exposing Admin or Super Admin choices", async () => {
+    asRole("admin");
+    const calls = mockFetch((url, method) => {
+      if (url === "/api/organizations") return [200, { organizations: [{ id: "org1", name: "Peachtree Residential", status: "active" }] }];
+      if (url === "/api/admin/properties") return [200, { properties: [
+        { id: "p1", name: "The Oaks", organizationId: "org1", status: "active" },
+        { id: "p2", name: "Elsewhere", organizationId: "org2", status: "active" },
+      ] }];
+      if (url === "/api/admin/users/u_rep/roles") return [200, {}];
+      return handler(url, method);
+    });
+    show();
+    await userEvent.click(await screen.findByRole("button", { name: "Add role for Lauren Kim" }));
+    const dialog = screen.getByRole("dialog", { name: "Add role" });
+    const select = within(dialog).getByLabelText("Role to add");
+    expect(within(select).queryByRole("option", { name: "Admin" })).not.toBeInTheDocument();
+    expect(within(select).queryByRole("option", { name: "Super Admin" })).not.toBeInTheDocument();
+    await userEvent.selectOptions(select, "director");
+    expect(await within(dialog).findByRole("option", { name: "Peachtree Residential" })).toBeInTheDocument();
+    const submit = within(dialog).getByRole("button", { name: "Add role" });
+    expect(submit).toBeDisabled();
+    await userEvent.click(await within(dialog).findByRole("checkbox", { name: "The Oaks" }));
+    expect(within(dialog).queryByRole("checkbox", { name: "Elsewhere" })).not.toBeInTheDocument();
+    await userEvent.click(submit);
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.find((c) => c.url === "/api/admin/users/u_rep/roles")).toMatchObject({ method: "POST", body: { role: "director", organizationId: "org1", propertyIds: ["p1"] } });
+    expect(calls.some((c) => c.url.includes("/step-up/"))).toBe(false);
+  });
+
+  it("lets a Super Admin grant Super Admin after confirming its access and a passkey", async () => {
+    asRole("super_admin");
+    const calls = mockFetch((url, method) => url === "/api/admin/users/u_admin/roles" ? [200, {}] : handler(url, method));
+    show();
+    await userEvent.click(await screen.findByRole("button", { name: "Add role for Nigel Crawford" }));
+    const dialog = screen.getByRole("dialog", { name: "Add role" });
+    await userEvent.selectOptions(within(dialog).getByLabelText("Role to add"), "super_admin");
+    const submit = within(dialog).getByRole("button", { name: "Confirm and add role" });
+    expect(submit).toBeDisabled();
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /I understand Nigel Crawford/ }));
+    await userEvent.click(submit);
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.find((c) => c.url === "/api/admin/users/u_admin/roles")).toMatchObject({ method: "POST", body: { role: "super_admin", propertyIds: [], stepUpToken: "tok" } });
+  });
+
+  it("offers operational roles for a field account without switching them to an organization account", async () => {
+    asRole("admin");
+    mockFetch(handler);
+    show();
+    await userEvent.click(await screen.findByRole("button", { name: "Add role for Dana Brooks" }));
+    const select = within(screen.getByRole("dialog", { name: "Add role" })).getByLabelText("Role to add");
+    expect(within(select).getAllByRole("option").map((option) => option.textContent)).toEqual(["Choose a role", "Steward", "Valet"]);
+  });
+
+  it("shows held roles together and keeps failed additions open", async () => {
+    asRole("super_admin");
+    mockFetch((url, method) => {
+      if (url.startsWith("/api/admin/users?")) return [200, { ...list, items: [{ ...users[1], roles: ["admin", "lead", "representative"] }] }];
+      if (url === "/api/admin/users/u_admin/roles") return [403, { error: "Role assignment unavailable" }];
+      return handler(url, method);
+    });
+    show();
+    const person = (await screen.findByText("Nigel Crawford")).closest("tr")!;
+    expect(within(person).getByText("Admin")).toBeInTheDocument();
+    expect(within(person).getByText("Steward")).toBeInTheDocument();
+    expect(within(person).getByText("Representative")).toBeInTheDocument();
+    const trigger = within(person).getByRole("button", { name: "Add role for Nigel Crawford" });
+    await userEvent.click(trigger);
+    const dialog = screen.getByRole("dialog", { name: "Add role" });
+    await userEvent.selectOptions(within(dialog).getByLabelText("Role to add"), "lead");
+    await waitFor(() => expect(within(dialog).getByRole("button", { name: "Add role" })).toBeEnabled());
+    await userEvent.click(within(dialog).getByRole("button", { name: "Add role" }));
+    expect(await within(dialog).findByText("Role assignment unavailable")).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(trigger).toHaveFocus();
+  });
+
+  it.each(["representative", "director", "manager", "lead", "valet"])("hides role assignment controls from %s", async (role) => {
+    asRole(role);
+    mockFetch(handler);
+    show();
+    await screen.findByText("Dana Brooks");
+    expect(screen.queryByRole("button", { name: /^Add role for/ })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Actions for Dana Brooks" }));
+    expect(screen.queryByRole("menuitem", { name: "Add role" })).not.toBeInTheDocument();
+  });
+
   it("lists everyone with their role, access and two-step, and filters by role chip", async () => {
     asRole("admin");
     const calls = mockFetch(handler);

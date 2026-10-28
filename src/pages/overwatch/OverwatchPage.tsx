@@ -11,7 +11,7 @@ import { propertyPath } from "../admin/paths";
 
 const PLANS: { title: string; body: string; icon: IconName }[] = [
   { title: "Automatic flags", body: "Units over the threshold in Settings are flagged the moment a valet logs the violation.", icon: "alert-triangle" },
-  { title: "Cases for managers", body: "Property managers open an Overwatch case, add notes and track the unit until it clears.", icon: "file" },
+  { title: "Cases for managers", body: "Property Managers open an Overwatch case, add notes and track the unit until it clears.", icon: "file" },
   { title: "Courtesy notices via the property", body: "Templates the property sends to its resident. CBES never contacts residents directly.", icon: "mail" },
   { title: "Clears on its own", body: "Once a unit goes 30 days without a violation it leaves Overwatch and the case closes.", icon: "check" },
 ];

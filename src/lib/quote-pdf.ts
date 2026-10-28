@@ -96,7 +96,7 @@ export async function buildQuotePdf(q: QuoteDetail, p: QuotePricing, today = new
   para("Term", TERMS[p.term]);
   para(
     "What's included",
-    "Doorstep valet trash on your scheduled service nights. Residents can report an issue from the QR code on their container, and your Management Director gets a weekly report every Monday with the nights serviced and every report.",
+    "Doorstep valet trash on your scheduled service nights. Residents can report an issue from the QR code on their container, and your Property Manager gets a weekly report every Monday with the nights serviced and every report.",
   );
   para("Next steps", "Reply to this email to accept or ask questions. We'll send the service agreement and certificate of insurance, then schedule your start date. Pricing holds for 30 days.");
 
