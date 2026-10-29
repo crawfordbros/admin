@@ -52,6 +52,27 @@ function portalSpeculationRules(): Plugin {
 }
 
 /**
+ * The test host exposes this dev server publicly. Keep crawlers out, as the deployed Worker does
+ * with X-Robots-Tag (worker/index.ts).
+ */
+function noindexDevServer(): Plugin {
+  return {
+    name: "cbes-noindex-dev-server",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        res.setHeader("X-Robots-Tag", "noindex, nofollow");
+        if (req.url === "/robots.txt") {
+          res.setHeader("Content-Type", "text/plain; charset=utf-8");
+          res.end("User-agent: *\nDisallow: /\n");
+          return;
+        }
+        next();
+      });
+    },
+  };
+}
+
+/**
  * Staging and production builds require the Clerk key from .env.local or Render's environment.
  * Production must use the live instance: .env.local is loaded for every mode, so a pk_test_ key
  * there would otherwise slip into a production build.
@@ -78,7 +99,7 @@ function requireClerkKey(): Plugin {
 // under /portal/ (see worker/index.ts for how /portal* and /admin* are served).
 export default defineConfig(({ command, mode }) => ({
   base: command === "build" ? "/portal/" : "/",
-  plugins: [react(), tailwindcss(), requireClerkKey(), portalSpeculationRules()],
+  plugins: [react(), tailwindcss(), requireClerkKey(), noindexDevServer(), portalSpeculationRules()],
   build: { outDir: "dist/portal", emptyOutDir: true },
   server: {
     host: true,
