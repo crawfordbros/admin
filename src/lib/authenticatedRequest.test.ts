@@ -33,6 +33,15 @@ describe("authenticated request recovery", () => {
     }
   });
 
+  it("returns a 204 even when the network layer hands back an empty body stream", async () => {
+    // Behind proxies, a 204 can arrive with a non-null (empty) body; re-wrapping it must not throw.
+    const noContent = { ok: true, status: 204, statusText: "No Content", headers: new Headers(), body: new ReadableStream(), arrayBuffer: async () => new ArrayBuffer(0) } as unknown as Response;
+    vi.stubGlobal("fetch", vi.fn(async () => noContent));
+    const result = await authenticatedRequest({ sessionId: id, getToken: async () => "token" }, "/organizations/o/invitations/i", { method: "DELETE" });
+    expect(result.status).toBe(204);
+    expect(await responseJson(result)).toBeUndefined();
+  });
+
   it("locks after a rejected fresh token without a retry loop", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => expired()));
     const getToken = vi.fn(async () => "token");

@@ -30,7 +30,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav aria-label="Admin Portal" className="flex min-h-full flex-col gap-1 bg-navy-ink px-3.5 py-5 text-on-navy">
       <Link to="/admin" onClick={onNavigate} className="flex items-center gap-3 px-2 pt-1 pb-5 text-white no-underline hover:text-white">
-        <img src={`${import.meta.env.BASE_URL}logo-gold-on-navy.webp`} alt="" width={240} height={183} className="h-11 w-auto" />
+        <img src={`${import.meta.env.BASE_URL}logo-gold-on-navy.webp`} alt="" width={240} height={205} className="h-11 w-auto" />
         <span className="flex flex-col leading-tight">
           <span className="font-heading text-[17px] font-bold">Admin Portal</span>
           <span className="text-[12px] text-gold-light">CBES operations</span>

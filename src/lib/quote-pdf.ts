@@ -60,7 +60,7 @@ export async function buildQuotePdf(q: QuoteDetail, p: QuotePricing, today = new
 
   let y = 132;
   if (image) {
-    doc.addImage(image, "PNG", width - MARGIN - 90, 112, 90, 69);
+    doc.addImage(image, "PNG", width - MARGIN - 90, 112, 90, 77);
   }
   doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(...GOLD).text("PREPARED FOR", MARGIN, y);
   y += 16;

@@ -36,7 +36,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         <main className="flex flex-1 items-start pt-8 lg:items-center lg:pt-0">
           <div className="w-full max-w-[25rem] lg:ml-[8%] xl:ml-[14%]">
             <a href={siteUrl} className="mx-auto mb-8 block w-fit rounded-md" aria-label="CB Environment Solutions website">
-              <img src={`${base}logo-blue-on-white.png`} alt="" width={790} height={599} className="h-28 w-auto lg:h-32" />
+              <img src={`${base}logo-blue-on-white.png`} alt="" width={790} height={679} className="h-28 w-auto lg:h-32" />
             </a>
             {children}
           </div>

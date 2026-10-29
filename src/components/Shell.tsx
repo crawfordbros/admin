@@ -16,7 +16,7 @@ export function Shell() {
       <header className="bg-navy text-white print:hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <Link to="/portal" className="flex items-center gap-3 text-white no-underline hover:text-white">
-            <img src={`${import.meta.env.BASE_URL}logo-gold-on-navy.webp`} alt="" width={240} height={183} className="h-11 w-auto" />
+            <img src={`${import.meta.env.BASE_URL}logo-gold-on-navy.webp`} alt="" width={240} height={205} className="h-11 w-auto" />
             <span className="font-heading text-lg font-bold">Portal</span>
           </Link>
           <div className="flex items-center gap-4">

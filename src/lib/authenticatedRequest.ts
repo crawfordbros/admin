@@ -93,7 +93,9 @@ export async function authenticatedRequest(auth: Auth, path: string, init: Reque
         }) : null;
         if (!options.ending) ensureActive(auth.sessionId);
         if (controller.signal.aborted) throw new DOMException("Request cancelled", "AbortError");
-        return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
+        // A 204/205/304 may still arrive with an empty body stream; Response() rejects any body for them.
+        const nullBody = response.status === 204 || response.status === 205 || response.status === 304;
+        return new Response(nullBody ? null : body, { status: response.status, statusText: response.statusText, headers: response.headers });
       }
       const body = await response.clone().json().catch(() => ({})) as { code?: string; error?: string; fieldErrors?: Record<string, string> };
       if (response.status === 401) {
