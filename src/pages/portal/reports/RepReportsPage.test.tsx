@@ -15,7 +15,7 @@ vi.mock("../../../lib/report-pdf", () => ({
   buildReportPdf: () => ({ output: () => new ArrayBuffer(1) }),
   reportFileName: (r: { property: { id: string } }) => `${r.property.id}.pdf`,
 }));
-vi.mock("fflate", () => ({ zipSync: () => new Uint8Array(1) }));
+vi.mock("fflate", () => ({ zipSync: () => new Uint8Array(1), strToU8: (text: string) => new TextEncoder().encode(text) }));
 
 const today = nyToday();
 const NEWEST = addDays(today, -new Date(`${today}T12:00:00Z`).getUTCDay() - 7);
@@ -79,7 +79,7 @@ const api = (me: unknown = repMe, data: PortalReportSummary | [number, unknown] 
     if (url === "/api/portal/me") return [200, me];
     if (url.startsWith("/api/portal/reports/summary")) return Array.isArray(data) ? data : [200, data];
     if (url.startsWith("/api/portal/reports/history")) return [200, { items: [{ weekStart: NEWEST, sentAt: "2026-10-26T11:00:00.000Z", recipients: 5, status: "sent" }] }];
-    if (url.startsWith("/api/portal/properties/")) return [200, { property: { id: url.split("/")[4] } }];
+    if (url.startsWith("/api/portal/properties/")) return [200, { property: { id: url.split("/")[4] }, week: { start: new URL(url, "http://x").searchParams.get("week") } }];
     return [404, { error: "Not found" }];
   });
 
@@ -173,9 +173,9 @@ describe("RepReportsPage", () => {
   it("lists past Monday reports and who gets the next one", async () => {
     api();
     show();
-    const history = within(await screen.findByRole("region", { name: "Past Monday reports" }));
+    const history = within(await screen.findByRole("region", { name: "Past reports" }));
     expect(await history.findByText(/to 5 people/)).toBeInTheDocument();
-    const recipients = within(screen.getByRole("region", { name: "Who gets the Monday report" }));
+    const recipients = within(screen.getByRole("region", { name: "Who receives weekly reports" }));
     expect(recipients.getByText("Lauren Kim")).toBeInTheDocument();
     expect(recipients.getByText(/Next send: Monday, Nov 2 at 7 AM ET/)).toBeInTheDocument();
     expect(recipients.getByRole("link", { name: "Change in Team and settings" })).toHaveAttribute("href", "/portal/organizations/org1/settings");
@@ -191,8 +191,8 @@ describe("RepReportsPage", () => {
     expect(screen.queryByRole("link", { name: "Change in Team and settings" })).not.toBeInTheDocument();
     expect(Object.fromEntries(summaryCalls(calls).at(-1)!)).toMatchObject({ scope: "property", property: "p1" });
     await userEvent.click(screen.getByRole("button", { name: "Download PDF" }));
-    await waitFor(() => expect(pdf.download).toHaveBeenCalledWith({ property: { id: "p1" } }));
-    expect(within(screen.getByRole("region", { name: "Past Monday reports" })).getByRole("link", { name: /View the week/ })).toHaveAttribute("href", `/portal/properties/p1/report?week=${NEWEST}`);
+    await waitFor(() => expect(pdf.download).toHaveBeenCalledWith({ property: { id: "p1" }, week: { start: NEWEST } }));
+    expect(within(screen.getByRole("region", { name: "Past reports" })).getByRole("link", { name: /View the week/ })).toHaveAttribute("href", `/portal/properties/p1/report?week=${NEWEST}`);
   });
 
   it("explains a failure", async () => {
@@ -200,4 +200,27 @@ describe("RepReportsPage", () => {
     show();
     expect(await screen.findByRole("alert")).toHaveTextContent("Reports are unavailable.");
   });
+});
+
+
+it("shows a history failure separately from an empty history and retries", async () => {
+  let failed = true;
+  api(repMe, summary(), (url) => url.includes("/history") && failed ? [500, { error: "Unavailable" }] : undefined);
+  show();
+  expect(await screen.findByRole("button", { name: "Retry history" })).toBeInTheDocument();
+  expect(screen.queryByText(/No report history yet/)).not.toBeInTheDocument();
+  failed = false;
+  await userEvent.click(screen.getByRole("button", { name: "Retry history" }));
+  expect(await screen.findByText(/to 5 people/)).toBeInTheDocument();
+});
+
+it("does not email or export the old organization when property scope fails", async () => {
+  api(repMe, summary(), (url) => url.includes("/summary?scope=property") ? [500, { error: "Property reporting unavailable" }] : undefined);
+  show();
+  await screen.findByRole("region", { name: "By property" });
+  await userEvent.click(screen.getByRole("button", { name: "One property" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Property reporting unavailable");
+  expect(screen.getByRole("button", { name: "Email me" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Download PDF" })).toBeDisabled();
+  expect(screen.queryByRole("region", { name: "By property" })).not.toBeInTheDocument();
 });

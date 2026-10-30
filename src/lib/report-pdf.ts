@@ -4,6 +4,7 @@
 import { jsPDF } from "jspdf";
 import { autoTable } from "jspdf-autotable";
 import type { WeeklyReport, WeeklyRow } from "./api";
+import type { DownloadFailure } from "./report-downloads";
 import { VALET_STATUS_TEXT, autoClockOutNote, formatDay, hours, lastOut } from "./format";
 
 const NAVY: [number, number, number] = [39, 43, 132];
@@ -12,7 +13,7 @@ const MARGIN = 48;
 
 export function reportFileName(r: WeeklyReport): string {
   const slug = r.property.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `cbes-weekly-report-${slug}-${r.week.start}.pdf`;
+  return `cbes-weekly-report-${slug}-${encodeURIComponent(r.property.id)}-${r.week.start}.pdf`;
 }
 
 export function buildReportPdf(r: WeeklyReport): jsPDF {
@@ -120,7 +121,7 @@ export const orgFileName = (orgName: string, weekStart: string) => `cbes-weekly-
 /** The weekly numbers the organization PDF prints; the Property Portal passes rows trimmed to what the property may see. */
 export type OrgPdfRow = Pick<WeeklyRow, "name" | "nights" | "avgClockIn" | "residentReports" | "resolved" | "avgReplyHours" | "violations" | "overwatchUnits">;
 
-export function buildOrgPdf(orgName: string, weekLabel: string, rows: OrgPdfRow[], reports: WeeklyReport[]): jsPDF {
+export function buildOrgPdf(orgName: string, weekLabel: string, rows: OrgPdfRow[], reports: WeeklyReport[], failures: DownloadFailure[] = []): jsPDF {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   let y = MARGIN;
   doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(122, 106, 80).text("CB ENVIRONMENT SOLUTIONS", MARGIN, y);
@@ -129,6 +130,15 @@ export function buildOrgPdf(orgName: string, weekLabel: string, rows: OrgPdfRow[
   y += 18;
   doc.setFont("helvetica", "normal").setFontSize(11).setTextColor(...MUTED).text(weekLabel, MARGIN, y);
   y += 26;
+  if (failures.length) {
+    doc.setFont("helvetica", "bold").setFontSize(12).text(`PARTIAL REPORT: ${reports.length} of ${reports.length + failures.length} properties included`, MARGIN, y);
+    autoTable(doc, {
+      startY: y + 12, head: [["Omitted property", "Reason"]],
+      body: failures.map((f) => [`${f.label} (${f.id})`, f.message]),
+      margin: { left: MARGIN, right: MARGIN }, styles: { fontSize: 10 }, headStyles: { fillColor: NAVY },
+    });
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 28;
+  }
   const sum = (f: (r: OrgPdfRow) => number) => rows.reduce((n, r) => n + f(r), 0);
   autoTable(doc, {
     startY: y,

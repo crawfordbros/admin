@@ -1,3 +1,5 @@
+import { downloadOrganizationReport, downloadReportZip, type DownloadFailure } from "../../../lib/report-downloads";
+import { reportScheduleText, reportWeekLabel, validReportWeek } from "../../../lib/reporting";
 import { PropertyNames } from "../../../components/PropertyAddress";
 import { propertyOptionLabel } from "../../../lib/propertyAddress";
 import { PropertyAddress } from "../../../components/PropertyAddress";
@@ -42,14 +44,6 @@ const sendTime = (iso: string) => {
 const card = "rounded-2xl border border-line bg-white";
 const smallButton = "h-8 rounded-lg border border-field bg-white px-2.5 text-[12.5px] font-bold text-navy hover:bg-canvas disabled:opacity-60";
 
-function save(blob: Blob, name: string) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
 /**
  * /portal/reporting (REP_PORTAL_SPEC 7.8): the numbers CBES emails every Monday, for an organization
  * (Representatives) or one property, any past week, with PDFs and email.
@@ -60,6 +54,7 @@ export function RepReportsPage() {
   const ctx = useRepContext();
   const { params, update } = useQueryState();
   const [busy, setBusy] = useState<string | null>(null);
+  const [downloadFailures, setDownloadFailures] = useState<DownloadFailure[]>([]);
   usePortalPage("Reporting");
 
   const isRep = ctx.kind === "organization";
@@ -81,15 +76,15 @@ export function RepReportsPage() {
     queryFn: () => api<PortalReportHistory>(`/portal/reports/history?${scopeQuery}`),
     enabled: Boolean(scopeQuery),
   });
-  const d = summary.data;
-  const shownWeek = d?.week.start ?? week ?? lastFullWeek();
+  const shownWeek = week ?? lastFullWeek();
+  const d = !summary.isPlaceholderData && !summary.error && summary.data?.week.start === shownWeek && summary.data.scope.kind === scopeKind && summary.data.scope.id === (scopeKind === "organization" ? orgId : propertyId) ? summary.data : undefined;
   const newest = lastFullWeek();
 
   const emailMe = useMutation({
-    mutationFn: () =>
+    mutationFn: (target: { scope: "organization" | "property"; id: string; week: string }) =>
       api<{ sentTo: string }>("/portal/reports/email-me", {
         method: "POST",
-        body: JSON.stringify({ scope: scopeKind, id: scopeKind === "organization" ? orgId : propertyId, week: shownWeek }),
+        body: JSON.stringify(target),
       }),
     onSuccess: ({ sentTo }) => toast.success(`Sent to ${sentTo}.`),
     onError: (err) => toast.error(errorMessage(err)),
@@ -97,7 +92,9 @@ export function RepReportsPage() {
 
   const report = (id: string, w: string) => api<WeeklyReport>(`/portal/properties/${id}/report?week=${w}`);
   const run = async (key: string, job: () => Promise<void>) => {
+    if (!d || busy) return;
     setBusy(key);
+    setDownloadFailures([]);
     try {
       await job();
     } catch (err) {
@@ -115,19 +112,12 @@ export function RepReportsPage() {
     run(`org:${w}`, async () => {
       // Another week's PDF needs that week's numbers.
       const s = w === shownWeek && d ? d : await api<PortalReportSummary>(`/portal/reports/summary?scope=organization&org=${orgId}&week=${w}`);
-      const [{ buildOrgPdf, orgFileName }, reports] = await Promise.all([import("../../../lib/report-pdf"), Promise.all(s.rows.map((r) => report(r.propertyId, w)))]);
-      buildOrgPdf(s.scope.name, `Week of ${s.week.label}`, s.rows, reports).save(orgFileName(s.scope.name, w));
+      setDownloadFailures(await downloadOrganizationReport(s.scope.name, `Week of ${s.week.label}`, s.rows, w, report));
     });
   const zip = () =>
     run("zip", async () => {
       if (!d) return;
-      const [{ buildReportPdf, reportFileName }, { zipSync }] = await Promise.all([import("../../../lib/report-pdf"), import("fflate")]);
-      const files: Record<string, Uint8Array> = {};
-      for (let i = 0; i < d.rows.length; i += 4) {
-        const batch = await Promise.all(d.rows.slice(i, i + 4).map((r) => report(r.propertyId, shownWeek)));
-        for (const r of batch) files[reportFileName(r)] = new Uint8Array(buildReportPdf(r).output("arraybuffer"));
-      }
-      save(new Blob([zipSync(files) as BlobPart], { type: "application/zip" }), `cbes-weekly-reports-${shownWeek}.zip`);
+      setDownloadFailures(await downloadReportZip(d.rows, shownWeek, report));
     });
 
   const k = d?.kpis;
@@ -143,20 +133,20 @@ export function RepReportsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 flex-[1_1_420px]">
           <h1 className="m-0 text-[30px] text-navy-ink">Reporting</h1>
-          <p className="mt-1.5 mb-0 text-[14.5px] text-muted">The same numbers CBES emails every Monday at 7 AM ET, for your whole organization or one property.</p>
+          <p className="mt-1.5 mb-0 text-[14.5px] text-muted">The same numbers CBES emails {reportScheduleText(d?.schedule)}, for your whole organization or one property.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => emailMe.mutate()} disabled={!d || emailMe.isPending}>
+          <Button variant="secondary" onClick={() => d && emailMe.mutate({ scope: d.scope.kind, id: d.scope.id, week: d.week.start })} disabled={!d || Boolean(busy) || emailMe.isPending}>
             <Icon name="mail" size={18} strokeWidth={2} />
             {emailMe.isPending ? "Sending…" : "Email me"}
           </Button>
           {scopeKind === "organization" && (
-            <Button variant="secondary" onClick={zip} disabled={!d || busy === "zip"}>
+            <Button variant="secondary" onClick={zip} disabled={!d || !d.rows.length || Boolean(busy)}>
               <Icon name="download" size={18} strokeWidth={2} />
               {busy === "zip" ? "Preparing…" : "All properties (ZIP)"}
             </Button>
           )}
-          <Button onClick={() => (scopeKind === "organization" ? orgPdf() : propertyId && propertyPdf(propertyId))} disabled={!d || Boolean(busy?.startsWith("org:") || busy?.startsWith("pdf:"))}>
+          <Button onClick={() => (scopeKind === "organization" ? orgPdf() : propertyId && propertyPdf(propertyId))} disabled={!d || !d.rows.length || Boolean(busy)}>
             <Icon name="file" size={18} strokeWidth={2} />
             Download PDF
           </Button>
@@ -196,16 +186,16 @@ export function RepReportsPage() {
           )}
         </div>
         <div className="flex items-center gap-1.5">
-          <button type="button" aria-label="Previous week" onClick={() => update({ week: addDays(shownWeek, -7) })} className="flex size-[38px] items-center justify-center rounded-[10px] border border-field bg-white hover:bg-canvas">
+          <button type="button" aria-label="Previous week" disabled={!validReportWeek(shownWeek)} onClick={() => update({ week: addDays(shownWeek, -7) })} className="flex size-[38px] items-center justify-center rounded-[10px] border border-field bg-white hover:bg-canvas">
             <Icon name="chevron-left" size={16} strokeWidth={2.2} />
           </button>
           <span aria-live="polite" className="min-w-[210px] text-center text-[14px] font-bold">
-            Week of {d?.week.label ?? "…"}
+            Week of {d?.week.label ?? reportWeekLabel(shownWeek)}
           </span>
           <button
             type="button"
             aria-label="Next week"
-            disabled={shownWeek >= newest}
+            disabled={shownWeek >= newest || !validReportWeek(shownWeek)}
             onClick={() => update({ week: addDays(shownWeek, 7) >= newest ? null : addDays(shownWeek, 7) })}
             className="flex size-[38px] items-center justify-center rounded-[10px] border border-field bg-white hover:bg-canvas disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -214,6 +204,7 @@ export function RepReportsPage() {
         </div>
       </section>
 
+      {downloadFailures.length > 0 && <Alert>Partial download. Unavailable properties: {downloadFailures.map((f) => f.label).join(", ")}. See the included failure details.</Alert>}
       {summary.error ? (
         <Alert>
           {errorMessage(summary.error)}{" "}
@@ -351,9 +342,9 @@ export function RepReportsPage() {
           <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
             <section aria-labelledby="history-title" className={`${card} overflow-hidden`}>
               <h2 id="history-title" className="m-0 border-b border-row-line px-5 py-4 text-[18px]">
-                Past Monday reports
+                Past reports
               </h2>
-              {history.data?.items.length ? (
+              {history.error ? <Alert>Report history could not be loaded. <Button variant="secondary" onClick={() => history.refetch()}>Retry history</Button></Alert> : history.isPending ? <p className="px-5 py-3" role="status">Loading report history…</p> : history.data?.items.length ? (
                 <ul className="m-0 list-none p-0">
                   {history.data.items.map((h) => (
                     <li key={h.weekStart} className="flex flex-wrap items-center justify-between gap-3 border-b border-row-line px-5 py-3 text-[13.5px] last:border-b-0">
@@ -388,13 +379,13 @@ export function RepReportsPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="m-0 px-5 py-6 text-[13.5px] text-muted">No Monday reports yet. The first goes out the Monday after service starts.</p>
+                <p className="m-0 px-5 py-6 text-[13.5px] text-muted">No report history yet. Reports follow the configured weekly schedule.</p>
               )}
             </section>
 
             <section aria-labelledby="recipients-title" className="flex flex-col gap-3 rounded-2xl bg-navy-ink p-5 text-white">
               <h2 id="recipients-title" className="m-0 text-[17px] text-white">
-                Who gets the Monday report
+                Who receives weekly reports
               </h2>
               <p className="m-0 text-[13px] text-nav-pill">Next send: {sendTime(d.nextRunAt)}</p>
               {d.recipients.length ? (
@@ -407,7 +398,7 @@ export function RepReportsPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="m-0 text-[13px] text-nav-pill">Nobody yet. Add a property manager to start the Monday email.</p>
+                <p className="m-0 text-[13px] text-nav-pill">Nobody yet. Add a property manager to start the weekly email.</p>
               )}
               {isRep && orgId && (
                 <Link to={`/portal/organizations/${orgId}/settings`} className="inline-flex h-[38px] items-center self-start rounded-[10px] bg-white px-3.5 text-[13.5px] font-bold text-navy-ink no-underline hover:bg-tint-2 hover:text-navy-ink">

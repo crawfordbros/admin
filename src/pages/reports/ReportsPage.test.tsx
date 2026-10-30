@@ -145,3 +145,34 @@ describe("ReportDrawer", () => {
     expect(within(drawer).getByLabelText("Reply to Jordan Lee")).toBeInTheDocument();
   });
 });
+
+
+it("exports all filtered rows in the chosen sort order", async () => {
+  vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: vi.fn(() => "blob:csv"), revokeObjectURL: vi.fn() }));
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const calls = mockFetch((url, method, body) => url.startsWith("/api/admin/reports/export.csv") ? [200, "CSV"] : handler(url, method, body));
+  show("/admin/issues?sort=property&tab=resolved&q=Ana&page=2");
+  await waitFor(() => expect(screen.getByRole("button", { name: "Export CSV" })).toBeEnabled());
+  await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
+  await waitFor(() => expect(click).toHaveBeenCalled());
+  const exported = params(calls, "/api/admin/reports/export.csv")[0];
+  expect(Object.fromEntries(exported)).toMatchObject({ sort: "property", tab: "resolved", q: "Ana" });
+  expect(exported.has("page")).toBe(false);
+  expect(exported.has("pageSize")).toBe(false);
+  click.mockRestore();
+});
+
+it("surfaces summary failures independently of the issue list", async () => {
+  mockFetch((url, method, body) => url.includes("/reports/summary") ? [500, { error: "Summary unavailable" }] : handler(url, method, body));
+  show();
+  expect(await screen.findByRole("button", { name: "Retry summary" })).toBeInTheDocument();
+  expect(await screen.findByText("Missed pickup", { selector: "a" })).toBeInTheDocument();
+});
+
+it("does not describe a failed issue list as empty", async () => {
+  mockFetch((url, method, body) => url.startsWith("/api/admin/reports?") ? [500, { error: "Issues unavailable" }] : handler(url, method, body));
+  show();
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
+  expect(screen.queryByText("Every issue in this range has been handled.")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Export CSV" })).toBeDisabled();
+});

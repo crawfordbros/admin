@@ -1,3 +1,5 @@
+import { reportWeekLabel } from "../../lib/reporting";
+import { lastCompletedWeek } from "../../lib/dates";
 import { propertyAddressText } from "../../lib/propertyAddress";
 import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
@@ -50,7 +52,7 @@ export function WeeklyReportPage() {
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  const { data, error, isPending } = useQuery({
+  const { data, error, isPending, refetch } = useQuery({
     queryKey: ["portal", "report", id, week],
     queryFn: () => api<WeeklyReport>(`/portal/properties/${id}/report${week ? `?week=${week}` : ""}`),
   });
@@ -65,8 +67,8 @@ export function WeeklyReportPage() {
     data ? [{ label: shell?.kind === "organization" ? data.property.name : "My property", to: `/portal/properties/${id}`, description: propertyAddressText(data.property) }, { label: "Weekly report" }] : undefined,
   );
 
-  if (isPending) return <Loading label="Building the report…" />;
-  if (error) return <Alert>{errorMessage(error)}</Alert>;
+  if (isPending) return <><p>{reportWeekLabel(week || lastCompletedWeek())}</p><Loading label="Building the report…" /></>;
+  if (error) return <><p>{reportWeekLabel(week || lastCompletedWeek())}</p><Alert>{errorMessage(error)} <Button variant="secondary" onClick={() => refetch()}>Retry report</Button></Alert></>;
 
   const rr = data.residentReports;
   const v = data.valetTimes;

@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { WeeklyAdminView, WeeklyRow } from "../../lib/api";
@@ -73,7 +73,7 @@ describe("WeeklyReportsPage", () => {
   });
 
   it("builds the organization PDF from all its properties, whatever the search hides", async () => {
-    mockFetch((url, method) => (url.startsWith("/api/portal/properties/") ? [200, { property: { id: "x" } }] : handler(url, method)));
+    mockFetch((url, method) => (url.startsWith("/api/portal/properties/") ? [200, { property: { id: url.split("/")[4] }, week: { start: new URL(url, "http://x").searchParams.get("week") } }] : handler(url, method)));
     show("/admin/weekly-reports?q=oaks");
     const group = (await screen.findByRole("heading", { name: "Peachtree Residential" })).closest("section")!;
     expect(within(group).queryByText("Brookhaven Terrace")).not.toBeInTheDocument();
@@ -99,7 +99,7 @@ describe("WeeklyReportsPage", () => {
     expect(await within(dialog).findByText("Tom Reyes")).toBeInTheDocument();
     expect(calls.some((c) => c.url.includes("/send"))).toBe(false);
     await userEvent.click(within(dialog).getByRole("button", { name: "Send to 1 person" }));
-    expect(await screen.findByText("Sent to 1 person.")).toBeInTheDocument();
+    expect(await screen.findByText("1 email sent.")).toBeInTheDocument();
     expect(calls.find((c) => c.url.endsWith("/send"))?.body).toEqual({ week: lastCompletedWeek(), scope: "property", id: "p1" });
   });
 
@@ -110,5 +110,53 @@ describe("WeeklyReportsPage", () => {
     const dialog = screen.getByRole("dialog", { name: "Send every report again" });
     expect(await within(dialog).findByText("Skipped, no Property Manager: Tucker Station")).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Send to 2 people" })).toBeEnabled();
+  });
+});
+
+
+describe("reporting recovery", () => {
+  it("keeps the requested week visible on error and retries", async () => {
+    let failed = true;
+    mockFetch((url, method) => url.startsWith("/api/admin/weekly-reports?week=") && failed ? [500, { error: "Temporarily unavailable" }] : handler(url, method));
+    show("/admin/weekly-reports?week=2026-10-11");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Temporarily unavailable");
+    expect(screen.getByText(/Oct 11, 2026/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send all again" })).toBeDisabled();
+    failed = false;
+    await userEvent.click(screen.getByRole("button", { name: "Retry reports" }));
+    expect(await screen.findByText("The Oaks at Decatur")).toBeInTheDocument();
+  });
+
+  it("blocks actions on the old week while rapid week navigation loads", async () => {
+    mockFetch(handler);
+    const original = globalThis.fetch;
+    const pending: (() => void)[] = [];
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith("/api/admin/weekly-reports?week=") && !url.endsWith(lastCompletedWeek())) {
+        return new Promise<Response>((resolve) => pending.push(() => original(input, init).then(resolve)));
+      }
+      return original(input, init);
+    }));
+    show();
+    await screen.findByText("The Oaks at Decatur");
+    await userEvent.click(screen.getByRole("button", { name: "Previous week" }));
+    await userEvent.click(screen.getByRole("button", { name: "Previous week" }));
+    expect(screen.getByRole("button", { name: "Send all again" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Download all (ZIP)" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Send The Oaks at Decatur report again" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("location")).toHaveTextContent(addDays(lastCompletedWeek(), -14));
+    await act(async () => pending.forEach((release) => release()));
+    expect(await screen.findByRole("button", { name: "Send The Oaks at Decatur report again" })).toBeEnabled();
+  });
+
+  it("shows failed properties without claiming their recipients received an email", async () => {
+    mockFetch((url, method) => url.endsWith("/send") ? [200, { sent: 0, failed: 1, recipients: 1, skippedNoManager: [], failures: [{ scope: "property", id: "p1", label: "The Oaks at Decatur", stage: "generation", message: "Report generation failed" }] }] : handler(url, method));
+    show();
+    await userEvent.click(await screen.findByRole("button", { name: "Send The Oaks at Decatur report again" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Send to 1 person" }));
+    expect(await screen.findByText("The Oaks at Decatur: Report generation failed")).toBeInTheDocument();
+    expect(screen.queryByText("1 email sent.")).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });

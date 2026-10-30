@@ -34,7 +34,7 @@ describe("weekly report PDF", () => {
   });
 
   it("names the file after the property and week", () => {
-    expect(reportFileName(report)).toBe("cbes-weekly-report-demo-community-2026-10-18.pdf");
+    expect(reportFileName(report)).toBe("cbes-weekly-report-demo-community-p1-2026-10-18.pdf");
   });
 });
 

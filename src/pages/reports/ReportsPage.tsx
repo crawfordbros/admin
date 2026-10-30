@@ -55,6 +55,7 @@ export function ReportsPage() {
   const { params, update, list } = useQueryState();
   // A selection belongs to the list it was made on (see `selected` below).
   const [selection, setSelection] = useState<{ list: string; ids: Set<string> }>({ list: "", ids: new Set() });
+  const [exporting, setExporting] = useState(false);
   const [logging, setLogging] = useState(false);
   const [naming, setNaming] = useState(false);
   useAdminPage("Issues");
@@ -83,7 +84,7 @@ export function ReportsPage() {
   const reports = useQuery({ queryKey: ["admin", "reports", "list", listKey], queryFn: () => api<AdminReportList>(`/admin/reports?${listKey}`), placeholderData: (p) => p });
   // Bulk actions only ever reach issues on screen now: changing a filter, the tab, the sort or the
   // page clears the selection, and rows that leave the list (after a refresh) drop out of it.
-  const shown = new Set(reports.isPlaceholderData ? [] : (reports.data?.items ?? []).map((r) => r.id));
+  const shown = new Set(reports.isPlaceholderData || reports.error ? [] : (reports.data?.items ?? []).map((r) => r.id));
   const selected = selection.list === listKey ? new Set([...selection.ids].filter((id) => shown.has(id))) : new Set<string>();
   const setSelected = (ids: Set<string>) => setSelection({ list: listKey, ids });
   const summary = useQuery({ queryKey: ["admin", "reports", "summary", filterQuery.toString()], queryFn: () => api<ReportsSummary>(`/admin/reports/summary?${filterQuery}`), placeholderData: (p) => p });
@@ -106,9 +107,12 @@ export function ReportsPage() {
   });
 
   const exportCsv = async () => {
+    if (exporting || reports.isPending || reports.isPlaceholderData || reports.error) return;
+    setExporting(true);
     try {
       const exportQuery = new URLSearchParams(filterQuery);
       exportQuery.set("tab", tab);
+      exportQuery.set("sort", sort);
       const file = await blob(`/admin/reports/export.csv?${exportQuery}`);
       if (!file) return;
       const a = document.createElement("a");
@@ -118,6 +122,8 @@ export function ReportsPage() {
       URL.revokeObjectURL(a.href);
     } catch (err) {
       toast.error(errorMessage(err));
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -146,8 +152,8 @@ export function ReportsPage() {
     },
     { key: "assignee", label: "Assigned to", icon: "users", type: "multi", allLabel: "Anyone", options: [{ value: "none", label: "Unassigned" }, ...options.assignees] },
   ];
-  const s = summary.data;
-  const data = reports.data;
+  const s = summary.isPlaceholderData || summary.error ? undefined : summary.data;
+  const data = reports.isPlaceholderData || reports.error ? undefined : reports.data;
 
   return (
     <>
@@ -156,9 +162,9 @@ export function ReportsPage() {
         description="Every issue residents report, across all organizations and properties. Each one gets a reply within 24 hours."
         actions={
           <>
-            <Button variant="secondary" onClick={exportCsv}>
+            <Button variant="secondary" onClick={exportCsv} disabled={exporting || !data}>
               <Icon name="download" size={18} strokeWidth={2} />
-              Export CSV
+              {exporting ? "Preparing CSV…" : "Export CSV"}
             </Button>
             <Button onClick={() => setLogging(true)}>
               <Icon name="phone" size={18} strokeWidth={2} />
@@ -206,6 +212,7 @@ export function ReportsPage() {
         )}
       </section>
 
+      {summary.error && <Alert>Issue summary could not be loaded. <Button variant="secondary" onClick={() => summary.refetch()}>Retry summary</Button></Alert>}
       <Kpis summary={s} />
 
       <div className="flex flex-wrap gap-5">
@@ -321,20 +328,20 @@ export function ReportsPage() {
         </div>
         {reports.error && (
           <div className="p-4">
-            <Alert>{errorMessage(reports.error)}</Alert>
+            <Alert>{errorMessage(reports.error)} <Button variant="secondary" onClick={() => reports.refetch()}>Retry issues</Button></Alert>
           </div>
         )}
         <DataTable
           label="Resident issues"
           rows={data?.items ?? []}
-          loading={reports.isPending}
+          loading={reports.isPending || reports.isPlaceholderData}
           rowKey={(r) => r.id}
           selectable
           selected={selected}
           onSelect={setSelected}
           onRowClick={(r) => openReport(r.id)}
           minWidth={980}
-          empty={<EmptyState icon="message" title={`No ${TAB_LABELS[tab].toLowerCase()} issues`} body={tab === "open" ? "Every issue in this range has been handled." : "Nothing matches these filters."} />}
+          empty={reports.error ? null : <EmptyState icon="message" title={`No ${TAB_LABELS[tab].toLowerCase()} issues`} body={tab === "open" ? "Every issue in this range has been handled." : "Nothing matches these filters."} />}
           columns={[
             {
               key: "report",

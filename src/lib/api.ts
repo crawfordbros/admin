@@ -162,7 +162,10 @@ export type PortalIssueDetail = PortalIssueRow & {
 export type PortalIssueList = { items: PortalIssueRow[]; total: number; page: number; pageSize: number; tabCounts: { open: number; resolved: number; all: number } };
 
 /** GET /portal/reports/summary (REP_PORTAL_SPEC 6.6): the admin's weekly numbers, trimmed to what the property may see. */
+export type ReportSchedule = { day: Day; time: string; tz: "America/New_York" };
+
 export type PortalReportSummary = {
+  schedule?: ReportSchedule;
   scope: PropertyAddressFields & { kind: "organization" | "property"; id: string; name: string };
   week: { start: string; end: string; label: string };
   kpis: {
@@ -679,6 +682,7 @@ export type WeeklyRow = PropertyAddressFields & {
 };
 
 export type WeeklyAdminView = {
+  schedule?: ReportSchedule;
   week: { start: string; end: string; label: string };
   summary: { properties: number; sent: number; failed: number; residentReports: number; violations: number; noManager: number };
   groups: { org: { id: string | null; name: string; logoVersion: string | null; representative: string | null; rollupSentAt: string | null }; rows: WeeklyRow[] }[];
@@ -689,7 +693,7 @@ export type WeeklyRecipients = {
   recipients: { email: string; name: string | null; kind: "manager" | "member" | "representative" | "admin"; propertyName: string | null; propertyId?: string; propertyAddress?: string | null; propertyCity?: string | null; propertyZip?: string | null }[];
   skippedNoManager: string[];
 };
-export type WeeklySendResult = { sent: number; failed: number; recipients: number; skippedNoManager: string[] };
+export type WeeklySendResult = { sent: number; failed: number; recipients: number; skippedNoManager: string[]; failures?: { scope: WeeklyScope; id?: string; label: string; stage: "generation" | "delivery"; message: string }[] };
 
 // Quotes (ADMIN_PORTAL_SPEC sections 6.9, 7.13 and 7.14).
 

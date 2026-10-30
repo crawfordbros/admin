@@ -1,3 +1,5 @@
+import { downloadOrganizationReport, downloadReportZip, type DownloadFailure } from "../../lib/report-downloads";
+import { reportScheduleText, reportWeekLabel, validReportWeek } from "../../lib/reporting";
 import { propertyLocation } from "../../lib/propertyAddress";
 import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
@@ -12,12 +14,13 @@ import {
   type WeeklyRow,
   type WeeklyScope,
   type WeeklySendResult,
+  type ReportSchedule,
 } from "../../lib/api";
 import { addDays, formatCount, formatDay, replyHours, timeAgo } from "../../lib/format";
 import { lastCompletedWeek } from "../../lib/dates";
 import { useQueryState } from "../../lib/useQueryState";
 import { Alert, Button, Loading } from "../../components/ui";
-import { Avatar, EmptyState, PageHeader, Pill, Skeleton, StatusBadge } from "../../components/display";
+import { Avatar, EmptyState, PageHeader, Pill, StatusBadge } from "../../components/display";
 import { SegmentedControl } from "../../components/controls";
 import { DotStrip } from "../../components/charts/charts";
 import { SearchField } from "../../components/FilterBar";
@@ -31,7 +34,7 @@ import { cx } from "../../components/styles";
 import { propertyPath } from "../admin/paths";
 
 type Group = WeeklyAdminView["groups"][number];
-type SendTarget = { scope: WeeklyScope; id?: string; label: string };
+type SendTarget = { scope: WeeklyScope; id?: string; label: string; week: string; weekLabel: string };
 // Older API responses without night dates: the default Sunday–Thursday calendar.
 const NIGHTS = ["Sun", "Mon", "Tue", "Wed", "Thu"];
 
@@ -41,6 +44,7 @@ export function WeeklyReportsPage() {
   const { params, update } = useQueryState();
   const [sending, setSending] = useState<SendTarget | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [downloadFailures, setDownloadFailures] = useState<DownloadFailure[]>([]);
   const toast = useToast();
   useAdminPage("Reporting");
 
@@ -51,10 +55,12 @@ export function WeeklyReportsPage() {
   const byOrg = params.get("group") !== "none";
 
   const view = useQuery({ queryKey: ["admin", "weekly", week], queryFn: () => api<WeeklyAdminView>(`/admin/weekly-reports?week=${week}`), placeholderData: (p) => p });
-  const nextRun = useQuery({ queryKey: ["admin", "weekly", "next-run"], queryFn: () => api<{ at: string; covers: { start: string; end: string } }>("/admin/weekly-reports/next-run") });
-  const report = (propertyId: string) => api<WeeklyReport>(`/portal/properties/${propertyId}/report?week=${week}`);
+  const nextRun = useQuery({ queryKey: ["admin", "weekly", "next-run"], queryFn: () => api<{ at: string; covers: { start: string; end: string }; schedule?: ReportSchedule }>("/admin/weekly-reports/next-run") });
+  const report = (propertyId: string, reportWeek = week) => api<WeeklyReport>(`/portal/properties/${propertyId}/report?week=${encodeURIComponent(reportWeek)}`);
 
-  const data = view.data;
+  const data = !view.isPlaceholderData && !view.error && view.data?.week.start === week ? view.data : undefined;
+  const canAct = Boolean(data) && !busy;
+  const chooseSend = (target: Omit<SendTarget, "week" | "weekLabel">) => { if (canAct && data) setSending({ ...target, week: data.week.start, weekLabel: data.week.label }); };
   const all = data?.groups.flatMap((g) => g.rows) ?? [];
   // Each property's organization, for the ungrouped list.
   const orgOf = new Map(data?.groups.flatMap((g) => g.rows.map((r) => [r.propertyId, g.org] as const)) ?? []);
@@ -69,7 +75,9 @@ export function WeeklyReportsPage() {
 
   /** Runs a download with a busy label, reporting failures as a toast. */
   const download = async (key: string, work: () => Promise<void>) => {
+    if (!canAct) return;
     setBusy(key);
+    setDownloadFailures([]);
     try {
       await work();
     } catch (err) {
@@ -88,28 +96,11 @@ export function WeeklyReportsPage() {
   const orgPdf = (shownGroup: Group) =>
     download(`org:${shownGroup.org.id}`, async () => {
       const g = data!.groups.find((x) => x.org.id === shownGroup.org.id) ?? shownGroup;
-      const [{ buildOrgPdf, orgFileName }, reports] = await Promise.all([import("../../lib/report-pdf"), Promise.all(g.rows.map((r) => report(r.propertyId)))]);
-      buildOrgPdf(g.org.name, data!.week.label, g.rows, reports).save(orgFileName(g.org.name, week));
+      setDownloadFailures(await downloadOrganizationReport(g.org.name, data!.week.label, g.rows, week, report));
     });
-  const zipAll = () =>
-    download("zip", async () => {
-      const [{ buildReportPdf, reportFileName }, { zipSync }] = await Promise.all([import("../../lib/report-pdf"), import("fflate")]);
-      const files: Record<string, Uint8Array> = {};
-      let done = 0;
-      // A few at a time keeps the browser responsive and the API unhurried.
-      for (let i = 0; i < all.length; i += 4) {
-        const batch = await Promise.all(all.slice(i, i + 4).map((r) => report(r.propertyId)));
-        for (const rep of batch) files[reportFileName(rep)] = new Uint8Array(buildReportPdf(rep).output("arraybuffer"));
-        done += batch.length;
-        setBusy(`zip:${done}`);
-      }
-      const blob = new Blob([zipSync(files) as BlobPart], { type: "application/zip" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `cbes-weekly-reports-${week}.zip`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
+  const zipAll = () => download("zip", async () => {
+    setDownloadFailures(await downloadReportZip(all, week, report, (done) => setBusy(`zip:${done} of ${all.length}`)));
+  });
 
   const zipping = busy?.startsWith("zip");
   const atLatest = week >= latest;
@@ -118,14 +109,14 @@ export function WeeklyReportsPage() {
     <>
       <PageHeader
         title="Reporting"
-        description="Sent every Monday at 7:00 AM Eastern to each property's Property Manager. Send again or download any property or organization."
+        description={`Sent ${reportScheduleText(data?.schedule ?? nextRun.data?.schedule)} to each property's Property Manager. Send again or download any property or organization.`}
         actions={
           <>
-            <Button variant="secondary" disabled={!all.length || Boolean(busy)} onClick={zipAll}>
+            <Button variant="secondary" disabled={!all.length || !canAct} onClick={zipAll}>
               <Icon name="download" size={18} strokeWidth={2} />
-              {zipping ? (busy === "zip" ? "Preparing…" : `Preparing ${busy!.slice(4)} of ${all.length}…`) : "Download all (ZIP)"}
+              {zipping ? (busy === "zip" ? "Preparing…" : `Preparing ${busy!.slice(4)}…`) : "Download all (ZIP)"}
             </Button>
-            <Button disabled={!all.length} onClick={() => setSending({ scope: "all", label: "every property" })}>
+            <Button disabled={!all.length || !canAct} onClick={() => chooseSend({ scope: "all", label: "every property" })}>
               <Icon name="send" size={18} strokeWidth={2} />
               Send all again
             </Button>
@@ -135,16 +126,16 @@ export function WeeklyReportsPage() {
 
       <section className="flex flex-wrap items-center justify-between gap-5 rounded-[14px] border border-line bg-white px-5 py-4">
         <div className="flex items-center gap-2.5">
-          <Button variant="secondary" aria-label="Previous week" className="size-[38px] min-h-0! px-0!" onClick={() => update({ week: addDays(week, -7) })}>
+          <Button variant="secondary" aria-label="Previous week" disabled={!validReportWeek(week)} className="size-[38px] min-h-0! px-0!" onClick={() => update({ week: addDays(week, -7) })}>
             <Icon name="chevron-left" size={18} strokeWidth={2.2} />
           </Button>
           <div>
             <p className="m-0 text-[12px] font-semibold text-muted">Report week</p>
             <p aria-live="polite" className="m-0 font-heading text-xl font-bold text-navy-ink">
-              {data?.week.label ?? <Skeleton className="h-6 w-60" />}
+              {data?.week.label ?? reportWeekLabel(week)}
             </p>
           </div>
-          <Button variant="secondary" aria-label="Next week" className="size-[38px] min-h-0! px-0!" disabled={atLatest} onClick={() => update({ week: addDays(week, 7) === latest ? null : addDays(week, 7) })}>
+          <Button variant="secondary" aria-label="Next week" className="size-[38px] min-h-0! px-0!" disabled={atLatest || !validReportWeek(week)} onClick={() => update({ week: addDays(week, 7) === latest ? null : addDays(week, 7) })}>
             <Icon name="chevron-right" size={18} strokeWidth={2.2} />
           </Button>
         </div>
@@ -195,8 +186,9 @@ export function WeeklyReportsPage() {
         </label>
       </div>
 
-      {view.error && <Alert>{errorMessage(view.error)}</Alert>}
-      {view.isPending && <Loading />}
+      {view.error && <Alert>{errorMessage(view.error)} <Button variant="secondary" onClick={() => view.refetch()}>Retry reports</Button></Alert>}
+      {downloadFailures.length > 0 && <Alert>Partial download. Unavailable properties: {downloadFailures.map((f) => f.label).join(", ")}. See the included failure details.</Alert>}
+      {(view.isPending || view.isPlaceholderData) && <Loading />}
       {data && groups.length === 0 && (
         <section className="rounded-[14px] border border-line bg-white">
           <EmptyState icon="calendar" title="No properties match" body={all.length ? "Clear the search or delivery filter." : "There are no active properties for this week."} />
@@ -209,14 +201,15 @@ export function WeeklyReportsPage() {
           week={week}
           showOrg={!byOrg}
           orgOf={orgOf}
-          busy={busy}
+          busy={canAct ? null : busy ?? "loading"}
           onOrgPdf={() => orgPdf(g)}
-          onSendOrg={() => g.org.id && setSending({ scope: "organization", id: g.org.id, label: g.org.name })}
+          onSendOrg={() => g.org.id && chooseSend({ scope: "organization", id: g.org.id, label: g.org.name })}
           onPdf={propertyPdf}
-          onSend={(r) => setSending({ scope: "property", id: r.propertyId, label: r.name })}
+          onSend={(r) => chooseSend({ scope: "property", id: r.propertyId, label: r.name })}
         />
       ))}
 
+      {nextRun.error && <Alert>Schedule could not be loaded. <Button variant="secondary" onClick={() => nextRun.refetch()}>Retry schedule</Button></Alert>}
       {nextRun.data && (
         <section className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-line bg-white px-5 py-4">
           <div className="flex items-center gap-3">
@@ -239,7 +232,7 @@ export function WeeklyReportsPage() {
         </section>
       )}
 
-      {sending && <SendModal week={week} weekLabel={data?.week.label ?? ""} target={sending} onClose={() => setSending(null)} />}
+      {sending && <SendModal week={sending.week} weekLabel={sending.weekLabel} target={sending} onClose={() => setSending(null)} />}
     </>
   );
 }
@@ -288,7 +281,7 @@ function OrgCard({
               <Icon name="download" size={16} strokeWidth={2} />
               {busy === `org:${org.id}` ? "Preparing…" : "Org PDF"}
             </Button>
-            <Button variant="outline" className="min-h-[38px]! border-[1.5px]! px-3! text-[13px]" onClick={onSendOrg}>
+            <Button variant="outline" className="min-h-[38px]! border-[1.5px]! px-3! text-[13px]" disabled={Boolean(busy)} onClick={onSendOrg}>
               <Icon name="send" size={16} strokeWidth={2} />
               Send org report
             </Button>
@@ -400,7 +393,7 @@ function OrgCard({
                 <button type="button" aria-label={`Download ${r.name} PDF`} disabled={Boolean(busy)} onClick={() => onPdf(r)} className="flex size-[34px] items-center justify-center rounded-[9px] border border-line bg-white text-ink hover:bg-canvas disabled:opacity-50">
                   <Icon name={busy === `pdf:${r.propertyId}` ? "clock" : "download"} size={16} strokeWidth={2} />
                 </button>
-                <button type="button" aria-label={`Send ${r.name} report again`} disabled={!r.recipients} onClick={() => onSend(r)} className="flex size-[34px] items-center justify-center rounded-[9px] bg-navy text-white hover:bg-navy-dark disabled:opacity-40">
+                <button type="button" aria-label={`Send ${r.name} report again`} disabled={!r.recipients || Boolean(busy)} onClick={() => onSend(r)} className="flex size-[34px] items-center justify-center rounded-[9px] bg-navy text-white hover:bg-navy-dark disabled:opacity-40">
                   <Icon name="send" size={16} strokeWidth={2} />
                 </button>
               </span>
@@ -425,10 +418,10 @@ function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLab
   const send = useMutation({
     mutationFn: () => api<WeeklySendResult>("/admin/weekly-reports/send", { method: "POST", body: JSON.stringify({ week, scope: target.scope, ...(target.id ? { id: target.id } : {}) }) }),
     onSuccess: async (r) => {
-      toast.success(`Sent to ${r.recipients} ${r.recipients === 1 ? "person" : "people"}.`);
-      if (r.failed) toast.error(`${r.failed} email${r.failed === 1 ? "" : "s"} didn't go through. Check the Delivery column.`);
+      if (r.sent) toast.success(`${r.sent} email${r.sent === 1 ? "" : "s"} sent.`);
+      if (r.failed) toast.error(`${r.failed} report${r.failed === 1 ? "" : "s"} could not be sent. Review the failures below.`);
       await queryClient.invalidateQueries({ queryKey: ["admin", "weekly"] });
-      onClose();
+      if (!r.failed) onClose();
     },
   });
   const list = who.data?.recipients ?? [];
@@ -440,15 +433,16 @@ function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLab
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {send.data ? "Close" : "Cancel"}
           </Button>
-          <Button disabled={!list.length || send.isPending} onClick={() => send.mutate()}>
+          <Button disabled={!list.length || who.isError || who.isFetching || send.isPending || Boolean(send.data)} onClick={() => send.mutate()}>
             <Icon name="send" size={18} strokeWidth={2} />
             {send.isPending ? "Sending…" : `Send to ${list.length} ${list.length === 1 ? "person" : "people"}`}
           </Button>
         </>
       }
     >
+      {send.data?.failures?.length ? <Alert><ul>{send.data.failures.map((f, i) => <li key={`${f.scope}-${f.id ?? "all"}-${i}`}>{f.label}: {f.message}</li>)}</ul></Alert> : null}
       {who.isPending && <Loading label="Finding recipients…" />}
       {who.error && <Alert>{errorMessage(who.error)}</Alert>}
       {who.data && (
@@ -457,8 +451,8 @@ function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLab
             <p className="m-0 text-muted">Nobody would get this report. Invite a Property Manager from the property's Team tab.</p>
           ) : (
             <ul aria-label="Recipients" className="m-0 flex max-h-72 list-none flex-col gap-2 overflow-y-auto p-0">
-              {list.map((r) => (
-                <li key={`${r.email}-${r.kind}-${r.propertyId ?? "all"}`} className="flex items-center gap-2.5 text-[14px]">
+              {list.map((r, i) => (
+                <li key={`${r.email}-${r.kind}-${r.propertyId ?? "all"}-${i}`} className="flex items-center gap-2.5 text-[14px]">
                   <Avatar name={r.name ?? r.email} seed={r.email} size={28} />
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold break-words">{r.name ?? r.email}</span>
