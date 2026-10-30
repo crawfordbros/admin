@@ -3,7 +3,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import { fakeClerk, fakeSession, fakeSignIn } from "../../test/clerk";
 import { mockFetch } from "../../test/render";
@@ -11,6 +11,7 @@ import { RequireSecurity } from "../../components/RequireSecurity";
 import { LoginPage } from "../LoginPage";
 import { SetupMfaStep } from "./SetupMfaStep";
 import type { SecurityStatus } from "./security";
+import * as passkeyBrowser from "../../lib/passkeyBrowser";
 
 vi.mock("@simplewebauthn/browser", () => ({ startRegistration: vi.fn(), startAuthentication: vi.fn() }));
 
@@ -63,6 +64,58 @@ beforeEach(() => {
   vi.stubGlobal("PublicKeyCredential", class {});
   vi.mocked(startRegistration).mockReset();
   vi.mocked(startAuthentication).mockReset().mockImplementation(() => new Promise(() => {}));
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+describe("passkey module recovery", () => {
+  it.each([true, false])("requires a reload after a loading failure (saved passkey: %s)", async (passkey) => {
+    const clerk = fakeClerk();
+    clerk.session = fakeSession();
+    const { calls } = securityServer({ passkey });
+    const load = vi.spyOn(passkeyBrowser, "loadPasskeyBrowser").mockRejectedValueOnce(
+      new passkeyBrowser.PasskeyModuleLoadError(new TypeError("Failed to fetch dynamically imported module: https://example.com/module.js")),
+    );
+    const view = flow();
+    if (!passkey) await userEvent.click(await screen.findByRole("button", { name: "Create a passkey" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn’t load passkey verification. Reload the page to try again.");
+    expect(screen.getByRole("alert")).not.toHaveTextContent(/https:|module\.js|TypeError/);
+    expect(screen.getByRole("button", { name: "Reload page" })).toBeEnabled();
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Reload page", "Sign out"]);
+    view.rerender();
+    await act(async () => { await view.queries.invalidateQueries({ queryKey: ["security"] }); });
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(startAuthentication).not.toHaveBeenCalled();
+    expect(startRegistration).not.toHaveBeenCalled();
+    expect(calls.some((call) => call.url.endsWith("/options") || call.url.endsWith("/verify"))).toBe(false);
+    expect(screen.queryByText("Protected content")).not.toBeInTheDocument();
+    expect(clerk.setActive).not.toHaveBeenCalled();
+    expect(screen.getByTestId("location")).toHaveTextContent(destination);
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(clerk.signOut).toHaveBeenCalledWith({ redirectUrl: "/portal/login" });
+  });
+
+  it("reloads only when requested, without navigating or changing the session", async () => {
+    const reload = vi.fn();
+    vi.stubGlobal("window", Object.create(window, { location: { value: { reload } } }));
+    const clerk = fakeClerk();
+    clerk.session = fakeSession();
+    const session = clerk.session;
+    securityServer();
+    vi.spyOn(passkeyBrowser, "loadPasskeyBrowser").mockRejectedValueOnce(new passkeyBrowser.PasskeyModuleLoadError(new TypeError("Load failed")));
+    flow();
+    const button = await screen.findByRole("button", { name: "Reload page" });
+    expect(reload).not.toHaveBeenCalled();
+    await userEvent.click(button);
+    expect(reload).toHaveBeenCalledExactlyOnceWith();
+    expect(screen.getByTestId("location")).toHaveTextContent(destination);
+    expect(clerk.session).toBe(session);
+    expect(clerk.signOut).not.toHaveBeenCalled();
+    expect(clerk.setActive).not.toHaveBeenCalled();
+  });
 });
 
 describe("saved MFA method", () => {

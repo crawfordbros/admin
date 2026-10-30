@@ -10,6 +10,31 @@ already `dist/portal/`; browser URLs and client-side routes keep the prefix.
 Worker HTML uses `Cache-Control: no-store` and the existing security headers. Static
 assets retain their own cache policy. Development retains Vite's `no-cache` behavior.
 
+## Recovering missing development dependencies
+
+A passkey loading error with a `/node_modules/.vite/deps/` URL can mean the running
+Vite server is referencing an outdated or missing dependency bundle. Check the
+request directly against localhost: Vite reports `504 Outdated Optimize Dep`, which
+Cloudflare may display as a gateway timeout. If the dependency files are missing,
+reloading the browser alone cannot repair the server.
+
+1. Stop the admin Vite process listening on port 5174 (Ctrl+C in its terminal).
+2. From the admin repository, run `pnpm dev:tunnel --force` to rebuild the dependency
+   cache. Leave the public frontend and Cloudflare Tunnel running.
+3. Reload the portal. In Network, confirm the newly requested WebAuthn module URL
+   returns JavaScript with status 200 through `https://testadmin.cbenvironments.com`.
+4. Complete passkey verification to confirm sign-in succeeds.
+
+Always stop Vite before manually removing `node_modules/.vite`; removing files from
+a running server's cache can leave its in-memory module references pointing at
+missing files. Prefer the `--force` restart described in
+[Vite's cache recovery guidance](https://vite.dev/guide/dep-pre-bundling#caching).
+
+The login/enrollment screen offers **Reload page** and **Sign out** when its passkey
+module cannot load. Reload preserves the current URL and session, but only succeeds
+once the module is available again. Cancelling a device prompt still offers **Try
+passkey again**. Access remains blocked until server verification succeeds.
+
 ## Cloudflare prefetch refusals
 
 Cloudflare Speed Brain can inject speculative document requests that return `503`

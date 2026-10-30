@@ -9,6 +9,7 @@ import { authErrorMessage } from "./clerkErrors";
 import { CodeField, StepHeading, TextButton } from "./fields";
 import { useSecurityApi, useSecurityStatus, type SecurityStatus } from "./security";
 import { ApiError } from "../../lib/authenticatedRequest";
+import { loadPasskeyBrowser, PasskeyModuleLoadError } from "../../lib/passkeyBrowser";
 
 /** Every sign-in uses the saved method; only unenrolled accounts choose a method. */
 export function SetupMfaStep({ to }: { to: string }) {
@@ -45,6 +46,7 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
   const api = useSecurityApi();
   const [method, setMethod] = useState<"authenticator" | null>(null);
   const [error, setError] = useState("");
+  const [reloadRequired, setReloadRequired] = useState(false);
   const [busy, setBusy] = useState(false);
   const [authenticatorBusy, setAuthenticatorBusy] = useState(false);
   const [authenticatorEnrolled, setAuthenticatorEnrolled] = useState(false);
@@ -81,12 +83,16 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
     running.current = true;
     setBusy(true);
     setError("");
+    setReloadRequired(false);
     try {
       await action();
     } catch (err) {
-      if (isCurrent()) setError(err && typeof err === "object" && "name" in err && (err.name === "NotAllowedError" || err.name === "AbortError")
-        ? "The passkey prompt was cancelled or timed out. Try again when you're ready."
-        : authErrorMessage(err));
+      if (isCurrent()) {
+        setReloadRequired(err instanceof PasskeyModuleLoadError);
+        setError(err && typeof err === "object" && "name" in err && (err.name === "NotAllowedError" || err.name === "AbortError")
+          ? "The passkey prompt was cancelled or timed out. Try again when you're ready."
+          : authErrorMessage(err));
+      }
     } finally {
       running.current = false;
       if (isCurrent()) setBusy(false);
@@ -94,7 +100,7 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
   }, [isCurrent]);
 
   const passkey = useCallback(async () => {
-    const { startRegistration, startAuthentication } = await import("@simplewebauthn/browser");
+    const { startRegistration, startAuthentication } = await loadPasskeyBrowser();
     if (!isCurrent()) return;
     if (status.passkey) {
       const { options, challengeId } = await api<{ options: PublicKeyCredentialRequestOptionsJSON; challengeId: string }>("/passkeys/authenticate/options", {});
@@ -113,14 +119,14 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
   }, [api, finish, isCurrent, status.passkey]);
 
   useEffect(() => {
-    if (automaticAttempted.current || running.current || authenticatorBusy) return;
+    if (reloadRequired || automaticAttempted.current || running.current || authenticatorBusy) return;
     if (!status.verified && !(status.passkey && canUsePasskey)) return;
     // Set before starting any async work: Strict Mode, refetches, and cancellation
     // must never open a second prompt. Only the retry button starts another attempt.
     automaticAttempted.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- starts external verification and reports its progress
     void run(status.verified ? finish : passkey);
-  }, [authenticatorBusy, canUsePasskey, finish, passkey, run, status.passkey, status.verified]);
+  }, [authenticatorBusy, canUsePasskey, finish, passkey, reloadRequired, run, status.passkey, status.verified]);
 
   return (
     <>
@@ -130,7 +136,9 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
           : "Choose a passkey or an authenticator app. Every CBES account must complete this step, including accounts that use Google."}
       </StepHeading>
       {error && <Alert>{error}</Alert>}
-      {status.verified && !authenticatorBusy ? (
+      {reloadRequired ? (
+        <Button onClick={() => window.location.reload()}>Reload page</Button>
+      ) : status.verified && !authenticatorBusy ? (
         error && !busy ? <Button onClick={() => run(finish)}>Continue</Button> : <Loading label="Finishing sign-in…" />
       ) : status.passkey ? (
         !canUsePasskey
@@ -163,7 +171,7 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
         </div>
       )}
       <div className="mt-6 flex flex-wrap gap-5">
-        {method && !enrolled && <TextButton disabled={authenticatorBusy} onClick={() => setMethod(null)}>Back to security methods</TextButton>}
+        {!reloadRequired && method && !enrolled && <TextButton disabled={authenticatorBusy} onClick={() => setMethod(null)}>Back to security methods</TextButton>}
         <TextButton disabled={busy || authenticatorBusy} onClick={() => void clerk.signOut({ redirectUrl: "/portal/login" })}>Sign out</TextButton>
       </div>
     </>

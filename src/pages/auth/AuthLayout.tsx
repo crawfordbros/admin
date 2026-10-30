@@ -13,7 +13,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
     <div className="min-h-dvh bg-white lg:grid lg:grid-cols-[minmax(24rem,5fr)_7fr]">
       <aside className="relative isolate flex items-center justify-between gap-4 overflow-hidden bg-navy px-5 py-4 text-on-navy lg:sticky lg:top-0 lg:h-dvh lg:flex-col lg:items-start lg:justify-start lg:px-12 lg:py-10 xl:px-16">
         <div className="@container min-w-0 flex-1 lg:w-[calc(100%+3rem)] lg:flex-none xl:w-[calc(100%+4rem)]">
-          <p className="m-0 font-heading text-xl leading-tight font-bold text-gold-light lg:max-w-[11ch] lg:text-[length:min(20cqi,16dvh)] lg:leading-[0.98] lg:tracking-[-0.02em]">
+          <p className="m-0 font-heading text-xl leading-tight font-bold text-gold lg:max-w-[11ch] lg:text-[length:min(20cqi,16dvh)] lg:leading-[0.98] lg:tracking-[-0.02em]">
             Aiming for excellence.
           </p>
         </div>
