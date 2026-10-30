@@ -4,25 +4,13 @@ import type { NavCounts } from "../../lib/api";
 import { useNavCounts } from "./useNavCounts";
 import { ADMIN_NAV, type AdminNavItem } from "../../pages/adminSections";
 import { Icon } from "../icons";
-import { cx } from "../styles";
+import { NavBadge, NavLabel } from "../layout/SidebarLayout";
+import { navGroupClass, navItemClass } from "../layout/layoutStyles";
 
-// Count pills use danger red, not the design's #E04F3A: white 11 px text needs 4.5:1 (AA).
-function Badge({ item, counts }: { item: AdminNavItem; counts: NavCounts | undefined }) {
-  const pill = "rounded-full px-2 py-0.5 text-[11px] leading-[1.4] font-bold";
-  if (item.tag) return <span className={cx(pill, "bg-nav-line text-nav-pill")}>{item.tag}</span>;
-  const n = item.badge && counts?.[item.badge];
-  if (!n) return null;
-  return (
-    <>
-      <span aria-hidden="true" className={cx(pill, item.badgeTone === "gold" ? "bg-gold text-white" : "bg-danger text-white")}>
-        {n > 99 ? "99+" : n}
-      </span>
-      <span className="sr-only">
-        , {n} {item.badge === "openReports" ? "open" : "new"}
-      </span>
-    </>
-  );
-}
+const badgeText = (item: AdminNavItem, counts: NavCounts | undefined) => {
+  const n = item.badge ? counts?.[item.badge] : undefined;
+  return n ? `${n} ${item.badge === "openReports" ? "open" : "new"}` : undefined;
+};
 
 export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { data: counts } = useNavCounts();
@@ -39,7 +27,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       {ADMIN_NAV.map((g, gi) => (
         <div key={g.group} className="flex flex-col gap-1">
-          <h2 className={cx("mx-2.5 mb-1.5 font-sans text-[11px] font-bold tracking-[0.12em] text-nav-label uppercase", gi === 0 ? "mt-2" : "mt-[18px]")}>{g.group}</h2>
+          <h2 className={navGroupClass(gi === 0)}>{g.group}</h2>
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {g.items.map((item) => (
               <li key={item.path}>
@@ -47,16 +35,11 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
                   to={item.path}
                   end={item.path === "/admin"}
                   onClick={onNavigate}
-                  className={({ isActive }) =>
-                    cx(
-                      "flex min-h-[42px] items-center gap-3 rounded-[10px] px-3 text-[14.5px] font-semibold no-underline",
-                      isActive ? "bg-white text-navy-ink hover:text-navy-ink" : "text-on-navy hover:bg-white/10 hover:text-white",
-                    )
-                  }
+                  className={({ isActive }) => navItemClass(isActive)}
                 >
                   <Icon name={item.icon} />
-                  <span className="flex-1">{item.label}</span>
-                  <Badge item={item} counts={counts} />
+                  <NavLabel label={item.label} srText={badgeText(item, counts)} />
+                  <NavBadge tag={item.tag} count={item.badge ? counts?.[item.badge] : undefined} tone={item.badgeTone === "gold" ? "gold" : "alert"} />
                 </NavLink>
               </li>
             ))}

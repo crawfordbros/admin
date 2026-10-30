@@ -1,16 +1,19 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
 import { ROLE_LABELS, isAdmin as isAdminRole, roleFrom } from "../access";
-import { errorMessage, useApi, type Me } from "../lib/api";
+import { errorMessage } from "../lib/api";
+import { usePortalPage } from "../components/admin/adminPage";
+import { OrgLogo, PropertyPhoto } from "../components/brand";
+import { useMe } from "../components/portal/RepContext";
 import { Alert, Loading } from "../components/ui";
 
+const count = (n: number) => `${n} ${n === 1 ? "property" : "properties"}`;
+// The whole card is the link's target; the link's name stays the organization or property name.
+const card = "relative flex items-center gap-4 rounded-2xl border border-line bg-white p-4 hover:border-field focus-within:border-navy";
+const stretched = "font-heading text-[17px] font-bold text-navy-ink no-underline after:absolute after:inset-0 after:rounded-2xl hover:underline";
+
 export function PortalHome() {
-  const api = useApi();
-  const { data, error, isPending } = useQuery({ queryKey: ["me"], queryFn: () => api<Me>("/portal/me") });
-  useEffect(() => {
-    document.title = "Portal | CBES";
-  }, []);
+  const { data, error, isPending } = useMe();
+  usePortalPage("Welcome");
 
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
@@ -27,44 +30,55 @@ export function PortalHome() {
 
   const firstName = user.name?.split(" ")[0];
   return (
-    <div className="mx-auto max-w-4xl">
-      <p className="mt-0 mb-1 text-sm font-semibold text-gold-text">{role ? ROLE_LABELS[role] : ""}</p>
-      <h1 className="mt-0 mb-6 text-3xl font-bold text-navy">Welcome{firstName ? `, ${firstName}` : ""}</h1>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+      <div>
+        <p className="mt-0 mb-1 text-sm font-semibold text-gold-text">{role ? ROLE_LABELS[role] : ""}</p>
+        <h1 className="m-0 text-3xl font-bold text-navy-ink">Welcome{firstName ? `, ${firstName}` : ""}</h1>
+      </div>
 
       {organizations.length > 0 && (
-        <>
-          <h2 className="mt-0 mb-3 text-xl">Your organizations</h2>
-          <ul className="m-0 mb-8 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
+        <section className="flex flex-col gap-3">
+          <h2 className="m-0 text-xl">Your organizations</h2>
+          <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
             {organizations.map((o) => (
-              <li key={o.id} className="rounded-xl border border-line bg-white p-5">
-                <h3 className="m-0 text-lg">
-                  <Link to={`/portal/organizations/${o.id}`}>{o.name}</Link>
-                </h3>
+              <li key={o.id} className={card}>
+                <OrgLogo org={o} size={48} />
+                <span className="flex min-w-0 flex-col">
+                  <Link to={`/portal/organizations/${o.id}`} className={stretched}>
+                    {o.name}
+                  </Link>
+                  <span className="text-[14px] text-muted">{count(o.propertyCount)}</span>
+                </span>
               </li>
             ))}
           </ul>
-        </>
+        </section>
       )}
 
       {properties.length === 0 ? (
-        <p className="rounded-xl border border-line bg-white p-6 leading-relaxed text-muted">
+        <p className="m-0 rounded-2xl border border-line bg-white p-6 leading-relaxed text-muted">
           You don't have a property yet. CBES links your account to your property when they invite you. Email office@cbenvironments.com
           if that hasn't happened.
         </p>
       ) : (
-        <>
-          <h2 className="mt-0 mb-3 text-xl">Your properties</h2>
+        <section className="flex flex-col gap-3">
+          <h2 className="m-0 text-xl">Your properties</h2>
           <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
             {properties.map((p) => (
-              <li key={p.id} className="rounded-xl border border-line bg-white p-5">
-                <h3 className="m-0 text-lg">
-                  <Link to={`/portal/properties/${p.id}`}>{p.name}</Link>
-                </h3>
-                {p.city && <p className="mt-1 mb-0 text-[15px] text-muted">{p.city}</p>}
+              <li key={p.id} className={card}>
+                <span className="size-12 flex-none overflow-hidden rounded-xl">
+                  <PropertyPhoto orgId={p.organizationId ?? ""} property={p.organizationId ? p : { id: p.id, photoVersion: null }} size={48} />
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <Link to={`/portal/properties/${p.id}`} className={stretched}>
+                    {p.name}
+                  </Link>
+                  {(p.organizationName || p.city) && <span className="truncate text-[14px] text-muted">{[p.organizationName, p.city].filter(Boolean).join(" · ")}</span>}
+                </span>
               </li>
             ))}
           </ul>
-        </>
+        </section>
       )}
     </div>
   );

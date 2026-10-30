@@ -35,6 +35,7 @@ export function DataTable<T>({
   loading,
   footer,
   minWidth = 860,
+  rowLabel,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -50,6 +51,8 @@ export function DataTable<T>({
   loading?: boolean;
   footer?: ReactNode;
   minWidth?: number;
+  /** Names each row's checkbox for screen readers ("Select V-2041"); "Select row" without it. */
+  rowLabel?: (row: T) => string;
 }) {
   const keys = rows.map(rowKey);
   const chosen = selected ?? new Set<string>();
@@ -79,7 +82,8 @@ export function DataTable<T>({
   return (
     <div>
       <div className="relative max-h-[70vh] overflow-auto">
-        <table aria-label={label} aria-busy={loading || undefined} className="w-full border-collapse text-[14px]" style={{ minWidth }}>
+        {/* An empty table only holds its message, so it fits the screen instead of scrolling sideways. */}
+        <table aria-label={label} aria-busy={loading || undefined} className="w-full border-collapse text-[14px]" style={{ minWidth: !loading && rows.length === 0 ? undefined : minWidth }}>
           <thead className="sticky top-0 z-10 bg-subtle">
             <tr className="text-left text-[12px] text-muted">
               {selectable && (
@@ -158,7 +162,7 @@ export function DataTable<T>({
                   >
                     {selectable && (
                       <td className="py-3 pr-2 pl-4">
-                        <input type="checkbox" aria-label="Select row" checked={on} onChange={() => toggle(key)} className="size-4 accent-navy" />
+                        <input type="checkbox" aria-label={rowLabel ? rowLabel(row) : "Select row"} checked={on} onChange={() => toggle(key)} className="size-4 accent-navy" />
                       </td>
                     )}
                     {columns.map((c, i) => (

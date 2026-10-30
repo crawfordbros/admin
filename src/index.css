@@ -38,6 +38,10 @@
   --color-nav-label: #9fa2d6;
   --color-nav-line: #2e3290;
   --color-nav-pill: #c9caf0;
+  /* Property Portal sidebar: the context switcher and the "Need CBES?" card. */
+  --color-nav-card: #23266f;
+  /* Light navy bars: past nights in "Violations this week", "Resolved by property" in Reports. */
+  --color-navy-light: #9396d6;
   --color-row-line: #f0f0f5;
   --color-placeholder: #a9abc9;
 

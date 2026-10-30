@@ -211,6 +211,7 @@ const ATTENTION: Record<AttentionItem["kind"], { icon: IconName; tile: string; t
   no_clock_in: { icon: "alert-circle", tile: "bg-danger-bg text-danger", tag: "navy" },
   quote_waiting: { icon: "mail", tile: "bg-gold-tint text-gold-text", tag: "gold" },
   invites_stale: { icon: "users", tile: "bg-tint-2 text-navy", tag: "navy" },
+  property_needs_setup: { icon: "building", tile: "bg-warning-bg text-warning", tag: "warning" },
 };
 
 function Attention({ items }: { items: AttentionItem[] }) {

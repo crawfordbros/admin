@@ -74,22 +74,24 @@ describe("PortalViolationPage", () => {
 
   afterEach(() => delete (globalThis as { __clerkRole?: string }).__clerkRole);
 
-  it("lets a property manager resolve a sent violation and write to CBES", async () => {
+  it("lets a property manager resolve a sent violation, saying how, and write to CBES", async () => {
     asRole("manager");
-    const calls = mockFetch((url, method) => (method === "PATCH" ? [200, { violation: { ...sent, status: "resolved" } }] : url.endsWith("/notes") ? [201, {}] : [200, sent]));
-    renderRoute("/portal/violations/:id", "/portal/violations/v1", <PortalViolationPage />);
+    const calls = mockFetch((url, method) => (method === "PATCH" ? [200, { violation: { ...sent, status: "resolved", resolution: "courtesy_notice" } }] : url.endsWith("/notes") ? [201, {}] : [200, sent]));
+    renderRoute("/portal/violations/:violationId", "/portal/violations/v1", <PortalViolationPage />);
     await userEvent.click(await screen.findByRole("button", { name: "Mark resolved" }));
-    await waitFor(() => expect(calls.find((c) => c.method === "PATCH")).toMatchObject({ url: "/api/portal/violations/v1", body: { status: "resolved" } }));
+    await userEvent.click(screen.getByRole("radio", { name: "Courtesy notice sent" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save status" }));
+    await waitFor(() => expect(calls.find((c) => c.method === "PATCH")).toMatchObject({ url: "/api/portal/violations/v1", body: { status: "resolved", resolution: "courtesy_notice" } }));
     expect(screen.queryByRole("button", { name: "CBES team only" })).not.toBeInTheDocument();
-    await userEvent.type(screen.getByLabelText("Add a note"), "Spoke with the resident.");
-    await userEvent.click(screen.getByRole("button", { name: "Add note" }));
-    await waitFor(() => expect(calls.find((c) => c.url.endsWith("/notes"))?.body).toEqual({ body: "Spoke with the resident.", notifyUserIds: [] }));
+    await userEvent.type(screen.getByLabelText("Add a note for CBES"), "Spoke with the resident.");
+    await userEvent.click(screen.getByRole("button", { name: "Post note" }));
+    await waitFor(() => expect(calls.find((c) => c.url.endsWith("/notes"))?.body).toEqual({ body: "Spoke with the resident." }));
   });
 
   it("lets a valet reply to CBES only", async () => {
     asRole("valet");
     const calls = mockFetch((url) => (url.endsWith("/notes") ? [201, {}] : [200, violationDetail()]));
-    renderRoute("/portal/violations/:id", "/portal/violations/v1", <PortalViolationPage />);
+    renderRoute("/portal/violations/:violationId", "/portal/violations/v1", <PortalViolationPage />);
     expect(await screen.findByText("Retake photo 2 from further back.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mark resolved" })).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: /Chris Patel/ })).not.toBeInTheDocument();

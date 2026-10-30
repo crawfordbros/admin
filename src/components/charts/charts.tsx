@@ -5,10 +5,11 @@ import { niceMax, niceStep, sparkPath } from "./scale";
 // Small hand-built SVG charts (ADMIN_PORTAL_SPEC section 4.6). Each one scales to its container,
 // states its main number in an aria-label and carries a hidden table for screen readers.
 
-export type ChartTone = "navy" | "gold" | "gold-light" | "success" | "danger" | "warning" | "muted";
+export type ChartTone = "navy" | "navy-light" | "gold" | "gold-light" | "success" | "danger" | "warning" | "muted";
 
 const FILL: Record<ChartTone, string> = {
   navy: "fill-navy",
+  "navy-light": "fill-navy-light",
   gold: "fill-gold",
   "gold-light": "fill-gold-light",
   success: "fill-success",
@@ -18,6 +19,7 @@ const FILL: Record<ChartTone, string> = {
 };
 const STROKE: Record<ChartTone, string> = {
   navy: "stroke-navy",
+  "navy-light": "stroke-navy-light",
   gold: "stroke-gold",
   "gold-light": "stroke-gold-light",
   success: "stroke-success",
@@ -27,6 +29,7 @@ const STROKE: Record<ChartTone, string> = {
 };
 const BG: Record<ChartTone, string> = {
   navy: "bg-navy",
+  "navy-light": "bg-navy-light",
   gold: "bg-gold",
   "gold-light": "bg-gold-light",
   success: "bg-success",
@@ -135,11 +138,14 @@ export function GroupedBars<K extends string>({
   series,
   label,
   step,
+  highlight,
 }: {
   data: ({ label: string } & Record<K, number>)[];
   series: (Series & { key: K })[];
   label: string;
   step?: number;
+  /** A period's label to set in bold, such as the current week. */
+  highlight?: string;
 }) {
   const [ref, W] = useWidth();
   const top = Math.max(0, ...data.flatMap((d) => series.map((s) => d[s.key])));
@@ -160,7 +166,7 @@ export function GroupedBars<K extends string>({
                 const h = (d[s.key] / max) * PLOT;
                 return <rect key={s.key} x={x0 + j * (bar + 4)} y={TOP + PLOT - h} width={bar} height={h} rx={Math.min(5, bar / 4)} className={FILL[s.tone]} />;
               })}
-              <text x={LEFT + i * slot + slot / 2} y={H - 8} textAnchor="middle" fontSize={11} className="fill-muted">
+              <text x={LEFT + i * slot + slot / 2} y={H - 8} textAnchor="middle" fontSize={11} fontWeight={d.label === highlight ? 700 : undefined} className={d.label === highlight ? "fill-ink" : "fill-muted"}>
                 {d.label}
               </text>
             </g>

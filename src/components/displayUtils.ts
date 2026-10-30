@@ -19,6 +19,18 @@ export const STATUS = {
     resolved: ["Resolved", "success"],
     closed: ["Closed", "muted"],
   },
+  // What the property side sees (REP_PORTAL_SPEC 4.3): their next step, not CBES's stage.
+  portalViolation: {
+    sent: ["To review", "warning"],
+    resolved: ["Resolved", "success"],
+  },
+  portalIssue: {
+    New: ["New", "info"],
+    "CBES is on it": ["CBES is on it", "info"],
+    "CBES replied": ["CBES replied", "success"],
+    Resolved: ["Resolved", "neutral"],
+    Compliment: ["Compliment", "gold"],
+  },
   violation: {
     new: ["New", "neutral"],
     in_review: ["In review", "warning"],

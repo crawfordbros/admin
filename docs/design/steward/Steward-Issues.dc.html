@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward – Assigned issues</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8BBA5}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #12143F; color: #FFFFFF; font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column;">
+<header style="padding: 18px 20px 8px;">
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 24px;">Issues</h1>
+<p style="margin: 4px 0 0; font-size: 13.5px; color: #C9CAF0;">Resident reports CBES assigned to you. We promise residents a reply within 24 hours.</p>
+</header>
+<div style="padding: 4px 20px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow: hidden;">
+<div role="tablist" aria-label="Issue status" style="display: flex; background: #1C1F5A; border-radius: 12px; padding: 4px;">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2"><button type="button" role="tab" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}}</button></sc-for>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<li><a href="Steward-IssueDetail.dc.html" style="{{r.style}}">
+<span style="display: flex; justify-content: space-between; gap: 10px; align-items: baseline;"><strong style="font-size: 16px;">{{r.title}}</strong><span style="{{r.clockStyle}}">{{r.clock}}</span></span>
+<span style="display: block; font-size: 13px; color: #C9CAF0; margin-top: 2px;">{{r.id}} · {{r.where}}</span>
+<span style="display: block; font-size: 13.5px; margin-top: 8px; color: #E6E7F2;">“{{r.quote}}”</span>
+<span style="display: flex; gap: 6px; margin-top: 10px;"><span style="{{r.stStyle}}">{{r.st}}</span><span style="font-size: 12px; color: #9FA2D6; align-self: center;">{{r.by}}</span></span>
+</a></li>
+</sc-for>
+</ul>
+<p style="margin: 0; font-size: 12.5px; color: #9FA2D6; text-align: center;">New assignments also come by text message.</p>
+</div>
+<div style="height: 12px;"></div>
+<dc-import name="StewardTabBar" role="valet" active="issues" hint-size="390px,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tOn = 'flex: 1; border: none; padding: 9px 4px; border-radius: 9px; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 13.5px;';
+    const tOff = 'flex: 1; border: none; padding: 9px 4px; border-radius: 9px; background: transparent; color: #C9CAF0; font-weight: 600; font-size: 13.5px;';
+    const tabs = [['To do · 2', 1], ['Done · 14', 0]].map(t => ({ label: t[0], sel: t[1] ? 'true' : 'false', style: t[1] ? tOn : tOff }));
+    const pill = (bg, fg) => 'font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: ' + bg + '; color: ' + fg + ';';
+    const clock = (hot) => 'flex: none; font-size: 12.5px; font-weight: 700; color: ' + (hot ? '#F5C26B' : '#9FA2D6') + ';';
+    const rows = [
+      ['Missed pickup', '#1042', 'The Oaks · Bldg 3 · Unit 305', 'Due in 1 h', true, 'My trash was out by 7 and is still at my door.', 'Assigned', 'by Dana Brooks · 8:10 PM', 'border-left: 4px solid #F5C26B;'],
+      ['Trash in stairwell', '#1049', 'Clarkston · Bldg 2 · 3rd floor', 'Due in 21 h', false, 'Bags left in the stairwell near 305 since yesterday.', 'In progress', 'You started 9:02 PM', 'border-left: 4px solid #8DB4FF;'],
+    ].map(r => ({ title: r[0], id: r[1], where: r[2], clock: r[3], clockStyle: clock(r[4]), quote: r[5], st: r[6], stStyle: r[6] === 'Assigned' ? pill('#3F3215', '#F5C26B') : pill('#1B2E5C', '#8DB4FF'), by: r[7], style: 'display: block; padding: 14px 16px; border-radius: 16px; background: #1C1F5A; text-decoration: none; color: #FFFFFF; ' + r[8] }));
+    return { tabs, rows };
+  }
+}
+</script>
+</body>
+</html>

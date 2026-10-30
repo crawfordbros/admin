@@ -3,6 +3,7 @@
 Version 1.0 · October 28, 2026 · Owner: Nick Crawford (Super Admin)
 Repo: `cbes-admin` (this repo) · API: `cbes-api` (sibling repo, serves `/api/*`)
 Design reference: `docs/design/rep/` (one file per screen, exported from the Claude Design canvas "CBES Website Design", page "Rep Portal")
+Live design canvas: https://claude.ai/artifact/JxU3ogQQZjDDjHNKxZyXSk (open the "Rep Portal" page; private to Nick until shared, so Claude Code reads the exported files in `docs/design/rep/` instead)
 Companion spec: `docs/ADMIN_PORTAL_SPEC.md` (roles, shared components, data model, admin screens)
 
 This spec covers the **property side** of the portal: what an organization's **Representatives** and its **Property managers / Management Directors** see and do after signing in at `/portal`. It replaces today's plain portal pages (`PortalHome`, `OrganizationView` in the portal area, `PropertyPage`, `PortalViolationPage`) with the designed "Property Portal": a sidebar layout, a Representative dashboard, a property home, violations, resident issues, reports, and team settings.
@@ -717,6 +718,8 @@ Defaults below are what this spec builds unless Nick says otherwise.
 ---
 
 ## Appendix A. Using this spec with Claude Code
+
+Ready-to-paste prompts for every milestone (R0–R6 plus a final check) are in `docs/REP_PORTAL_PROMPTS.md`.
 
 1. Keep this file, `docs/ADMIN_PORTAL_SPEC.md` and `docs/design/rep/` in the repo.
 2. Start each milestone from the repo root with a prompt like:

@@ -89,11 +89,18 @@ export const violationRow = (overrides: Partial<ViolationRow> = {}): ViolationRo
   overwatchDays: 30,
   notesCount: 2,
   status: "new",
+  repeat: true,
+  sentAt: null,
+  resolvedAt: null,
+  resolution: null,
   ...overrides,
 });
 
 export const violationDetail = (overrides: Partial<ViolationDetail> = {}): ViolationDetail => ({
   ...violationRow(),
+  resolvedBy: null,
+  sentBy: null,
+  courtesy: { propertyAddress: "3400 Scott Blvd", propertyCity: "Decatur", officePhone: "404-555-0100", logoVersion: null },
   note: "Left in place, bag torn.",
   syncedAt: "2026-10-27T00:49:00Z",
   gps: { lat: 33.7748, lng: -84.2963, accuracyM: 6 },

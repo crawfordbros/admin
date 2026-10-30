@@ -74,11 +74,22 @@ export const errorMessage = (err: unknown) => (err instanceof Error ? err.messag
 export type PropertyRole = "manager";
 export type InviteRole = "representative" | PropertyRole;
 
+export type MeOrganization = { id: string; name: string; propertyCount: number; propertyLimit: number; logoVersion: string | null };
+export type MeProperty = {
+  id: string;
+  name: string;
+  slug: string;
+  city: string | null;
+  memberRole?: PropertyRole | null;
+  organizationId: string | null;
+  organizationName: string | null;
+  photoVersion: string | null;
+};
 export type Me = {
   user: { id: string; email: string; name: string | null; role: string };
   /** The organizations a representative manages (empty for everyone else). */
-  organizations: { id: string; name: string }[];
-  properties: { id: string; name: string; slug: string; city: string | null; memberRole?: PropertyRole | null }[];
+  organizations: MeOrganization[];
+  properties: MeProperty[];
 };
 
 export type ContractType = "12_month" | "36_month" | "month_to_month";
@@ -112,6 +123,104 @@ export type PropertyOverview = {
   /** Who services the property and who manages it (read only here). */
   team?: { steward: PersonRef | null; valets: PersonRef[]; staff: (PersonRef & { role: PropertyRole })[] };
   stats?: { violations30d: number; violationsPer100Units: number | null; overwatchUnits: number; overwatchThreshold: { count: number; days: number } };
+};
+
+/** A resident issue as the property sees it (REP_PORTAL_SPEC 6.5). */
+export type PortalIssueRow = {
+  id: string;
+  refNo: number;
+  issueLabel: string;
+  createdAt: string;
+  propertyId: string;
+  propertyName: string;
+  building: string | null;
+  unit: string | null;
+  statusLabel: "New" | "CBES is on it" | "CBES replied" | "Resolved" | "Compliment";
+  replyClock: ReplyClock;
+  /** The resident's words, shortened. */
+  quote?: string | null;
+};
+
+export type PortalIssueEvent =
+  | { kind: "created"; at: string; body: string | null; photo: boolean }
+  | { kind: "reply"; at: string; actor: { name: string; title: string }; body: string }
+  | { kind: "call"; at: string; actor: { name: string; title: string } }
+  | { kind: "status"; at: string; label: string };
+
+/** GET /portal/issues/:id (REP_PORTAL_SPEC 6.5): view-only. CBES-only comments and call notes never appear. */
+export type PortalIssueDetail = PortalIssueRow & {
+  resident: { name: string; email: string | null; phone: string | null; okToCall: boolean };
+  description: string | null;
+  photos: { id: string; url: string }[];
+  assignee: { id: string; name: string; title: string } | null;
+  firstReplyHours: number | null;
+  following: boolean;
+  events: PortalIssueEvent[];
+};
+
+export type PortalIssueList = { items: PortalIssueRow[]; total: number; page: number; pageSize: number; tabCounts: { open: number; resolved: number; all: number } };
+
+/** GET /portal/reports/summary (REP_PORTAL_SPEC 6.6): the admin's weekly numbers, trimmed to what the property may see. */
+export type PortalReportSummary = {
+  scope: { kind: "organization" | "property"; id: string; name: string };
+  week: { start: string; end: string; label: string };
+  kpis: {
+    serviceNights: { serviced: number; scheduled: number; activeProperties: number };
+    violationsSent: { value: number; previous: number };
+    resolvedByProperty: { value: number; pct: number | null };
+    residentIssues: { value: number; previous: number };
+    avgFirstReplyHours: { value: number | null; allUnder24h: boolean };
+    compliments: number;
+  };
+  trend: { weekStart: string; sent: number; resolvedByProperty: number }[];
+  byType: { label: string; count: number }[];
+  issuesSummary: string;
+  byProperty: { propertyId: string; name: string; managerName: string | null; nights: string; violations: number; resolved: number; issues: number; avgReplyHours: number | null; repeatUnits: number }[];
+  /** For the organization PDF: the weekly rows, violations counted once CBES sent them. */
+  rows: (Pick<WeeklyRow, "propertyId" | "name" | "nights" | "avgClockIn" | "residentReports" | "resolved" | "avgReplyHours" | "violations" | "overwatchUnits" | "manager"> & { startsOn: string | null })[];
+  recipients: { name: string; scope: string }[];
+  nextRunAt: string;
+};
+
+export type PortalReportHistory = { items: { weekStart: string; sentAt: string; recipients: number; status: "scheduled" | "sent" | "bounced" | "failed" }[] };
+
+/** GET /portal/properties/:id with the Property Portal's property home fields (REP_PORTAL_SPEC 6.3). */
+export type PropertyHome = Omit<PropertyOverview, "property" | "team"> & {
+  property: Property & { photoVersion: string | null; buildingCount: number | null; zip: string | null; trashOutWindow: TrashOutWindow | null; pressureWashing: number | boolean };
+  organization: { id: string; name: string } | null;
+  header: {
+    address: string | null;
+    buildings: number | null;
+    units: number | null;
+    serviceNightsLabel: string;
+    trashOutWindow: string;
+    pressureWashingNext: string | null;
+    pressureWashing: boolean;
+    /** "Nov 9" while service hasn't started yet. */
+    startingOn: string | null;
+  };
+  kpis: {
+    violationsToReview: number;
+    resolved30d: { value: number; avgDaysToResolve: number | null };
+    openIssues: { value: number; lastReplyHours: number | null };
+    serviceNights: { serviced: number; scheduled: number };
+    repeatUnits: number;
+  };
+  violationsToReview: ViolationRow[];
+  issues: PortalIssueRow[];
+  repeatUnits: { unit: string; building: string | null; count: number; types: string }[];
+  tonight: {
+    isServiceNight: boolean;
+    startsAt: string;
+    steward: PersonRef | null;
+    valets: (PersonRef & { area: string | null })[];
+    lastNight: { date: string; buildingsDone: number | null; buildings: number | null; firstClockIn: string | null; lastClockOut: string | null; violations: number } | null;
+  };
+  team: NonNullable<PropertyOverview["team"]> & {
+    members: { id: string; name: string; role: PropertyRole; receivesWeeklyReport: boolean; you: boolean }[];
+    representatives: PersonRef[];
+  };
+  reportLink: { url: string };
 };
 
 export type AdminPropertyRow = {
@@ -168,6 +277,10 @@ export type OrganizationProfile = {
   customerSince: string | null;
   propertyLimit: number;
   logoVersion: string | null;
+  /** Main office phone, printed on courtesy notices. */
+  phone?: string | null;
+  billingEmail?: string | null;
+  accountLeadUserId?: string | null;
   createdAt: string;
 };
 
@@ -226,6 +339,62 @@ export type PropertyProfile = Property & {
   starting: boolean;
   /** Always null for representatives. */
   connecteamJobId: string | null;
+  /** "18:00-20:00" or "19:00-21:00"; null keeps the Settings default. */
+  trashOutWindow?: TrashOutWindow | null;
+  pressureWashing?: boolean;
+  createdBy?: string | null;
+};
+
+export type TrashOutWindow = "18:00-20:00" | "19:00-21:00";
+
+// Property Portal, Representative dashboard (REP_PORTAL_SPEC 6.2).
+
+export type RepAttentionItem = {
+  kind: "violation" | "issue";
+  id: string;
+  /** "V-2041" or "#1042" */
+  ref: string;
+  title: string;
+  statusLabel: string;
+  propertyId: string;
+  propertyName: string;
+  where: string;
+  ageHours: number;
+  link: string;
+};
+
+export type PortalPropertyCard = {
+  id: string;
+  name: string;
+  city: string | null;
+  units: number | null;
+  photoVersion: string | null;
+  status: "active" | "starting" | "inactive";
+  serviceStartDate: string | null;
+  violationsToReview: number;
+  openIssues: number;
+  managers: { id: string; name: string; role: PropertyRole }[];
+};
+
+export type RepDashboard = {
+  organization: { id: string; name: string; logoVersion: string | null; propertyCount: number; propertyLimit: number };
+  week: { start: string; label: string };
+  kpis: {
+    properties: { value: number; limit: number; units: number };
+    violationsToReview: number;
+    openIssues: { value: number; oldestHours: number | null };
+    serviceNights: { serviced: number; scheduled: number; label: string };
+    avgFirstReplyHours30d: number | null;
+  };
+  /** Up to 10 violations and 10 issues, oldest first. */
+  attention: RepAttentionItem[];
+  properties: PortalPropertyCard[];
+  violationsByNight: { date: string; day: string; count: number | null }[];
+  topViolationTypes: { label: string; count: number }[];
+  lastWeek: { activeProperties: number; serviced: number; scheduled: number; violationsSent: number; issues: number; allRepliedWithin24h: boolean };
+  nextWeeklyReportAt: string;
+  pendingInvitations: { id: string; email: string; role: PropertyRole; propertyNames: string[]; createdAt: string; expired: boolean }[];
+  contacts: { id: string; name: string; title: string }[];
 };
 
 /** GET /organizations/:orgId/properties/:propertyId, for admins and the organization's representatives. */
@@ -285,8 +454,12 @@ export type WeeklyReport = {
 
 export type NavCounts = { openReports: number; newViolations: number; newQuotes: number };
 
+/** Property Portal sidebar badges (REP_PORTAL_SPEC 6.1), scoped by ?org= or ?property=. */
+export type PortalNavCounts = { violationsToReview: number; openIssues: number; pendingInvitations: number };
+
 export type SearchResult = {
-  kind: "org" | "property" | "unit" | "report" | "violation" | "user" | "quote";
+  /** "issue" is a resident report found from the Property Portal. */
+  kind: "org" | "property" | "unit" | "report" | "violation" | "user" | "quote" | "issue";
   id: string;
   title: string;
   subtitle: string;
@@ -332,7 +505,15 @@ export type ViolationRow = {
   overwatchDays: number;
   notesCount: number;
   status: ViolationStatus;
+  /** At or over the Overwatch threshold for its unit. */
+  repeat: boolean;
+  sentAt: string | null;
+  resolvedAt: string | null;
+  /** How the property handled it; null when CBES resolved it or it's open. */
+  resolution: Resolution | null;
 };
+
+export type Resolution = "courtesy_notice" | "spoke_with_resident" | "lease_violation" | "other";
 
 export type ViolationEvent = {
   id: string;
@@ -355,9 +536,21 @@ export type ViolationDetail = ViolationRow & {
   /** Newest first. */
   events: ViolationEvent[];
   unitHistory: { id: string; refNo: number; typeLabel: string; loggedAt: string; status: ViolationStatus }[];
+  /** The property-side person who resolved it (null when CBES did, or it's open). */
+  resolvedBy: Person | null;
+  /** The CBES reviewer who sent it to the property. */
+  sentBy: Person | null;
+  /** What the property's courtesy notice prints. */
+  courtesy: { propertyAddress: string | null; propertyCity: string | null; officePhone: string | null; logoVersion: string | null };
 };
 
 export type ViolationList = { items: ViolationRow[]; total: number; page: number; pageSize: number };
+
+/** GET /portal/violations (REP_PORTAL_SPEC 6.4): only what CBES sent the property. */
+export type PortalViolationList = ViolationList & {
+  statusCounts: { toReview: number; resolved: number; all: number };
+  types: { key: string; label: string }[];
+};
 export type AdminViolationList = ViolationList & { stageCounts: Record<ViolationStatus, number> };
 
 // Resident reports in the Admin Portal (ADMIN_PORTAL_SPEC sections 6.3 and 7.2).
@@ -505,6 +698,7 @@ export type QuoteCard = {
   community: string | null;
   company: string | null;
   contactName: string;
+  propertyCount: number | null;
   units: number | null;
   services: string[];
   createdAt: string;
@@ -593,7 +787,7 @@ export type OverwatchPreview = {
 export type OverviewRange = "today" | "7d" | "30d";
 export type OverviewKpi = { value: number | null; previous: number | null; spark: number[]; note?: string };
 export type AttentionItem = {
-  kind: "report_due" | "violations_to_review" | "no_clock_in" | "quote_waiting" | "invites_stale";
+  kind: "report_due" | "violations_to_review" | "no_clock_in" | "quote_waiting" | "invites_stale" | "property_needs_setup";
   title: string;
   subtitle: string;
   tag: string;
@@ -623,3 +817,37 @@ export type AdminOverview = {
 
 export type ActivityEntry = AuditEntry & { summary: string };
 export type ActivityPage = { items: ActivityEntry[]; nextBefore: string | null };
+
+// ---- Team and settings, My account (REP_PORTAL_SPEC 6.7, 7.4, 7.9)
+
+export type TeamMember = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: "representative" | PropertyRole;
+  you: boolean;
+  properties: { id: string; name: string }[] | "all";
+  receivesWeeklyReport: boolean;
+  lastSeenAt: string | null;
+  mfa: "passkey" | "authenticator" | "none";
+};
+
+export type TeamInvitation = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: "representative" | PropertyRole;
+  properties: { id: string; name: string }[];
+  receivesWeeklyReport: boolean;
+  createdAt: string;
+};
+
+export type TeamResponse = { team: TeamMember[]; invitations: TeamInvitation[] };
+
+export type NotificationPrefs = { violationsSent: boolean; newIssues: boolean; issueUpdates: boolean; inviteAccepted: boolean; weeklyRollup: boolean };
+
+export type MyNotifications = {
+  prefs: NotificationPrefs;
+  /** Managers: the Monday report for their properties. `applies` is false with no properties. */
+  weeklyReport: { on: boolean; locked: boolean; applies: boolean };
+};

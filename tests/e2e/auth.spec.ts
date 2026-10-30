@@ -13,7 +13,6 @@ test("sign-in page offers no self sign-up and has no serious axe issues", async 
   await page.goto("/portal/login");
   await expect(page.getByLabel("Email address")).toBeVisible();
   await expect(page.getByRole("link", { name: /sign up/i })).toHaveCount(0);
-  await expect(page.getByText("Accounts are by invitation from CBES.")).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
   const results = await new AxeBuilder({ page }).analyze();

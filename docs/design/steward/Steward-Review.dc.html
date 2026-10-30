@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward – Review violations</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8BBA5}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #12143F; color: #FFFFFF; font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column;">
+<header style="padding: 18px 20px 8px; display: flex; justify-content: space-between; align-items: flex-end;">
+<div><p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #C8BBA5;">STEWARD · 3 PROPERTIES</p><h1 style="margin: 2px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 24px;">Review</h1></div>
+<button type="button" style="height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #4A4E9E; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13px;">All properties</button>
+</header>
+<div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow: hidden;">
+<p style="margin: 0; font-size: 13.5px; color: #C9CAF0; line-height: 1.5;">Check each one, then send it to the property. Hold anything that needs a CBES admin.</p>
+
+<sc-for list="{{items}}" as="v" hint-placeholder-count="2">
+<article style="background: #1C1F5A; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; gap: 12px;">
+<span aria-hidden="true" style="flex: none; width: 96px; height: 96px; border-radius: 12px; background: #2E3290; display: flex; align-items: center; justify-content: center; color: #6E72C4;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;">
+<strong style="font-size: 16px;">{{v.type}}</strong>
+<span style="font-size: 13px; color: #C9CAF0;">{{v.where}}</span>
+<span style="display: flex; gap: 6px; align-items: center; font-size: 12.5px;"><span style="{{v.av}}">{{v.i}}</span>{{v.valet}} · {{v.when}}</span>
+<span style="display: flex; gap: 6px; flex-wrap: wrap;"><span style="{{v.gpsStyle}}">{{v.gps}}</span><span style="{{v.repStyle}}">{{v.rep}}</span></span>
+</div>
+</div>
+<sc-if value="{{v.note}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; padding: 8px 10px; border-radius: 10px; background: #23266B; font-size: 13px;">“{{v.note}}”</p></sc-if>
+<div style="display: grid; grid-template-columns: 1.4fr 1fr 48px; gap: 8px;">
+<button type="button" style="height: 50px; border-radius: 12px; border: none; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 14.5px;">Send to property</button>
+<button type="button" style="height: 50px; border-radius: 12px; border: 1px solid #4A4E9E; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 14px;">Hold for CBES</button>
+<button type="button" aria-label="Add a note" style="height: 50px; border-radius: 12px; border: 1px solid #4A4E9E; background: transparent; color: #FFFFFF; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></button>
+</div>
+</article>
+</sc-for>
+
+<p style="margin: 0; text-align: center; font-size: 13px; color: #9FA2D6;">2 more below · Only CBES admins can dismiss a violation.</p>
+</div>
+<div style="padding: 12px 20px;"><button type="button" style="width: 100%; height: 54px; border-radius: 14px; border: 2px solid #C8BBA5; background: transparent; color: #FFFFFF; font-size: 15.5px; font-weight: 700;">Send all 4 to their properties</button></div>
+<dc-import name="StewardTabBar" role="steward" active="review" hint-size="390px,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const av = (c) => 'flex: none; width: 22px; height: 22px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-size: 9.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const pill = (bg, fg) => 'font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: ' + bg + '; color: ' + fg + ';';
+    const items = [
+      ['Over-filled', 'The Oaks · Bldg 1 · Unit 118', 'Marcus Hill', 'MH', '#3A3E99', '9:14 PM', 'GPS ±6 m', true, '3rd in 30 days', 'Container full, three bags beside it'],
+      ['Bag not tied', 'The Oaks · Bldg 2 · Unit 214', 'Marcus Hill', 'MH', '#3A3E99', '8:31 PM', 'GPS weak ±60 m', false, '1st in 30 days', ''],
+    ].map(v => ({ type: v[0], where: v[1], valet: v[2], i: v[3], av: av(v[4]), when: v[5], gps: v[6], gpsStyle: v[7] ? pill('#143D2E', '#4CC38A') : pill('#3F3215', '#F5C26B'), rep: v[8], repStyle: v[8].startsWith('3') ? pill('#4A1D25', '#FF8A7A') : pill('#262A6E', '#C9CAF0'), note: v[9] }));
+    return { items };
+  }
+}
+</script>
+</body>
+</html>

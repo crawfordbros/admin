@@ -56,7 +56,7 @@ afterEach(() => {
 describe("account menu", () => {
   it("shows who is signed in and links to Account settings", async () => {
     open();
-    const trigger = await screen.findByRole("button", { name: "Account: nick@cbenvironments.com" });
+    const trigger = await screen.findByRole("button", { name: /^Account: nick@cbenvironments\.com/ });
     expect(trigger).toHaveTextContent("Admin");
     await userEvent.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");

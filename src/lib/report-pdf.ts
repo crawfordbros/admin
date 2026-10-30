@@ -117,7 +117,10 @@ export const orgFileName = (orgName: string, weekStart: string) => `cbes-weekly-
  * An organization's week: a summary page with every property's numbers, then each property's full
  * report on its own pages (ADMIN_PORTAL_SPEC 7.3).
  */
-export function buildOrgPdf(orgName: string, weekLabel: string, rows: WeeklyRow[], reports: WeeklyReport[]): jsPDF {
+/** The weekly numbers the organization PDF prints; the Property Portal passes rows trimmed to what the property may see. */
+export type OrgPdfRow = Pick<WeeklyRow, "name" | "nights" | "avgClockIn" | "residentReports" | "resolved" | "avgReplyHours" | "violations" | "overwatchUnits">;
+
+export function buildOrgPdf(orgName: string, weekLabel: string, rows: OrgPdfRow[], reports: WeeklyReport[]): jsPDF {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   let y = MARGIN;
   doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(122, 106, 80).text("CB ENVIRONMENT SOLUTIONS", MARGIN, y);
@@ -126,7 +129,7 @@ export function buildOrgPdf(orgName: string, weekLabel: string, rows: WeeklyRow[
   y += 18;
   doc.setFont("helvetica", "normal").setFontSize(11).setTextColor(...MUTED).text(weekLabel, MARGIN, y);
   y += 26;
-  const sum = (f: (r: WeeklyRow) => number) => rows.reduce((n, r) => n + f(r), 0);
+  const sum = (f: (r: OrgPdfRow) => number) => rows.reduce((n, r) => n + f(r), 0);
   autoTable(doc, {
     startY: y,
     head: [["Properties", "Resident reports", "Resolved", "Violations", "Overwatch units"]],

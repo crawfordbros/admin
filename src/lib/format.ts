@@ -1,4 +1,4 @@
-import type { ContractType, InviteRole, PropertyRole, ValetTimes } from "./api";
+import type { ContractType, InviteRole, PropertyRole, ValetTimes, Resolution } from "./api";
 
 export const CONTRACT_LABELS: Record<ContractType, string> = {
   "12_month": "12-month",
@@ -121,3 +121,34 @@ export function clockLabel(hhmm: string): string {
 
 /** "Sunday" for a YYYY-MM-DD date. */
 export const weekdayName = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { timeZone: "UTC", weekday: "long" });
+
+/** The next Sunday after today in Atlanta (a week later on a Sunday): service weeks start Sunday night. */
+export function nextSunday(now = new Date()): string {
+  const d = new Date(`${nyToday(now)}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + (7 - d.getUTCDay()));
+  return d.toISOString().slice(0, 10);
+}
+
+/** How the property handled a violation (REP_PORTAL_SPEC 5.1), as the property side reads it. */
+export const RESOLUTION_LABELS: Record<Resolution, string> = {
+  courtesy_notice: "Courtesy notice sent",
+  spoke_with_resident: "Spoke with the resident",
+  lease_violation: "Lease violation issued",
+  other: "Other",
+};
+
+/** "Unit 412" for a unit number ("412", "12B"); free text ("Bldg 4, Unit 291", "2nd floor") as it was written. */
+export const unitLabel = (unit: string) => (/^\d+[a-z]?$/i.test(unit.trim()) ? `Unit ${unit}` : unit);
+
+/** "Bldg 4" or "Building B" for a building number or letter; free text ("Tower North") as written. */
+export const buildingLabel = (building: string, word = "Bldg") => (/^(\d+[a-z]?|[a-z])$/i.test(building.trim()) ? `${word} ${building}` : building);
+
+/** "Bldg 4 · Unit 412": where something is, from whatever was recorded. */
+export const whereLabel = (building: string | null, unit: string | null, word = "Bldg") =>
+  [building && buildingLabel(building, word), unit && unitLabel(unit)].filter(Boolean).join(" · ");
+
+/** The service night a timestamp belongs to: before 6 AM in Atlanta it's still the night before. */
+export function serviceNight(iso: string): string {
+  const shifted = new Date(Date.parse(iso) - 6 * 3_600_000);
+  return shifted.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+}

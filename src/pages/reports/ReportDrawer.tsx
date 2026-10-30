@@ -208,7 +208,7 @@ function Respond({ report, onSaved }: { report: ReportDetail; onSaved: (r: Repor
       </label>
       <textarea id="respond" rows={4} value={body} onChange={(e) => setBody(e.target.value)} aria-invalid={error ? true : undefined} aria-describedby="respond-hint" className="resize-y rounded-lg border border-field px-3 py-2 text-[14px] focus:border-navy focus:outline-none focus:ring-2 focus:ring-navy/25" />
       <p id="respond-hint" className="m-0 text-[12.5px] text-muted">
-        {mode === "comment" ? "Only CBES sees comments." : byEmail ? "Sent from office@cbenvironments.com. Replies come back to that inbox." : "This resident asked for a call. Log it here after you call."}
+        {mode === "comment" ? "Only CBES sees comments." : byEmail ? "Sent from office@mail.cbenvironments.com. Replies go to office@cbenvironments.com." : "This resident asked for a call. Log it here after you call."}
       </p>
       {error && <Alert>{error}</Alert>}
       <Button disabled={!body.trim() || send.isPending} onClick={() => send.mutate()} className="self-end">

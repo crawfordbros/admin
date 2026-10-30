@@ -202,7 +202,8 @@ function PipelineCard({ quote, hot, onMove, onDrag }: { quote: QuoteCard; hot: b
         </Pill>
       </span>
       <span className="flex flex-wrap gap-1.5">
-        {quote.units !== null && <span className="rounded-md bg-tint-2 px-2 py-0.5 text-[11.5px] font-bold text-navy">{formatCount(quote.units)} units</span>}
+        {quote.propertyCount != null && <span className="rounded-md bg-tint-2 px-2 py-0.5 text-[11.5px] font-bold text-navy">{formatCount(quote.propertyCount)} {quote.propertyCount === 1 ? "property" : "properties"}</span>}
+        {quote.units !== null && <span className="rounded-md bg-tint-2 px-2 py-0.5 text-[11.5px] font-bold text-navy">{formatCount(quote.units)} total units</span>}
         {quote.kind === "contact" && <span className="rounded-md bg-gold-tint px-2 py-0.5 text-[11.5px] font-semibold text-gold-text">Contact message</span>}
         {quote.services.map((s) => (
           <span key={s} className="rounded-md bg-canvas px-2 py-0.5 text-[11.5px] font-semibold text-muted">
@@ -255,7 +256,8 @@ function QuoteList({ items }: { items: QuoteCard[] }) {
             ),
           },
           { key: "company", header: "Company", cell: (q) => q.company ?? "—" },
-          { key: "units", header: "Units", cell: (q) => (q.units === null ? "—" : formatCount(q.units)) },
+          { key: "propertyCount", header: "Properties", cell: (q) => (q.propertyCount == null ? "—" : formatCount(q.propertyCount)) },
+          { key: "units", header: "Total units", cell: (q) => (q.units === null ? "—" : formatCount(q.units)) },
           { key: "services", header: "Services", cell: (q) => <span className="text-[13px]">{q.services.map((s) => SERVICE_LABELS[s] ?? s).join(", ") || "—"}</span> },
           { key: "stage", header: "Stage", cell: (q) => <StageBadge stage={q.stage} /> },
           { key: "owner", header: "Owner", cell: (q) => q.owner?.name ?? <span className="text-muted">Unassigned</span> },
@@ -298,6 +300,7 @@ function NewQuoteModal({ onClose }: { onClose: () => void }) {
           company: text("company"),
           communityName: text("communityName"),
           address: text("address"),
+          propertyCount: text("propertyCount") ? Number(text("propertyCount")) : undefined,
           unitCount: text("unitCount") ? Number(text("unitCount")) : undefined,
           propertyType: text("propertyType"),
           desiredStart: text("desiredStart"),
@@ -335,10 +338,11 @@ function NewQuoteModal({ onClose }: { onClose: () => void }) {
         <TextField label="Title" name="contactTitle" optional autoComplete="off" error={errors.contactTitle} />
         <TextField label="Email" name="contactEmail" type="email" required autoComplete="off" error={errors.contactEmail} />
         <TextField label="Phone" name="contactPhone" type="tel" optional autoComplete="off" error={errors.contactPhone} />
-        <TextField label="Community" name="communityName" required error={errors.communityName} />
+        <TextField label="Community or portfolio name" name="communityName" required error={errors.communityName} />
         <TextField label="Company" name="company" optional error={errors.company} />
         <TextField label="Address" name="address" optional error={errors.address} className="sm:col-span-2" />
-        <TextField label="Units" name="unitCount" type="number" inputMode="numeric" min={1} optional error={errors.unitCount} />
+        <TextField label="How many properties need service?" name="propertyCount" type="number" inputMode="numeric" min={1} max={100000} step={1} optional error={errors.propertyCount} />
+        <TextField label="How many units TOTAL?" name="unitCount" type="number" inputMode="numeric" min={1} max={100000} step={1} optional hint="Across all properties needing service." error={errors.unitCount} />
         <SelectField label="Property type" name="propertyType" optional defaultValue="" error={errors.propertyType}>
           <option value="">Not sure</option>
           {Object.entries(PROPERTY_TYPE_LABELS).map(([k, label]) => (

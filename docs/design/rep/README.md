@@ -1,6 +1,7 @@
 # Rep Portal design files
 
-Exported from the Claude Design canvas "CBES Website Design" (page "Rep Portal"), October 28, 2026. The full spec is `docs/REP_PORTAL_SPEC.md`; section 1.1 maps each file to its route.
+Exported from the Claude Design canvas "CBES Website Design" (page "Rep Portal"), October 28, 2026.
+Live canvas: https://claude.ai/artifact/JxU3ogQQZjDDjHNKxZyXSk (private to Nick until shared). The full spec is `docs/REP_PORTAL_SPEC.md`; section 1.1 maps each file to its route.
 
 These are design references, not production code. Rebuild them as React components with the repo's Tailwind tokens and the components already built for the Admin Portal (`src/components/`).
 

@@ -64,7 +64,7 @@ export async function buildQuotePdf(q: QuoteDetail, p: QuotePricing, today = new
   }
   doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(...GOLD).text("PREPARED FOR", MARGIN, y);
   y += 16;
-  const lines = [q.contact.name + (q.contact.title ? `, ${q.contact.title}` : ""), q.company, q.community, q.request.address].filter(Boolean) as string[];
+  const lines = [q.contact.name + (q.contact.title ? `, ${q.contact.title}` : ""), q.company, q.community, q.request.address, q.propertyCount != null ? `${q.propertyCount.toLocaleString("en-US")} ${q.propertyCount === 1 ? "property" : "properties"} needing service` : null].filter(Boolean) as string[];
   doc.setFont("helvetica", "normal").setFontSize(11).setTextColor(26, 28, 61);
   for (const line of lines) {
     doc.text(line, MARGIN, y);
@@ -76,7 +76,7 @@ export async function buildQuotePdf(q: QuoteDetail, p: QuotePricing, today = new
   const services = q.services.map((s) => SERVICES[s] ?? s).join(", ") || "Doorstep valet trash";
   autoTable(doc, {
     startY: Math.max(y, 200),
-    head: [["Service", "Per unit / month", "Units", "Monthly total"]],
+    head: [["Service", "Per unit / month", "Total units", "Monthly total"]],
     body: [[services, usd(p.rateCentsPerUnit), p.units.toLocaleString("en-US"), usd(monthly)]],
     margin: { left: MARGIN, right: MARGIN },
     styles: { font: "helvetica", fontSize: 11, cellPadding: 8, textColor: [26, 28, 61] },

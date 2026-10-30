@@ -37,7 +37,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("WeeklyReportPage", () => {
   it("shows the week's reports and valet times, signed in with the session token", async () => {
     const calls = mockFetch((url) => [200, report(new URL(url, "http://x").searchParams.get("week") ?? "2026-10-18")]);
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
 
     expect(await screen.findByRole("heading", { level: 1, name: "Demo Community" })).toBeInTheDocument();
     expect(screen.getByText("Oct 18–24, 2026")).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe("WeeklyReportPage", () => {
 
   it("moves between weeks", async () => {
     const calls = mockFetch((url) => [200, report(new URL(url, "http://x").searchParams.get("week") ?? "2026-10-18")]);
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     await userEvent.click(await screen.findByRole("button", { name: /Previous week/ }));
     await screen.findByText("Oct 11–17, 2026");
     expect(calls.at(-1)?.url).toBe("/api/portal/properties/p1/report?week=2026-10-11");
@@ -60,7 +60,7 @@ describe("WeeklyReportPage", () => {
     const calls = mockFetch((_url, method) =>
       method === "POST" ? [200, { sentTo: "pat@demo-mgmt.com" }] : [200, report("2026-10-18")],
     );
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     await userEvent.click(await screen.findByRole("button", { name: "Email me this report" }));
     expect(await screen.findByText("Sent to pat@demo-mgmt.com.")).toBeInTheDocument();
     expect(calls.at(-1)).toMatchObject({ url: "/api/portal/properties/p1/report/email", method: "POST", body: { week: "2026-10-18" } });
@@ -68,7 +68,7 @@ describe("WeeklyReportPage", () => {
 
   it("shows the API's error when the email can't be sent", async () => {
     mockFetch((_url, method) => (method === "POST" ? [502, { error: "We couldn't send the email." }] : [200, report("2026-10-18")]));
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     await userEvent.click(await screen.findByRole("button", { name: "Email me this report" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't send the email.");
   });
@@ -77,7 +77,7 @@ describe("WeeklyReportPage", () => {
     mockFetch(() => [200, report("2026-10-18")]);
     const print = vi.fn();
     vi.stubGlobal("print", print);
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     await userEvent.click(await screen.findByRole("button", { name: "Print" }));
     expect(print).toHaveBeenCalled();
   });
@@ -99,7 +99,7 @@ describe("WeeklyReportPage", () => {
         },
       }),
     ]);
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     expect(await screen.findByText(/2 automatic clock-outs \(a valet forgot to clock out\) left out/)).toBeInTheDocument();
     expect(screen.getByText("Automatic clock-out")).toBeInTheDocument();
     expect(screen.getByText("Still clocked in")).toBeInTheDocument();
@@ -107,13 +107,13 @@ describe("WeeklyReportPage", () => {
 
   it("explains missing valet times instead of showing blanks", async () => {
     mockFetch(() => [200, report("2026-10-18", { valetTimes: { status: "no_job" } })]);
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p1/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p1/report", <WeeklyReportPage />);
     expect(await screen.findByText(/once CBES links this property to its Connecteam job/)).toBeInTheDocument();
   });
 
   it("shows not-found for a property the person can't see", async () => {
     mockFetch(() => [404, { error: "Not found" }]);
-    renderRoute("/portal/properties/:id/report", "/portal/properties/p2/report", <WeeklyReportPage />);
+    renderRoute("/portal/properties/:propertyId/report", "/portal/properties/p2/report", <WeeklyReportPage />);
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Not found"));
   });
 });

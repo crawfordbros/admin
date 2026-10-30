@@ -11,7 +11,7 @@ vi.mock("../../lib/quote-pdf", () => ({ buildQuotePdf: vi.fn(async () => new Blo
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const card = (o: Partial<QuoteCard>): QuoteCard => ({
   id: "q1", refNo: 501, kind: "quote", stage: "new", community: "Harbor Pointe Apartments", company: "Harbor Point Management", contactName: "Devon Walsh",
-  units: 220, services: ["valet_trash", "pressure_washing"], createdAt: hoursAgo(26), firstResponseAt: null,
+  propertyCount: 1, units: 220, services: ["valet_trash", "pressure_washing"], createdAt: hoursAgo(26), firstResponseAt: null,
   lastActivity: { kind: "form", text: "Website form", at: hoursAgo(26) }, messagesCount: 1, owner: null, source: "web", ...o,
 });
 const cards = [card({}), card({ id: "q2", refNo: 502, community: "Smyrna Heights", stage: "conversation", createdAt: hoursAgo(72), owner: { id: "u1", name: "Nigel Crawford" }, lastActivity: { kind: "email_in", text: "4 emails", at: hoursAgo(2) } })];
@@ -48,7 +48,8 @@ describe("QuotesPage", () => {
     renderRoute("/admin/quotes", "/admin/quotes", <QuotesPage />);
     const newCol = await screen.findByRole("region", { name: "New" }).catch(() => screen.getByRole("heading", { name: "New" }).closest("section")!);
     const harbor = within(newCol).getByRole("link", { name: "Harbor Pointe Apartments" }).closest("div")!;
-    expect(harbor).toHaveTextContent("220 units");
+    expect(harbor).toHaveTextContent("1 property");
+    expect(harbor).toHaveTextContent("220 total units");
     expect(harbor).toHaveTextContent("26h waiting, over 24 hours");
     expect(harbor.className).toContain("border-navy");
     expect(screen.getByText("1 waiting over 24h")).toBeInTheDocument();
@@ -101,15 +102,30 @@ describe("QuotesPage", () => {
     const dialog = screen.getByRole("dialog", { name: "New quote" });
     await userEvent.type(within(dialog).getByLabelText("Contact name"), "Ana Ruiz");
     await userEvent.type(within(dialog).getByLabelText("Email"), "ana@example.com");
-    await userEvent.type(within(dialog).getByLabelText("Community"), "Lenox Park");
+    await userEvent.type(within(dialog).getByLabelText("Community or portfolio name"), "Lenox Park");
+    await userEvent.type(within(dialog).getByLabelText(/How many properties need service/), "3");
+    await userEvent.type(within(dialog).getByLabelText(/How many units TOTAL/), "720");
     await userEvent.click(within(dialog).getByRole("button", { name: "Add quote" }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/quotes/q9"));
-    expect(calls.find((c) => c.url === "/api/admin/quotes" && c.method === "POST")?.body).toMatchObject({ contactName: "Ana Ruiz", contactEmail: "ana@example.com", communityName: "Lenox Park", services: ["valet_trash"] });
+    expect(calls.find((c) => c.url === "/api/admin/quotes" && c.method === "POST")?.body).toMatchObject({ contactName: "Ana Ruiz", contactEmail: "ana@example.com", communityName: "Lenox Park", propertyCount: 3, unitCount: 720, services: ["valet_trash"] });
   });
 });
 
 describe("QuoteDetailPage", () => {
   const show = () => renderRoute("/admin/quotes/:id", "/admin/quotes/q1", <QuoteDetailPage />);
+
+  it("shows portfolio totals and continues setup at the organization", async () => {
+    mockFetch((url, method) => url === "/api/admin/quotes/q1" && method === "GET"
+      ? [200, detail({ propertyCount: 3, units: 720 })]
+      : url.endsWith("/convert") ? [200, { organizationId: "org9", propertyId: null }] : handler(url, method));
+    show();
+    expect(await screen.findByText(/3 properties · 720 total units/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Won" }));
+    const dialog = screen.getByRole("dialog", { name: "Won: set up the customer" });
+    expect(dialog).toHaveTextContent("add each property with its own unit count");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Create organization" }));
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/organizations/org9"));
+  });
 
   it("shows the request, notes and thread, and replies from a template", async () => {
     const calls = mockFetch(handler);

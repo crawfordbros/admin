@@ -6,7 +6,7 @@ import { RequireArea } from "./components/RequireArea";
 import { RequireSecurity } from "./components/RequireSecurity";
 import { UserScopedQueries } from "./components/UserScopedQueries";
 import { PortalSessionBoundary } from "./components/PortalSession";
-import { Shell } from "./components/Shell";
+import { RepShell } from "./components/portal/RepShell";
 import { AdminShell } from "./components/admin/AdminShell";
 import { ToastProvider } from "./components/Toast";
 import { LoginPage } from "./pages/LoginPage";
@@ -14,9 +14,7 @@ import { PortalHome } from "./pages/PortalHome";
 import { ComingSoon } from "./pages/ComingSoon";
 import { ADMIN_SECTIONS } from "./pages/adminSections";
 import { AcceptInvitePage } from "./pages/AcceptInvitePage";
-import { OrganizationPage } from "./pages/portal/OrganizationPage";
 import { NewPropertyRedirect, PropertyRedirect } from "./pages/admin/redirects";
-import { PropertyPage } from "./pages/portal/PropertyPage";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
 
 // Each Admin Portal section downloads when it's first opened (ADMIN_PORTAL_SPEC 10, performance).
@@ -39,6 +37,14 @@ const OverwatchPage = lazy(() => import("./pages/overwatch/OverwatchPage").then(
 const SettingsPage = lazy(() => import("./pages/settings/SettingsPage").then((m) => ({ default: m.SettingsPage })));
 const AccountSettingsPage = lazy(() => import("./pages/settings/SettingsPage").then((m) => ({ default: m.AccountSettingsPage })));
 const PortalAccountPage = lazy(() => import("./pages/account/PortalAccountPage").then((m) => ({ default: m.PortalAccountPage })));
+const AccountPage = lazy(() => import("./pages/portal/account/AccountPage").then((m) => ({ default: m.AccountPage })));
+const TeamSettingsPage = lazy(() => import("./pages/portal/settings/TeamSettingsPage").then((m) => ({ default: m.TeamSettingsPage })));
+const RepDashboardPage = lazy(() => import("./pages/portal/dashboard/RepDashboardPage").then((m) => ({ default: m.RepDashboardPage })));
+const RepAddPropertyModal = lazy(() => import("./pages/portal/dashboard/RepAddPropertyModal").then((m) => ({ default: m.RepAddPropertyModal })));
+const PropertyHomePage = lazy(() => import("./pages/portal/property/PropertyHomePage").then((m) => ({ default: m.PropertyHomePage })));
+const RepReportsPage = lazy(() => import("./pages/portal/reports/RepReportsPage").then((m) => ({ default: m.RepReportsPage })));
+const RepIssuesPage = lazy(() => import("./pages/portal/issues/RepIssuesPage").then((m) => ({ default: m.RepIssuesPage })));
+const RepViolationsPage = lazy(() => import("./pages/portal/violations/RepViolationsPage").then((m) => ({ default: m.RepViolationsPage })));
 const WeeklyReportsPage = lazy(() => import("./pages/weekly/WeeklyReportsPage").then((m) => ({ default: m.WeeklyReportsPage })));
 
 
@@ -84,14 +90,21 @@ export function App() {
           <Route path="/portal/login/*" element={<LoginPage />} />
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
           <Route element={<RequireSecurity><Outlet /></RequireSecurity>}>
-            <Route element={<Shell />}>
+            {/* The Property Portal (REP_PORTAL_SPEC 3.1). /portal/settings is the full Account settings (sign-in methods, devices) for everyone. */}
+            <Route element={<RepShell />}>
               <Route path="/portal" element={<RequireArea area="portal"><PortalHome /></RequireArea>} />
-              <Route path="/portal/organizations/:id" element={<RequireArea area="organization"><OrganizationPage /></RequireArea>}>
-                <Route path="properties/new" element={<AddPropertyModal />} />
+              <Route path="/portal/organizations/:orgId" element={<RequireArea area="organization"><RepDashboardPage /></RequireArea>}>
+                <Route path="properties/new" element={<RepAddPropertyModal />} />
               </Route>
-              <Route path="/portal/properties/:id" element={<RequireArea area="manager"><PropertyPage /></RequireArea>} />
-              <Route path="/portal/properties/:id/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
-              <Route path="/portal/violations/:id" element={<RequireArea area="portal"><PortalViolationPage /></RequireArea>} />
+              <Route path="/portal/organizations/:orgId/settings" element={<RequireArea area="organization"><TeamSettingsPage /></RequireArea>} />
+              <Route path="/portal/properties/:propertyId" element={<RequireArea area="manager"><PropertyHomePage /></RequireArea>} />
+              <Route path="/portal/properties/:propertyId/report" element={<RequireArea area="manager"><WeeklyReportPage /></RequireArea>} />
+              <Route path="/portal/violations" element={<RequireArea area="manager"><RepViolationsPage /></RequireArea>} />
+              <Route path="/portal/violations/:violationId" element={<RequireArea area="portal"><PortalViolationPage /></RequireArea>} />
+              <Route path="/portal/issues" element={<RequireArea area="manager"><RepIssuesPage /></RequireArea>} />
+              <Route path="/portal/issues/:reportId" element={<RequireArea area="manager"><RepIssuesPage /></RequireArea>} />
+              <Route path="/portal/reports" element={<RequireArea area="manager"><RepReportsPage /></RequireArea>} />
+              <Route path="/portal/account" element={<RequireArea area="manager"><AccountPage /></RequireArea>} />
               <Route path="/portal/settings" element={<RequireArea area="portal"><PortalAccountPage /></RequireArea>} />
             </Route>
             <Route path="/admin" element={<RequireArea area="admin" standalone><AdminShell /></RequireArea>}>

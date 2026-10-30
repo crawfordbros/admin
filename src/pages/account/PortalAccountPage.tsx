@@ -1,12 +1,10 @@
-import { useEffect } from "react";
+import { usePortalPage } from "../../components/admin/adminPage";
 import { PageHeader } from "../../components/display";
 import { AccountSettings } from "./AccountSettings";
 
-/** /portal/settings: Account settings for Reps and property managers. */
+/** /portal/settings and /portal/account: Account settings for everyone on the property side. */
 export function PortalAccountPage() {
-  useEffect(() => {
-    document.title = "Account settings | CBES Portal";
-  }, []);
+  usePortalPage("Account settings");
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <PageHeader title="Account settings" description="Your password, two-step verification and signed-in devices. Changes here apply only to you." />

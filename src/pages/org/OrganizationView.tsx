@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router-dom";
 import { errorMessage, useApi, type InviteRole, type OrganizationDetail, type OrganizationProperty } from "../../lib/api";
@@ -29,6 +29,8 @@ type Props = {
   area: "admin" | "portal";
   /** Admins also set the status, add or remove representatives, and see CBES-only details. */
   isAdmin: boolean;
+  /** The tab shown without ?tab=. The portal's Team and settings opens on People until R6 replaces it. */
+  defaultTab?: "properties" | "people";
 };
 
 type Tab = "properties" | "people" | "invitations" | "reports" | "violations" | "activity";
@@ -38,7 +40,7 @@ type Tab = "properties" | "people" | "invitations" | "reports" | "violations" | 
  * admins and the organization's representatives share it; the Add property form opens over it
  * (the child route renders into the Outlet).
  */
-export function OrganizationView({ id, area, isAdmin }: Props) {
+export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" }: Props) {
   const api = useApi();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -50,10 +52,8 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
   const { data, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<OrganizationDetail>(`/organizations/${id}`) });
 
   const name = data?.organization.name;
-  useEffect(() => {
-    if (name && area === "portal") document.title = `${name} | CBES Portal`;
-  }, [name, area]);
-  useAdminPage(area === "admin" ? (name ?? null) : null, area === "admin" && name ? [{ label: "Organizations", to: "/admin/organizations" }, { label: name }] : undefined);
+  // In the portal the breadcrumb already starts with the organization ("{name} / Dashboard").
+  useAdminPage(name ?? null, area === "admin" && name ? [{ label: "Organizations", to: "/admin/organizations" }, { label: name }] : undefined);
 
   const refresh = () =>
     Promise.all([
@@ -83,7 +83,7 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
   const people = new Set([...representatives.map((r) => r.id), ...staff.map((s) => s.id)]).size;
   // Reports, Violations and Activity read admin-only endpoints; Representatives see them per property.
   const tabs: Tab[] = area === "admin" ? ["properties", "people", "invitations", "reports", "violations", "activity"] : ["properties", "people", "invitations"];
-  const tab = (tabs.includes(params.get("tab") as Tab) ? params.get("tab") : "properties") as Tab;
+  const tab = (tabs.includes(params.get("tab") as Tab) ? params.get("tab") : defaultTab) as Tab;
 
   return (
     <div className="flex flex-col gap-5">
@@ -141,7 +141,7 @@ export function OrganizationView({ id, area, isAdmin }: Props) {
             variant="underline"
             idPrefix="org"
             value={tab}
-            onChange={(t) => update({ tab: t === "properties" ? null : t })}
+            onChange={(t) => update({ tab: t === defaultTab ? null : t })}
             tabs={[
               { value: "properties", label: "Properties", count: properties.length },
               { value: "people", label: "People", count: people },
@@ -726,7 +726,7 @@ function InviteModal({
               ? `Sees and manages every property in ${organizationName}.`
               : isAdmin
                 ? "Sees only the properties you choose."
-                : "Sees only the properties you choose. To add another Rep, ask CBES."
+                : "Sees only the properties you choose. To add another Representative, ask CBES."
           }
           className="sm:col-span-2"
         >

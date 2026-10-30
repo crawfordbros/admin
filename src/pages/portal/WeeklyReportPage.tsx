@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { errorMessage, useApi, type WeeklyReport } from "../../lib/api";
 import { VALET_STATUS_TEXT, addDays, autoClockOutNote, formatDay, hours, lastOut } from "../../lib/format";
 import { Alert, Button, Card, Loading, Stat } from "../../components/ui";
+import { usePortalPage } from "../../components/admin/adminPage";
+import { useOptionalRepContext } from "../../components/portal/RepContext";
 
 const todayInNewYork = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 
@@ -38,7 +40,8 @@ function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) 
 }
 
 export function WeeklyReportPage() {
-  const { id = "" } = useParams();
+  const { propertyId: id = "" } = useParams();
+  const shell = useOptionalRepContext();
   const [params, setParams] = useSearchParams();
   const week = params.get("week") ?? "";
   const api = useApi();
@@ -55,9 +58,10 @@ export function WeeklyReportPage() {
       api<{ sentTo: string }>(`/portal/properties/${id}/report/email`, { method: "POST", body: JSON.stringify({ week: start }) }),
   });
 
-  useEffect(() => {
-    if (data) document.title = `Weekly report: ${data.property.name}, ${data.week.label} | CBES Portal`;
-  }, [data]);
+  usePortalPage(
+    data ? `Weekly report: ${data.property.name}, ${data.week.label}` : null,
+    data ? [{ label: shell?.kind === "organization" ? data.property.name : "My property", to: `/portal/properties/${id}` }, { label: "Weekly report" }] : undefined,
+  );
 
   if (isPending) return <Loading label="Building the report…" />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;

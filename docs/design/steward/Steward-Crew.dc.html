@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward – Crew tonight</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8BBA5}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #12143F; color: #FFFFFF; font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column;">
+<header style="padding: 18px 20px 8px;">
+<p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #C8BBA5;">STEWARD · DANA BROOKS</p>
+<h1 style="margin: 2px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 24px;">Crew tonight</h1>
+</header>
+<div style="padding: 0 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow: hidden;">
+<div role="tablist" aria-label="Property" style="display: flex; gap: 6px; overflow-x: auto;">
+<sc-for list="{{props}}" as="p" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{p.sel}}" style="{{p.style}}">{{p.name}}<span style="{{p.dotStyle}}"></span></button></sc-for>
+</div>
+
+<div role="alert" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: #4A1D25;">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF8A7A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M12 3l9 16H3zM12 10v4M12 17.5v.01"></path></svg>
+<span style="font-size: 13.5px; line-height: 1.45;"><strong style="display: block; font-size: 14.5px;">Jorge Ramos hasn't checked in</strong>Shift started at 8:00 PM, 17 minutes ago. Bldgs 5–6 are not started.</span>
+</div>
+
+<section style="background: #1C1F5A; border-radius: 16px; padding: 12px 14px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><h2 style="margin: 0; font-size: 15px; font-weight: 700;">The Oaks at Decatur</h2><span style="font-size: 13px; color: #C9CAF0;">104 of 312 doors</span></div>
+<div aria-hidden="true" style="margin-top: 8px; height: 8px; border-radius: 999px; background: #2E3290; overflow: hidden;"><span style="display: block; width: 33%; height: 100%; background: #4CC38A;"></span></div>
+<ul style="margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
+<sc-for list="{{crew}}" as="c" hint-placeholder-count="3">
+<li style="{{c.rowStyle}}">
+<div style="display: flex; gap: 12px; align-items: center;">
+<span style="{{c.av}}">{{c.i}}</span>
+<span style="flex: 1; min-width: 0;"><span style="display: block; font-weight: 700; font-size: 15px;">{{c.name}}</span><span style="display: block; font-size: 12.5px; color: #C9CAF0;">{{c.bldgs}} · {{c.status}}</span></span>
+<span style="{{c.pillStyle}}">{{c.pill}}</span>
+</div>
+<div aria-hidden="true" style="margin-top: 8px; height: 6px; border-radius: 999px; background: #2E3290; overflow: hidden;"><span style="{{c.bar}}"></span></div>
+<sc-if value="{{c.late}}" hint-placeholder-val="{{ false }}"><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px;"><button type="button" style="height: 44px; border-radius: 10px; border: none; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 13.5px;">Text</button><button type="button" style="height: 44px; border-radius: 10px; border: 1px solid #4A4E9E; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13.5px;">Call</button><button type="button" style="height: 44px; border-radius: 10px; border: 1px solid #4A4E9E; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13.5px;">Reassign</button></div></sc-if>
+</li>
+</sc-for>
+</ul>
+</section>
+
+<a href="Steward-Review.dc.html" style="background: #1C1F5A; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #FFFFFF;">
+<span style="flex: none; width: 42px; height: 42px; border-radius: 12px; background: #3F3215; color: #F5C26B; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px;">4</span>
+<span style="flex: 1;"><strong style="display: block; font-size: 15px;">Violations to review</strong><span style="font-size: 12.5px; color: #C9CAF0;">From your crew tonight and last night</span></span>
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9FA2D6" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+</div>
+<div style="height: 12px;"></div>
+<dc-import name="StewardTabBar" role="steward" active="crew" hint-size="390px,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ps = (on) => 'flex: none; display: flex; align-items: center; gap: 6px; border-radius: 999px; padding: 9px 14px; font-weight: 700; font-size: 13px; ' + (on ? 'border: none; background: #FFFFFF; color: #1A1C5E;' : 'border: 1px solid #4A4E9E; background: transparent; color: #C9CAF0;');
+    const pd = (c) => 'width: 8px; height: 8px; border-radius: 50%; background: ' + c + ';';
+    const props = [['The Oaks · 8 PM', 1, '#FF8A7A'], ['Clarkston · 10:15 PM', 0, '#9FA2D6'], ['Brookhaven · 8 PM', 0, '#4CC38A']].map(p => ({ name: p[0], sel: p[1] ? 'true' : 'false', style: ps(p[1]), dotStyle: pd(p[2]) }));
+    const av = (c) => 'flex: none; width: 44px; height: 44px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;';
+    const pill = (k) => 'font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; ' + (k === 'in' ? 'background: #143D2E; color: #4CC38A;' : 'background: #4A1D25; color: #FF8A7A;');
+    const crew = [
+      ['Marcus Hill', 'MH', '#3A3E99', 'Bldgs 1–2', 'In 7:58 PM · 78 of 104', 'In', 'in', 75],
+      ['Tasha Reed', 'TR', '#1F6B3A', 'Bldgs 3–4', 'In 8:02 PM · 26 of 104', 'In', 'in', 25],
+      ['Jorge Ramos', 'JR', '#7A6A50', 'Bldgs 5–6', 'Not checked in', 'Late', 'late', 0],
+    ].map(c => ({ name: c[0], i: c[1], av: av(c[2]), bldgs: c[3], status: c[4], pill: c[5], pillStyle: pill(c[6]), late: c[6] === 'late',
+      bar: 'display: block; height: 100%; background: #4CC38A; width: ' + c[7] + '%;',
+      rowStyle: 'padding: 10px 12px; border-radius: 12px; background: #23266B;' + (c[6] === 'late' ? ' border: 1px solid #FF8A7A;' : '') }));
+    return { props, crew };
+  }
+}
+</script>
+</body>
+</html>

@@ -32,13 +32,17 @@ export function AccountMenu({ settingsPath, tone = "light" }: { settingsPath: st
         <button
           type="button"
           {...props}
-          aria-label={`Account: ${name}`}
+          // In the light top bar the name and role are on screen, so the button is named by them (axe
+          // label-content-name-mismatch); phones hide them, so screen readers get the name from sr-only text.
+          aria-label={light ? undefined : `Account: ${name}`}
           className={cx(
             "flex flex-none items-center gap-2.5 rounded-full p-0.5 text-left md:rounded-[12px] md:py-1 md:pr-2 md:pl-1",
             light ? "text-ink hover:bg-canvas aria-expanded:bg-canvas" : "text-white hover:bg-white/10 aria-expanded:bg-white/10",
           )}
         >
+          {light && <><span className="sr-only">Account:</span>{" "}</>}
           <Monogram initial={initial} ring={!light} />
+          {light && <span className="sr-only md:hidden">{name}</span>}
           {light && (
             <span className="hidden min-w-0 flex-col leading-tight md:flex">
               <span className="max-w-[220px] truncate text-[14px] font-bold">{name}</span>

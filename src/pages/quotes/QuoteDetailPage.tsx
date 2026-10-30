@@ -70,7 +70,7 @@ export function QuoteDetailPage() {
         <div className="min-w-0">
           <h1 className="m-0 text-[24px] text-navy-ink sm:text-[28px]">{q.community ?? q.contactName}</h1>
           <p className="mt-1 mb-0 text-[14px] text-muted">
-            {[q.company, q.units !== null && `${formatCount(q.units)} units`, `#${q.refNo}`, `requested ${dateTime(q.createdAt)}`].filter(Boolean).join(" · ")}
+            {[q.company, q.propertyCount != null && `${formatCount(q.propertyCount)} ${q.propertyCount === 1 ? "property" : "properties"}`, q.units !== null && `${formatCount(q.units)} total units`, `#${q.refNo}`, `requested ${dateTime(q.createdAt)}`].filter(Boolean).join(" · ")}
           </p>
         </div>
         <div role="group" aria-label="Quote stage" className="flex flex-wrap gap-1 rounded-xl border border-line bg-white p-1">
@@ -166,6 +166,8 @@ function ContactCard({ q }: { q: QuoteDetail }) {
 
 function RequestCard({ q }: { q: QuoteDetail }) {
   const rows: [string, ReactNode][] = [
+    ["Properties", q.propertyCount != null ? formatCount(q.propertyCount) : null],
+    ["Total units", q.units !== null ? formatCount(q.units) : null],
     ["Address", q.request.address],
     ["Type", q.request.propertyType ? (PROPERTY_TYPE_LABELS as Record<string, string>)[q.request.propertyType] ?? q.request.propertyType : null],
     ["Start", q.request.desiredStart ? new Date(`${q.request.desiredStart}T12:00:00Z`).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", year: "numeric" }) : null],
@@ -464,7 +466,7 @@ function QuoteCard({ q, onSaved }: { q: QuoteDetail; onSaved: (q: QuoteDetail, m
           </span>
         </div>
         <label className="flex flex-col gap-1.5 text-[12.5px] font-semibold">
-          Units
+          Total units
           <input inputMode="numeric" value={units} onChange={(e) => setUnits(e.target.value.replace(/\D/g, ""))} className="h-10 rounded-[9px] border border-field px-2.5 text-[14px] font-normal" />
         </label>
         <label className="col-span-2 flex flex-col gap-1.5 text-[12.5px] font-semibold">

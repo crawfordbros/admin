@@ -137,12 +137,17 @@ export function Switch({ checked, onChange, label, disabled }: { checked: boolea
 
 export type Step = { label: string; sub?: ReactNode; state: "done" | "current" | "todo" };
 
-/** Progress through a fixed sequence, such as a violation's review steps. */
-export function Stepper({ steps, label }: { steps: Step[]; label: string }) {
+/**
+ * Progress through a fixed sequence, such as a violation's review steps. `vertical` stacks the
+ * steps with a line between them, for a narrow column.
+ */
+export function Stepper({ steps, label, orientation = "horizontal" }: { steps: Step[]; label: string; orientation?: "horizontal" | "vertical" }) {
+  const vertical = orientation === "vertical";
   return (
-    <ol aria-label={label} className="m-0 flex list-none flex-wrap gap-x-2 gap-y-4 p-0">
-      {steps.map((s, i) => (
-        <li key={s.label} aria-current={s.state === "current" ? "step" : undefined} className="flex min-w-0 flex-[1_1_160px] items-center gap-2">
+    <ol aria-label={label} className={cx("m-0 flex list-none p-0", vertical ? "flex-col" : "flex-wrap gap-x-2 gap-y-4")}>
+      {steps.map((s, i) => {
+        const last = i === steps.length - 1;
+        const dot = (
           <span
             className={cx(
               "flex size-[30px] flex-none items-center justify-center rounded-full text-[13px] font-bold",
@@ -154,13 +159,29 @@ export function Stepper({ steps, label }: { steps: Step[]; label: string }) {
             {s.state === "done" ? <Icon name="check" size={15} strokeWidth={2.6} /> : i + 1}
             <span className="sr-only">{s.state === "done" ? " (done)" : s.state === "current" ? " (current)" : ""}</span>
           </span>
-          <span className="min-w-0">
+        );
+        const text = (
+          <span className={cx("min-w-0", vertical && !last && "pb-4")}>
             <span className="block text-[13.5px] font-bold">{s.label}</span>
             {s.sub && <span className="block text-[12px] text-muted">{s.sub}</span>}
           </span>
-          {i < steps.length - 1 && <span aria-hidden="true" className={cx("h-0.5 min-w-4 flex-1", s.state === "done" ? "bg-success" : "bg-line")} />}
-        </li>
-      ))}
+        );
+        return vertical ? (
+          <li key={s.label} aria-current={s.state === "current" ? "step" : undefined} className="flex gap-3">
+            <span className="flex flex-col items-center">
+              {dot}
+              {!last && <span aria-hidden="true" className={cx("w-0.5 flex-1", s.state === "done" ? "bg-success" : "bg-line")} />}
+            </span>
+            {text}
+          </li>
+        ) : (
+          <li key={s.label} aria-current={s.state === "current" ? "step" : undefined} className="flex min-w-0 flex-[1_1_160px] items-center gap-2">
+            {dot}
+            {text}
+            {!last && <span aria-hidden="true" className={cx("h-0.5 min-w-4 flex-1", s.state === "done" ? "bg-success" : "bg-line")} />}
+          </li>
+        );
+      })}
     </ol>
   );
 }

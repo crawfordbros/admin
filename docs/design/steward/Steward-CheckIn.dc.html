@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward – Check in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8BBA5}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #12143F; color: #FFFFFF; font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column;">
+<header style="padding: 18px 20px 8px; display: flex; align-items: center; gap: 12px;">
+<span aria-hidden="true" style="flex: none; width: 42px; height: 42px; border-radius: 50%; background: #3A3E99; border: 2px solid #C8BBA5; display: flex; align-items: center; justify-content: center; overflow: hidden;"><svg width="28" height="28" viewBox="0 0 24 24" fill="#6E72C4"><circle cx="12" cy="9" r="4.2"></circle><path d="M3.5 22c.8-4.6 4.3-7.2 8.5-7.2s7.7 2.6 8.5 7.2z"></path></svg></span>
+<div style="flex: 1;"><p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #C8BBA5;">WEDNESDAY, OCT 28</p><h1 style="margin: 2px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 23px;">Good evening, Marcus</h1></div>
+</header>
+
+<div style="padding: 8px 20px 0; display: flex; flex-direction: column; gap: 12px; flex: 1;">
+<p style="margin: 0; font-size: 14px; font-weight: 700;">Your shifts tonight</p>
+<sc-for list="{{shifts}}" as="s" hint-placeholder-count="2">
+<label style="{{s.style}}"><input type="radio" name="shift" checked="{{s.on}}" style="width: 20px; height: 20px; accent-color: #C8BBA5;"><span style="flex: 1;"><span style="display: block; font-weight: 700; font-size: 15.5px;">{{s.name}}</span><span style="display: block; font-size: 13px; color: #C9CAF0;">{{s.sub}}</span></span><span style="{{s.tagStyle}}">{{s.tag}}</span></label>
+</sc-for>
+
+<div role="img" aria-label="Map: you are inside The Oaks at Decatur check-in area" style="position: relative; height: 230px; border-radius: 16px; background: #1C1F5A; overflow: hidden; border: 1px solid #2E3290;">
+<span aria-hidden="true" style="position: absolute; left: 30px; top: 40px; width: 70px; height: 46px; border-radius: 6px; background: #262A6E;"></span>
+<span aria-hidden="true" style="position: absolute; left: 120px; top: 26px; width: 90px; height: 54px; border-radius: 6px; background: #262A6E;"></span>
+<span aria-hidden="true" style="position: absolute; left: 236px; top: 60px; width: 76px; height: 50px; border-radius: 6px; background: #262A6E;"></span>
+<span aria-hidden="true" style="position: absolute; left: 60px; top: 130px; width: 84px; height: 52px; border-radius: 6px; background: #262A6E;"></span>
+<span aria-hidden="true" style="position: absolute; left: 200px; top: 138px; width: 100px; height: 56px; border-radius: 6px; background: #262A6E;"></span>
+<span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 104px; height: 14px; background: #2E3290;"></span>
+<span aria-hidden="true" style="position: absolute; left: 70px; top: 20px; width: 240px; height: 190px; border-radius: 50%; border: 2px dashed #4CC38A; background: rgba(76,195,138,0.08);"></span>
+<span aria-hidden="true" style="position: absolute; left: 176px; top: 100px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; border: 5px solid #1C4FA0; box-sizing: border-box;"></span>
+<span style="position: absolute; left: 10px; bottom: 10px; font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: #12143F; color: #C9CAF0;">GPS ±8 m</span>
+</div>
+
+<div style="display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 14px; background: #143D2E;">
+<svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4CC38A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><path d="M9 10l2 2 4-4"></path></svg>
+<span><strong style="display: block; font-size: 15px;">You're at The Oaks at Decatur</strong><span style="font-size: 13px; color: #B9E8CF;">Inside the check-in area · 40 m from the compactor</span></span>
+</div>
+
+<div style="margin-top: auto; padding-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+<a href="Steward-Home.dc.html" style="height: 64px; border-radius: 16px; background: #FFFFFF; color: #1A1C5E; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Check in · 7:58 PM</a>
+<a href="#" style="text-align: center; font-size: 13.5px; font-weight: 600;">Not at the property? Check in with a reason</a>
+</div>
+</div>
+<dc-import name="StewardTabBar" role="valet" active="tonight" hint-size="390px,84px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = (on) => 'display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px; ' + (on ? 'background: #23266B; border: 2px solid #C8BBA5;' : 'background: #1C1F5A; border: 1px solid #2E3290;');
+    const tag = (now) => 'font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; ' + (now ? 'background: #3F3215; color: #F5C26B;' : 'background: #262A6E; color: #C9CAF0;');
+    const shifts = [
+      ['The Oaks at Decatur', 'Bldgs 1–2 · 8:00 PM · Steward Dana Brooks', 'Starts in 2 min', true],
+      ['Clarkston Commons', 'All buildings · 10:15 PM', 'Later', false],
+    ].map(s => ({ name: s[0], sub: s[1], tag: s[2], on: s[3], style: st(s[3]), tagStyle: tag(s[3]) }));
+    return { shifts };
+  }
+}
+</script>
+</body>
+</html>

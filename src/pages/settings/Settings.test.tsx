@@ -12,7 +12,7 @@ const settings = (): AdminSettings => ({
   overwatch: { count: 3, days: 30, countDismissed: false },
   calendar: { serviceNights: ["sun", "mon", "tue", "wed", "thu"], startTime: "20:00", makeupPolicy: "next_night" },
   weeklyReport: { day: "mon", time: "07:00", tz: "America/New_York" },
-  email: { reportsFrom: "office@cbenvironments.com", quotesFrom: "quotes@cbenvironments.com", allowedSenders: ["office@cbenvironments.com", "quotes@cbenvironments.com"] },
+  email: { reportsFrom: "office@mail.cbenvironments.com", quotesFrom: "quotes@mail.cbenvironments.com", allowedSenders: ["office@mail.cbenvironments.com", "quotes@mail.cbenvironments.com"] },
   issueTypes: [
     { key: "missed_pickup", label: "Missed pickup", labelEs: "Recolección omitida", replyTargetHours: 24, onForm: true, used: true },
     { key: "trash_in_hallway", label: "Trash in hallway", labelEs: "Basura en el pasillo", replyTargetHours: 24, onForm: true, used: true },
@@ -60,7 +60,7 @@ describe("settings model", () => {
       "issue:other": "Another issue type already has this label",
       "violation:bag_not_tied": "Enter a label",
       "calendar.serviceNights": "Choose at least one service night",
-      "email.quotesFrom": "Email can only be sent from office@cbenvironments.com or quotes@cbenvironments.com. Another address needs to be added to the email sending setup first.",
+      "email.quotesFrom": "Email can only be sent from office@mail.cbenvironments.com or quotes@mail.cbenvironments.com. Another address needs to be added to the email sending setup first.",
     });
   });
 });
@@ -155,7 +155,7 @@ describe("SettingsPage", () => {
     expect(calls.filter((c) => c.method !== "GET")).toEqual([]);
 
     await userEvent.click(screen.getByRole("button", { name: "Discard" }));
-    expect(screen.getByLabelText("Quotes sent from")).toHaveValue("quotes@cbenvironments.com");
+    expect(screen.getByLabelText("Quotes sent from")).toHaveValue("quotes@mail.cbenvironments.com");
     expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
   });
 

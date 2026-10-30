@@ -11,46 +11,71 @@ import { cx } from "../styles";
 /** A search hit: an API result, or one of the Admin Portal's own pages. */
 type Hit = Omit<SearchResult, "kind"> & { kind: SearchResult["kind"] | "page" };
 
-const GROUPS: { kind: Hit["kind"]; label: string }[] = [
-  { kind: "page", label: "Pages" },
-  { kind: "org", label: "Organizations" },
-  { kind: "property", label: "Properties" },
-  { kind: "unit", label: "Units" },
-  { kind: "report", label: "Reports" },
-  { kind: "violation", label: "Violations" },
-  { kind: "user", label: "Users" },
-  { kind: "quote", label: "Quotes" },
-];
+type Group = { kind: Hit["kind"]; label: string };
+export type PalettePage = { path: string; label: string; detail: string };
 
-const PAGES = [
+const ADMIN_PAGES: PalettePage[] = [
   ...ADMIN_SECTIONS.map((s) => ({ path: s.path, label: s.label, detail: s.detail })),
   { path: "/admin/settings/account", label: "Account settings", detail: "Your name, password, passkeys and two-step verification." },
 ];
 
+/** What differs between the Admin Portal's palette and the Property Portal's. */
+const MODES = {
+  admin: {
+    endpoint: "/admin/search",
+    dialog: "Search the Admin Portal",
+    placeholder: "Search orgs, properties, units, tickets…",
+    hint: "Type a name, unit, ticket number (#1042) or violation (V-2041).",
+    recentKey: "cbes-admin:recent-searches",
+    groups: [
+      { kind: "page", label: "Pages" },
+      { kind: "org", label: "Organizations" },
+      { kind: "property", label: "Properties" },
+      { kind: "unit", label: "Units" },
+      { kind: "report", label: "Reports" },
+      { kind: "violation", label: "Violations" },
+      { kind: "user", label: "Users" },
+      { kind: "quote", label: "Quotes" },
+    ] as Group[],
+  },
+  portal: {
+    endpoint: "/portal/search",
+    dialog: "Search the Property Portal",
+    placeholder: "Search properties, units, violation IDs…",
+    hint: "Type a property, unit, violation (V-2041) or resident issue (#1042).",
+    recentKey: "cbes-portal:recent-searches",
+    groups: [
+      { kind: "page", label: "Pages" },
+      { kind: "property", label: "Properties" },
+      { kind: "unit", label: "Units" },
+      { kind: "violation", label: "Violations" },
+      { kind: "issue", label: "Resident issues" },
+    ] as Group[],
+  },
+};
+
 /** Pages whose name or description has every word typed, names that start with it first. */
-function matchPages(term: string): Hit[] {
+function matchPages(pages: PalettePage[], term: string): Hit[] {
   const words = term.toLowerCase().split(/\s+/).filter(Boolean);
   if (!words.length) return [];
-  return PAGES.filter((p) => words.every((w) => `${p.label} ${p.detail}`.toLowerCase().includes(w)))
+  return pages.filter((p) => words.every((w) => `${p.label} ${p.detail}`.toLowerCase().includes(w)))
     .sort((a, b) => Number(b.label.toLowerCase().startsWith(words[0])) - Number(a.label.toLowerCase().startsWith(words[0])))
     .slice(0, 4)
     .map((p) => ({ kind: "page", id: p.path, title: p.label, subtitle: p.detail, link: p.path }));
 }
 
-const RECENT_KEY = "cbes-admin:recent-searches";
-
-function readRecent(): string[] {
+function readRecent(key: string): string[] {
   try {
-    const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
+    const v = JSON.parse(localStorage.getItem(key) ?? "[]");
     return Array.isArray(v) ? v.filter((s): s is string => typeof s === "string").slice(0, 5) : [];
   } catch {
     return [];
   }
 }
 
-function saveRecent(q: string) {
+function saveRecent(key: string, q: string) {
   try {
-    localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...readRecent().filter((s) => s !== q)].slice(0, 5)));
+    localStorage.setItem(key, JSON.stringify([q, ...readRecent(key).filter((s) => s !== q)].slice(0, 5)));
   } catch {
     // Private windows can refuse storage; recent searches are only a convenience.
   }
@@ -65,33 +90,38 @@ function useDebounced(value: string, ms: number) {
   return v;
 }
 
-/** The ⌘K command palette: find an organization, property, unit, ticket, person or quote. */
-export function SearchPalette({ onClose }: { onClose: () => void }) {
+/**
+ * The ⌘K command palette. In the Admin Portal: organizations, properties, units, tickets, people
+ * and quotes. In the Property Portal (`mode="portal"`): properties, units, violations and resident
+ * issues the person can see, plus the sidebar's pages (`pages`).
+ */
+export function SearchPalette({ onClose, mode = "admin", pages = ADMIN_PAGES }: { onClose: () => void; mode?: "admin" | "portal"; pages?: PalettePage[] }) {
+  const cfg = MODES[mode];
   const api = useApi();
   const navigate = useNavigate();
   const panel = useRef<HTMLDivElement>(null);
   const listId = useId();
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
-  const [recent] = useState(readRecent);
+  const [recent] = useState(() => readRecent(cfg.recentKey));
   useFocusTrap(panel, onClose);
 
   const term = useDebounced(q.trim(), 200);
   const search = useQuery({
-    queryKey: ["admin", "search", term],
-    queryFn: () => api<{ results: SearchResult[] }>(`/admin/search?q=${encodeURIComponent(term)}`),
+    queryKey: [mode, "search", term],
+    queryFn: () => api<{ results: SearchResult[] }>(`${cfg.endpoint}?q=${encodeURIComponent(term)}`),
     enabled: term.length >= 2,
     retry: false,
     staleTime: 30_000,
   });
 
-  const results: Hit[] = term.length >= 2 ? [...matchPages(term), ...(search.data?.results ?? [])] : [];
+  const results: Hit[] = term.length >= 2 ? [...matchPages(pages, term), ...(search.data?.results ?? [])] : [];
   // Results in display order, so arrow keys follow what's on screen.
-  const ordered = GROUPS.flatMap((g) => results.filter((r) => r.kind === g.kind));
+  const ordered = cfg.groups.flatMap((g) => results.filter((r) => r.kind === g.kind));
   const at = Math.min(active, Math.max(0, ordered.length - 1));
 
   const open = (r: Hit) => {
-    saveRecent(term);
+    saveRecent(cfg.recentKey, term);
     onClose();
     navigate(r.link);
   };
@@ -114,7 +144,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-navy-night/60 p-4 pt-[10vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Search the Admin Portal" className="w-full max-w-[640px] overflow-hidden rounded-2xl bg-white outline-none shadow-[0_24px_60px_rgba(10,12,40,0.45)]">
+      <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-label={cfg.dialog} className="w-full max-w-[640px] overflow-hidden rounded-2xl bg-white outline-none shadow-[0_24px_60px_rgba(10,12,40,0.45)]">
         <div className="flex items-center gap-2.5 border-b border-line px-4">
           <Icon name="search" size={20} strokeWidth={2} className="flex-none text-muted" />
           <input
@@ -126,7 +156,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
             aria-controls={listId}
             aria-activedescendant={ordered.length ? optionId(at) : undefined}
             aria-autocomplete="list"
-            placeholder="Search orgs, properties, units, tickets…"
+            placeholder={cfg.placeholder}
             value={q}
             onChange={(e) => {
               setQ(e.target.value);
@@ -164,7 +194,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                   </ul>
                 </>
               ) : (
-                <p className="m-0 px-2 py-4 text-center text-[14px] text-muted">Type a name, unit, ticket number (#1042) or violation (V-2041).</p>
+                <p className="m-0 px-2 py-4 text-center text-[14px] text-muted">{cfg.hint}</p>
               )}
             </div>
           )}
@@ -177,7 +207,7 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
           )}
 
           <div id={listId} role="listbox" aria-label="Results" hidden={ordered.length === 0}>
-            {GROUPS.map((g) => {
+            {cfg.groups.map((g) => {
               const items = ordered.map((r, i) => ({ r, i })).filter(({ r }) => r.kind === g.kind);
               if (!items.length) return null;
               return (
