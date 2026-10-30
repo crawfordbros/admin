@@ -75,7 +75,7 @@ export function RepDashboardPage() {
   const atLimit = org.propertyCount >= org.propertyLimit;
   const none = org.propertyCount === 0;
   const firstName = me.data?.user.name?.split(" ")[0];
-  const reports = `/portal/reports?scope=organization&org=${org.id}`;
+  const reports = `/portal/reporting?scope=organization&org=${org.id}`;
   const q = search.trim().toLowerCase();
   const shown = q ? d.properties.filter((p) => `${p.name} ${p.city ?? ""}`.toLowerCase().includes(q)) : d.properties;
   const assignTo = d.properties.find((p) => p.id === assigning);
@@ -96,7 +96,7 @@ export function RepDashboardPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <ButtonLink to={reports} variant="secondary">
             <Icon name="bar-chart" size={20} strokeWidth={2} />
-            Reports
+            Reporting
           </ButtonLink>
           {atLimit ? (
             <span className="text-[14px] font-semibold text-muted">

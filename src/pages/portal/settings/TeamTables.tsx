@@ -1,3 +1,5 @@
+import type { PropertyReference } from "../../../lib/propertyAddress";
+import { PropertyNames } from "../../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -65,7 +67,7 @@ export function PendingInvitations({ orgId, invitations, onChanged, standalone }
       ),
     },
     { key: "role", header: "Role", cell: (i) => roleLabel(i.role) },
-    { key: "properties", header: "Properties", cell: (i) => (i.role === "representative" ? "All properties" : i.properties.map((p) => p.name).join(", ")) },
+    { key: "properties", header: "Properties", cell: (i) => (i.role === "representative" ? "All properties" : <PropertyNames properties={i.properties} />) },
     {
       key: "status",
       header: "Status",
@@ -135,7 +137,7 @@ export function PendingInvitations({ orgId, invitations, onChanged, standalone }
   );
 }
 
-export function YourTeam({ orgId, orgName, team, properties, onChanged }: { orgId: string; orgName: string; team: TeamMember[]; properties: { id: string; name: string }[]; onChanged: () => Promise<unknown> }) {
+export function YourTeam({ orgId, orgName, team, properties, onChanged }: { orgId: string; orgName: string; team: TeamMember[]; properties: PropertyReference[]; onChanged: () => Promise<unknown> }) {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<TeamMember | null>(null);
   const needle = q.trim().toLowerCase();
@@ -162,7 +164,7 @@ export function YourTeam({ orgId, orgName, team, properties, onChanged }: { orgI
     {
       key: "properties",
       header: "Properties",
-      cell: (m) => <span className="line-clamp-2 max-w-[130px] text-[13.5px]">{m.properties === "all" ? "All properties" : m.properties.map((p) => p.name).join(", ")}</span>,
+      cell: (m) => <span className="block min-w-[130px] text-[13.5px]">{m.properties === "all" ? "All properties" : <PropertyNames properties={m.properties} />}</span>,
     },
     { key: "weekly", header: "Weekly report", className: "whitespace-nowrap", cell: (m) => (m.receivesWeeklyReport ? "Yes" : "No") },
     { key: "last", header: "Last active", className: "whitespace-nowrap", cell: (m) => (m.lastSeenAt ? timeAgo(m.lastSeenAt) : <span className="text-muted">Not yet</span>) },
@@ -218,7 +220,7 @@ function EditAccessModal({
   orgId: string;
   orgName: string;
   member: TeamMember;
-  properties: { id: string; name: string }[];
+  properties: PropertyReference[];
   onClose: () => void;
   onChanged: () => Promise<unknown>;
 }) {

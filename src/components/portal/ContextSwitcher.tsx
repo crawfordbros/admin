@@ -1,3 +1,4 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
 import type { ReactNode } from "react";
 import { OrgLogo, PropertyPhoto } from "../brand";
 import { Icon } from "../icons";
@@ -17,7 +18,7 @@ function Face({ tile, name, sub, chevron, action }: { tile: ReactNode; name: str
       {tile}
       <span className="min-w-0 flex-1 leading-tight">
         <span className="block truncate text-[14px] font-bold">{name}</span>
-        <span className="block truncate text-[12px] text-nav-pill">{sub}</span>
+        <span className="block whitespace-normal break-words text-[12px] text-nav-pill">{sub}</span>
         {action && <span className="sr-only">. {action}</span>}
       </span>
       {chevron && <Icon name="chevron-down" size={16} strokeWidth={2} className="flex-none text-nav-pill" />}
@@ -58,12 +59,12 @@ export function ContextSwitcher({ onNavigate }: { onNavigate?: () => void }) {
         )}
       </span>
     );
-    const face = <Face tile={tile} name={property.name} sub={property.organizationName ?? "Your property"} chevron={properties.length > 1} action="Switch property" />;
+    const face = <Face tile={tile} name={property.name} sub={propertyAddressText(property)} chevron={properties.length > 1} action="Switch property" />;
     if (properties.length < 2) return <div className={box}>{face}</div>;
     return (
       <Menu
         label="Switch property"
-        items={properties.map((p) => ({ label: p.id === property.id ? `${p.name} (current)` : p.name, onSelect: () => (choose(p.id), onNavigate?.()) }))}
+        items={properties.map((p) => ({ id: p.id, label: p.id === property.id ? `${p.name} (current)` : p.name, description: propertyAddressText(p), onSelect: () => (choose(p.id), onNavigate?.()) }))}
         trigger={(props) => (
           <button type="button" {...props} className={`${box} hover:border-navy-soft`}>
             {face}

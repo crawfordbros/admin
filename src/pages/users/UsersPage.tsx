@@ -1,3 +1,5 @@
+import { PropertyNames } from "../../components/PropertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { Suspense, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-react";
@@ -140,7 +142,7 @@ export function UsersPage() {
     <>
       <PageHeader
         title="Users"
-        description="Everyone with a portal account. Accounts are by invitation only and need two-step verification. Residents don't have accounts: their details stay on the tickets they send."
+        description="Everyone with a portal account. Accounts are by invitation only and need two-step verification. Residents don't have accounts: their details stay on the issues they send."
         actions={
           <>
             <Button variant="secondary" onClick={() => setInviting(true)}>
@@ -238,7 +240,7 @@ export function UsersPage() {
                 <RoleBadge role={u.role} />
               ),
             },
-            { key: "access", header: "Access", cell: (u) => <span className="text-[13px]">{u.access}</span> },
+            { key: "access", header: "Access", cell: (u) => <span className="text-[13px]">{u.properties?.length ? <PropertyNames properties={u.properties} /> : u.access}</span> },
             {
               key: "mfa",
               header: "Two-step",
@@ -356,7 +358,7 @@ function InviteStaffModal({ onClose, onDone }: { onClose: () => void; onDone: (e
               <label key={p.id} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-tint">
                 <input type="checkbox" name="propertyIds" value={p.id} className="size-5 accent-navy" />
                 <span>
-                  {p.name}
+                  <span>{p.name}<PropertyAddress property={p} /></span>
                   {p.city && <span className="text-muted"> · {p.city}</span>}
                 </span>
               </label>
@@ -413,7 +415,7 @@ function RemoveAccessModal({ user, onClose, onDone }: { user: AdminUserRow; onCl
       }
     >
       <p className="m-0 text-[15px] leading-relaxed">
-        {who} loses every organization and property they can see, and the portal signs them out on their next click. Their past notes and reports stay.
+        {who} loses every organization and property they can see, and the portal signs them out on their next click. Their past notes and replies stay.
       </p>
       {needsStepUp && (
         <div className="mt-4">
@@ -440,7 +442,7 @@ const ACTIONS: Record<string, string> = {
   "invite.resend": "sent their invitation again",
   "invite.cancel": "cancelled their invitation",
   "invite.staff": "invited them",
-  "report.update": "updated a report",
+  "report.update": "updated an issue",
 };
 
 function ActivityDrawer({ user, onClose }: { user: AdminUserRow; onClose: () => void }) {
@@ -468,7 +470,7 @@ function ActivityDrawer({ user, onClose }: { user: AdminUserRow; onClose: () => 
         </ol>
       )}
       <p className="mt-5 mb-0 text-[13px] text-muted">
-        Notes and reports they wrote stay on each violation and report. <Link to="/admin/violations">Violations</Link> · <Link to="/admin/reports">Reports</Link>
+        Notes and replies they wrote stay on each violation and issue. <Link to="/admin/violations">Violations</Link> · <Link to="/admin/issues">Issues</Link>
       </p>
     </Drawer>
   );

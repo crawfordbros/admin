@@ -1,3 +1,6 @@
+import { propertyOptionLabel } from "../../../lib/propertyAddress";
+import { propertyLocation } from "../../../lib/propertyAddress";
+import { PropertyAddress } from "../../../components/PropertyAddress";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -186,7 +189,7 @@ export function RepViolationsPage() {
         </span>
       ),
     },
-    ...(oneProperty ? [] : [{ key: "property", header: "Property", cell: (r: ViolationRow) => r.propertyName }]),
+    ...(oneProperty ? [] : [{ key: "property", header: "Property", cell: (r: ViolationRow) => <span>{r.propertyName}<PropertyAddress property={propertyLocation(r)} /></span> }]),
     { key: "where", header: "Where", cell: (r) => <span className="text-muted">{where(r)}</span> },
     { key: "logged", header: "Logged", cell: (r) => <span className="whitespace-nowrap text-muted">{serviceTime(r.loggedAt)}</span> },
     {
@@ -220,9 +223,9 @@ export function RepViolationsPage() {
             <Icon name="download" size={18} strokeWidth={2} />
             Export CSV
           </Button>
-          <ButtonLink variant="secondary" to={ctx.kind === "organization" && ctx.org ? `/portal/reports?scope=organization&org=${ctx.org.id}` : `/portal/reports?scope=property${scope && "property" in scope ? `&property=${scope.property}` : ""}`}>
+          <ButtonLink variant="secondary" to={ctx.kind === "organization" && ctx.org ? `/portal/reporting?scope=organization&org=${ctx.org.id}` : `/portal/reporting?scope=property${scope && "property" in scope ? `&property=${scope.property}` : ""}`}>
             <Icon name="bar-chart" size={18} strokeWidth={2} />
-            Reports
+            Reporting
           </ButtonLink>
         </div>
       </div>
@@ -254,7 +257,7 @@ export function RepViolationsPage() {
               {ctx.kind === "organization" && <option value="">All {plural(propertyOptions.length, "property", "properties")}</option>}
               {propertyOptions.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
+                  {propertyOptionLabel(p)}
                 </option>
               ))}
             </select>

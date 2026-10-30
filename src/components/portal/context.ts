@@ -47,7 +47,7 @@ export function resolvePortalContext({ kind, route, query, stored, organizations
 }
 
 /** List pages scope by ?org= or ?property=; switching keeps the page and changes the scope. */
-const LISTS = ["/portal/violations", "/portal/issues", "/portal/reports"];
+const LISTS = ["/portal/violations", "/portal/issues", "/portal/reporting"];
 
 /** Where choosing another organization or property in the sidebar goes from the current page. */
 export function switchPath(kind: "organization" | "property", id: string, pathname: string, search: string): string {

@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useUser } from "@clerk/clerk-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -64,22 +65,22 @@ export function OverviewPage() {
               <h2 id="ov-activity" className="m-0 text-lg text-navy-ink">
                 Activity, last 8 weeks
               </h2>
-              <p className="mt-0.5 mb-0 text-[13px] text-muted">Resident reports and valet violations across all organizations</p>
+              <p className="mt-0.5 mb-0 text-[13px] text-muted">Resident issues and valet violations across all organizations</p>
             </div>
             <Legend
               items={[
                 { label: "Violations", tone: "navy" },
-                { label: "Resident reports", tone: "gold-light" },
+                { label: "Resident issues", tone: "gold-light" },
               ]}
             />
           </div>
           {data ? (
             <GroupedBars
-              label="Violations and resident reports per week, last 8 weeks"
+              label="Violations and resident issues per week, last 8 weeks"
               data={data.activity.map((w) => ({ label: shortDate(w.weekStart), violations: w.violations, reports: w.residentReports }))}
               series={[
                 { key: "violations", label: "Violations", tone: "navy" },
-                { key: "reports", label: "Resident reports", tone: "gold-light" },
+                { key: "reports", label: "Resident issues", tone: "gold-light" },
               ]}
             />
           ) : (
@@ -151,13 +152,13 @@ function Kpis({ data, range }: { data: AdminOverview; range: OverviewRange }) {
   const reply = k.avgFirstReplyHours.value;
   const tiles = [
     {
-      label: "Open resident reports",
+      label: "Open resident issues",
       value: formatCount(k.openReports.value ?? 0),
       delta: k.openReports.note ? { text: k.openReports.note, tone: "bad" as const } : change(k.openReports, range, { lowerIsBetter: true }),
       icon: "message" as const,
       iconTone: "navy" as const,
       spark: k.openReports.spark,
-      to: "/admin/reports?tab=open&dates=all",
+      to: "/admin/issues?tab=open&dates=all",
     },
     {
       label: "Avg first reply",
@@ -166,7 +167,7 @@ function Kpis({ data, range }: { data: AdminOverview; range: OverviewRange }) {
       icon: "clock" as const,
       iconTone: "success" as const,
       spark: k.avgFirstReplyHours.spark,
-      to: `/admin/reports?dates=${range}`,
+      to: `/admin/issues?dates=${range}`,
     },
     {
       label: range === "today" ? "Violations today" : `Violations, ${range === "7d" ? "7" : "30"} days`,
@@ -233,7 +234,7 @@ function Attention({ items }: { items: AttentionItem[] }) {
                 <Icon name={look.icon} size={18} strokeWidth={2} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-bold">{a.title}</span>
+                <span className="block text-[14px] font-bold">{a.title}</span>{a.property && <span>{a.kind === "report_due" && <span className="block text-[13px]">{a.property.name}</span>}<PropertyAddress property={a.property} /></span>}
                 <span className="block text-[12.5px] text-muted">{a.subtitle}</span>
               </span>
               <Pill tone={look.tag}>{a.tag}</Pill>
@@ -277,7 +278,7 @@ function Tonight({ data }: { data: AdminOverview }) {
           <li key={t.propertyId} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 text-[14px] sm:grid-cols-[minmax(0,1fr)_120px_96px]">
             <span className="min-w-0">
               <Link to={propertyPath(t.orgId, t.propertyId)} className="block truncate font-bold text-ink no-underline hover:underline">
-                {t.name}
+                <span>{t.name}<PropertyAddress property={t} /></span>
               </Link>
               <span className="block truncate text-[12.5px] text-muted">
                 {[t.orgName, t.stewardName ? `Steward ${t.stewardName}` : "No Steward assigned"].filter(Boolean).join(" · ")}
@@ -313,7 +314,7 @@ function Orgs({ orgs }: { orgs: AdminOverview["orgs"] }) {
           <tr className="text-left text-[12px] text-muted">
             <th className="border-b border-line px-1.5 py-2 font-semibold">Organization</th>
             <th className="border-b border-line px-1.5 py-2 text-right font-semibold">Properties</th>
-            <th className="border-b border-line px-1.5 py-2 text-right font-semibold">Open reports</th>
+            <th className="border-b border-line px-1.5 py-2 text-right font-semibold">Open issues</th>
             <th className="border-b border-line px-1.5 py-2 text-right font-semibold">Violations 30d</th>
             <th className="border-b border-line px-1.5 py-2 text-right font-semibold">Avg reply</th>
           </tr>

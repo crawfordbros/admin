@@ -1,3 +1,5 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -60,7 +62,7 @@ export function WeeklyReportPage() {
 
   usePortalPage(
     data ? `Weekly report: ${data.property.name}, ${data.week.label}` : null,
-    data ? [{ label: shell?.kind === "organization" ? data.property.name : "My property", to: `/portal/properties/${id}` }, { label: "Weekly report" }] : undefined,
+    data ? [{ label: shell?.kind === "organization" ? data.property.name : "My property", to: `/portal/properties/${id}`, description: propertyAddressText(data.property) }, { label: "Weekly report" }] : undefined,
   );
 
   if (isPending) return <Loading label="Building the report…" />;
@@ -92,7 +94,7 @@ export function WeeklyReportPage() {
     <div className="mx-auto flex max-w-5xl flex-col gap-5 print:max-w-none print:gap-4">
       <div className="print:hidden">
         <Link to={`/portal/properties/${id}`} className="text-[15px]">
-          {data.property.name}
+          <span>{data.property.name}<PropertyAddress property={data.property} /></span>
         </Link>
       </div>
       <p className="m-0 hidden text-[13px] font-bold tracking-wide text-gold-text uppercase print:block">
@@ -103,6 +105,7 @@ export function WeeklyReportPage() {
         <div className="min-w-0">
           <p className="mt-0 mb-1 text-sm font-semibold text-gold-text">Weekly report</p>
           <h1 className="m-0 text-3xl font-bold text-navy">{data.property.name}</h1>
+          <PropertyAddress property={data.property} className="text-[14px]" />
           <p className="mt-1 mb-0 text-lg text-muted">{data.week.label}</p>
         </div>
         <nav aria-label="Choose a week" className="flex w-full gap-2 sm:w-auto print:hidden">
@@ -134,18 +137,18 @@ export function WeeklyReportPage() {
       {downloadError && <Alert>{downloadError}</Alert>}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat value={rr.total} label="Resident reports this week" />
+        <Stat value={rr.total} label="Resident issues this week" />
         <Stat value={rr.open} label="Still open from this week" />
         <Stat value={hours(rr.avgFirstResponseHours)} label="Average first reply" />
-        <Stat value={data.stillOpen} label="Open reports overall" />
+        <Stat value={data.stillOpen} label="Open issues overall" />
       </div>
 
-      <Card title="Resident reports">
+      <Card title="Resident issues">
         {rr.items.length === 0 ? (
-          <p className="m-0 text-muted">No resident reports this week.</p>
+          <p className="m-0 text-muted">No resident issues this week.</p>
         ) : (
           <div className="flex flex-col gap-6">
-            {rr.byType.length > 0 && <Table head={["Issue", "Reports"]} rows={rr.byType.map((t) => [t.label, t.count])} />}
+            {rr.byType.length > 0 && <Table head={["Issue type", "Issues"]} rows={rr.byType.map((t) => [t.label, t.count])} />}
             <Table
               head={["Ref", "Date", "Issue", "Unit", "Status"]}
               rows={rr.items.map((i) => [`#${i.refNo}`, formatDay(i.date), i.issueLabel, i.unit ?? "—", i.statusLabel])}

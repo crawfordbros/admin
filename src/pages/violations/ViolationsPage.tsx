@@ -1,3 +1,6 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -262,7 +265,7 @@ export function ViolationsPage() {
                 header: "Property · Unit",
                 cell: (r) => (
                   <>
-                    <span className="block font-semibold">{r.propertyName}</span>
+                    <span className="block font-semibold">{r.propertyName}</span><PropertyAddress property={propertyLocation(r)} />
                     <span className="text-[12px] text-muted">{[r.orgName, r.building && `Bldg ${r.building}`, r.unit].filter(Boolean).join(" · ")}</span>
                   </>
                 ),
@@ -362,7 +365,8 @@ function PhotoGrid({ rows, loading, stage, back }: { rows: ViolationRow[]; loadi
             <span className="flex flex-1 flex-col gap-1 p-2.5">
               <strong className="text-[13.5px]">{r.typeLabel}</strong>
               <span className="text-[12px] text-muted">
-                Unit {r.unit} · {r.propertyName}
+                <span className="block">{r.propertyName}<PropertyAddress property={propertyLocation(r)} /></span>
+                Unit {r.unit}
               </span>
               <span className="mt-auto pt-1">
                 <StatusBadge kind="violation" status={r.status} />
@@ -384,7 +388,7 @@ function useFilterOptions() {
   const stewards = useQuery({ queryKey: ["admin", "stewards"], queryFn: () => api<{ items: StaffOption[] }>("/admin/stewards") });
   return {
     orgs: orgs.data?.organizations.map((o) => ({ value: o.id, label: o.name })) ?? [],
-    properties: properties.data?.properties.map((p) => ({ value: p.id, label: p.name })) ?? [],
+    properties: properties.data?.properties.map((p) => ({ value: p.id, label: p.name, description: propertyAddressText(p) })) ?? [],
     types: types.data?.items.map((t) => ({ value: t.key, label: t.label })) ?? [],
     stewards: stewards.data?.items.map((s) => ({ value: s.id, label: s.name })) ?? [],
   };

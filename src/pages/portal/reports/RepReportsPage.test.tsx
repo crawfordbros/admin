@@ -83,9 +83,9 @@ const api = (me: unknown = repMe, data: PortalReportSummary | [number, unknown] 
     return [404, { error: "Not found" }];
   });
 
-const show = (url = "/portal/reports?scope=organization&org=org1") =>
+const show = (url = "/portal/reporting?scope=organization&org=org1") =>
   renderRoute(
-    "/portal/reports",
+    "/portal/reporting",
     url,
     <RepContextProvider>
       <RepReportsPage />
@@ -113,7 +113,7 @@ describe("RepReportsPage", () => {
     expect(screen.getByText("All under 24 hours")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Violations sent and resolved by the property/ })).toBeInTheDocument();
     expect(screen.getByText(/4 issues: Missed pickup \(2\)/)).toBeInTheDocument();
-    expect(document.title).toBe("Reports | CBES Portal");
+    expect(document.title).toBe("Reporting | CBES Portal");
   });
 
   it("breaks the organization down by property, with totals", async () => {
@@ -184,7 +184,7 @@ describe("RepReportsPage", () => {
   it("gives a manager their property only", async () => {
     vi.stubGlobal("__clerkRole", "manager");
     const calls = api(managerMe, summary({ scope: { kind: "property", id: "p1", name: "The Oaks at Decatur" }, byProperty: [] }));
-    show("/portal/reports");
+    show("/portal/reporting");
     await screen.findAllByText("Week of Oct 18–24, 2026");
     expect(screen.queryByRole("button", { name: "Organization" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "By property" })).not.toBeInTheDocument();

@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ROLE_LABELS, ROLES, isAdmin, type Role } from "../../access";
@@ -99,7 +100,7 @@ export function ChangeRoleModal({ user, actorRole, onClose, onDone }: {
                 {available.map((p) => (
                   <label key={p.id} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-tint">
                     <input type="checkbox" className="size-5 accent-navy" checked={selectedProperties.includes(p.id)} onChange={(e) => setPropertyIds(e.target.checked ? [...selectedProperties, p.id] : selectedProperties.filter((id) => id !== p.id))} />
-                    {p.name}
+                    <span>{p.name}<PropertyAddress property={p} /></span>
                   </label>
                 ))}
                 {!available.length && <p className="m-0 p-2 text-sm text-muted">{orgRole && !organizationId ? "Choose an organization to see its properties." : "No active properties available."}</p>}

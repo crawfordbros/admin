@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../PropertyAddress";
 import { Link } from "react-router-dom";
 import type { RepAttentionItem } from "../../lib/api";
 import { age } from "../../lib/format";
@@ -40,7 +42,8 @@ export function AttentionList({ items, filter, max = 10 }: { items: RepAttention
                 <strong className="text-[14.5px]">{item.title}</strong>
                 {violation ? <StatusBadge kind="portalViolation" status="sent" /> : <StatusBadge kind="portalIssue" status={item.statusLabel as "New"} />}
               </span>
-              <span className="mt-0.5 block text-[12.5px] text-muted">{[item.ref, item.propertyName, item.where].filter(Boolean).join(" · ")}</span>
+              <span className="mt-1 block text-[13px]">{item.propertyName}<PropertyAddress property={propertyLocation(item)} /></span>
+              <span className="mt-0.5 block text-[12.5px] text-muted">{[item.ref, item.where].filter(Boolean).join(" · ")}</span>
             </span>
             <span className={cx("text-[12.5px] font-bold whitespace-nowrap", overdue(item) ? "text-danger" : "text-muted")}>{age(item.ageHours)}</span>
             <Link to={item.link} aria-label={`${violation ? "Review" : "View"} ${item.ref}`} className={buttonClass("secondary", "h-9! min-h-0! px-3.5! text-[13px]!")}>

@@ -137,7 +137,7 @@ export function ResidentIssues({ home }: { home: PropertyHome }) {
           <h2 id="issues-title" className="m-0 text-[19px]">
             Resident issues
           </h2>
-          <p className="m-0 mt-0.5 text-[13px] text-muted">Reports residents send from the QR code. CBES staff handle them within 24 hours; you can follow along.</p>
+          <p className="m-0 mt-0.5 text-[13px] text-muted">Issues residents report from the QR code. CBES staff handle them within 24 hours; you can follow along.</p>
         </div>
         <Link to={`/portal/issues?property=${home.property.id}`} className="text-[13.5px] font-bold no-underline hover:underline">
           All issues →

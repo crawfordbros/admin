@@ -86,12 +86,16 @@ describe("QuotesPage", () => {
     await userEvent.click(screen.getByRole("menuitem", { name: "Move to Won" }));
     const dialog = screen.getByRole("dialog", { name: "Won: set up the customer" });
     await within(dialog).findByRole("option", { name: "Summit Ridge Communities" });
+    await userEvent.clear(within(dialog).getByLabelText("Street address"));
+    await userEvent.type(within(dialog).getByLabelText("Street address"), "6100 Roswell Rd");
+    await userEvent.type(within(dialog).getByLabelText("City"), "Sandy Springs");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30328");
     await userEvent.click(within(dialog).getByRole("button", { name: "Create organization and property" }));
     expect(await within(dialog).findByText(/is already an organization, so it's chosen above/)).toBeInTheDocument();
     expect(within(dialog).getByLabelText("Organization")).toHaveValue("org1");
     await userEvent.click(within(dialog).getByRole("button", { name: "Add property to organization" }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/organizations/org1/properties/p9"));
-    expect(calls.filter((c) => c.url.endsWith("/convert")).at(-1)?.body).toEqual({ organizationId: "org1" });
+    expect(calls.filter((c) => c.url.endsWith("/convert")).at(-1)?.body).toEqual({ organizationId: "org1", propertyAddress: { address: "6100 Roswell Rd", city: "Sandy Springs", zip: "30328" } });
   });
 
   it("lists quotes and adds one by hand", async () => {

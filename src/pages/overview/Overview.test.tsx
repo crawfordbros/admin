@@ -18,7 +18,7 @@ const overview = (o: Partial<AdminOverview> = {}): AdminOverview => ({
   },
   activity: ["2026-09-06", "2026-09-13", "2026-09-20", "2026-09-27", "2026-10-04", "2026-10-11", "2026-10-18", "2026-10-25"].map((weekStart, i) => ({ weekStart, violations: 30 + i, residentReports: 12 })),
   attention: [
-    { kind: "report_due", title: "Report #1042 · Missed pickup", subtitle: "The Oaks at Decatur · Unit 305", tag: "3h left on 24h", severity: "high", link: "/admin/reports/r1", at: "2026-10-27T23:00:00Z" },
+    { kind: "report_due", title: "Issue #1042 · Missed pickup", subtitle: "The Oaks at Decatur · Unit 305", tag: "3h left on 24h", severity: "high", link: "/admin/issues/r1", at: "2026-10-27T23:00:00Z" },
     { kind: "violations_to_review", title: "6 violations awaiting review", subtitle: "Logged, not yet sent to properties", tag: "Review", severity: "medium", link: "/admin/violations?stage=new", at: "2026-10-28T02:00:00Z" },
   ],
   service: { tonight: true, date: "2026-10-28", holidayName: null, startTime: "20:00", nextServiceNight: null, valetStatus: "ok", clockedIn: 2, total: 3 },
@@ -39,15 +39,15 @@ describe("OverviewPage", () => {
     renderRoute("/admin", "/admin", <OverviewPage />);
 
     expect(await screen.findByText("Tonight is a service night. 2 of 3 properties have a valet clocked in.")).toBeInTheDocument();
-    const open = screen.getByRole("link", { name: /Open resident reports/ });
-    expect(open).toHaveAttribute("href", "/admin/reports?tab=open&dates=all");
+    const open = screen.getByRole("link", { name: /Open resident issues/ });
+    expect(open).toHaveAttribute("href", "/admin/issues?tab=open&dates=all");
     expect(screen.getByRole("link", { name: /Violations, 7 days/ })).toHaveAttribute("href", "/admin/violations?stage=all&dates=7d");
     expect(open).toHaveTextContent("−2 vs the previous 7 days");
     expect(screen.getByRole("link", { name: /Violations, 7 days/ })).toHaveTextContent("+6 vs the previous 7 days");
     expect(screen.getByRole("link", { name: /Overwatch units/ })).toHaveTextContent("Phase 2 preview");
     expect(screen.getByRole("link", { name: /New quote requests/ })).toHaveTextContent("1 waiting over 24h");
 
-    expect(screen.getByRole("link", { name: /Report #1042 · Missed pickup/ })).toHaveAttribute("href", "/admin/reports/r1");
+    expect(screen.getByRole("link", { name: /Issue #1042 · Missed pickup/ })).toHaveAttribute("href", "/admin/issues/r1");
 
     const tonight = screen.getByRole("heading", { name: "Tonight's service" }).closest("section")!;
     expect(within(tonight).getByText("Live from Connecteam")).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("OverviewPage", () => {
     expect(rows[0]).toHaveTextContent("Lakeside Crossing");
     expect(rows[0]).toHaveTextContent("No clock-in");
     expect(rows[1]).toHaveTextContent("No Steward assigned");
-    expect(within(tonight).getByRole("link", { name: "The Oaks at Decatur" })).toHaveAttribute("href", "/admin/organizations/o1/properties/p1");
+    expect(within(tonight).getByRole("link", { name: /^The Oaks at Decatur/ })).toHaveAttribute("href", "/admin/organizations/o1/properties/p1");
 
     const orgs = screen.getByRole("table", { name: "Organizations at a glance" });
     expect(within(orgs).getByRole("link", { name: /Peachtree Residential/ })).toHaveAttribute("href", "/admin/organizations/o1");
@@ -100,7 +100,9 @@ describe("OverwatchPage", () => {
     expect(await screen.findByRole("link", { name: "Threshold: 3 in 30 days Edit" })).toHaveAttribute("href", "/admin/settings#overwatch");
     expect(screen.getByRole("button", { name: "Create Overwatch case" })).toBeDisabled();
     const row = screen.getByRole("row", { name: /412/ });
-    expect(row).toHaveTextContent("The Oaks at Decatur · Peachtree");
+    expect(row).toHaveTextContent("The Oaks at Decatur");
+    expect(row).toHaveTextContent("Peachtree");
+    expect(row).toHaveTextContent("Street address missing");
     expect(row).toHaveTextContent("4");
     expect(row).toHaveTextContent("Bag not tied");
     expect(within(row).getByRole("link", { name: "412" })).toHaveAttribute("href", "/admin/violations?stage=all&property=p1&q=412");

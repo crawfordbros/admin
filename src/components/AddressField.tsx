@@ -80,7 +80,7 @@ export function AddressField({
     }
   };
 
-  const describedBy = [error ? `${id}-error` : null, failed && session ? `${id}-note` : null].filter(Boolean).join(" ") || undefined;
+  const describedBy = [error ? `${id}-error` : `${id}-required`, failed && session ? `${id}-note` : null].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className="relative flex flex-col gap-1.5">
@@ -97,6 +97,7 @@ export function AddressField({
         <input
           id={id}
           type="text"
+          required
           role={session && !failed ? "combobox" : undefined}
           aria-expanded={session && !failed ? open : undefined}
           aria-controls={session && !failed ? listId : undefined}
@@ -143,6 +144,7 @@ export function AddressField({
           </li>
         </ul>
       )}
+      {!error && <p id={`${id}-required`} className="m-0 text-[12px] text-muted">Required</p>}
       {error && (
         <p id={`${id}-error`} className="m-0 text-[13px] font-semibold text-danger">
           {error}

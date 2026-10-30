@@ -1,3 +1,4 @@
+import * as places from "../../lib/places";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Outlet, Route } from "react-router-dom";
@@ -32,20 +33,33 @@ const api = (created = { property: { id: "p9", name: "North Druid Flats" }, invi
   return [404, { error: "Not found" }];
 };
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe("AddPropertyModal", () => {
+  it("rejects whitespace-only addresses and invalid ZIP before making a request", async () => {
+    const { calls, dialog } = open(true, api());
+    await userEvent.type(within(dialog).getByLabelText("Property name"), "Manual address");
+    await userEvent.type(within(dialog).getByLabelText("Units"), "10");
+    await userEvent.type(within(dialog).getByLabelText("Street address"), "   ");
+    await userEvent.type(within(dialog).getByLabelText("City"), "   ");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "123");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Add property" }));
+    for (const message of ["Enter the street address", "Enter the city", "Use a 5-digit ZIP code or ZIP+4"]) expect(within(dialog).getByText(message)).toBeInTheDocument();
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
+  });
+
   it("adds the property with its invites and opens it", async () => {
     const { calls, dialog } = open(true, api({ property: { id: "p9", name: "North Druid Flats" }, invitations: [{ email: "k.james@demo-mgmt.com", status: "invited" }] }));
     expect(dialog).toHaveTextContent("Demo Management · 2 of 100 properties");
     expect(dialog).toHaveTextContent("This will be property 3 of 100");
     await userEvent.type(within(dialog).getByLabelText("Street address"), "1450 N Druid Hills Rd NE");
     await userEvent.type(within(dialog).getByLabelText("City"), "Brookhaven");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30329");
     await userEvent.type(within(dialog).getByLabelText("Property name"), "North Druid Flats");
     await userEvent.type(within(dialog).getByLabelText("Units"), "360");
     await userEvent.click(within(dialog).getByRole("radio", { name: "Mid-rise" }));
     await userEvent.click(within(dialog).getByRole("radio", { name: "36-month" }));
-    expect(within(dialog).getByLabelText("Resident report web address")).toHaveValue("north-druid-flats");
+    expect(within(dialog).getByLabelText("Report an Issue web address")).toHaveValue("north-druid-flats");
     await userEvent.type(within(dialog).getByLabelText("Connecteam job ID"), "48213");
     await userEvent.type(within(dialog).getByLabelText("Email for person 1"), "k.james@demo-mgmt.com");
     await userEvent.selectOptions(within(dialog).getByLabelText("Role for person 1"), "manager");
@@ -58,6 +72,7 @@ describe("AddPropertyModal", () => {
       name: "North Druid Flats",
       address: "1450 N Druid Hills Rd NE",
       city: "Brookhaven",
+      zip: "30329",
       unitCount: 360,
       propertyType: "mid_rise",
       contractType: "36_month",
@@ -68,6 +83,23 @@ describe("AddPropertyModal", () => {
     });
   });
 
+  it("saves an address filled by autocomplete", async () => {
+    const picked = { address: "1450 N Druid Hills Rd NE", city: "Brookhaven", county: "DeKalb", zip: "30329", lat: null, lng: null, googlePlaceId: "place-1", establishment: "North Druid Flats" };
+    vi.spyOn(places, "placesAvailable").mockReturnValue(true);
+    vi.spyOn(places, "placesSession").mockReturnValue({
+      suggest: vi.fn().mockResolvedValue([{ placeId: "place-1", main: picked.address, secondary: "Brookhaven, GA" }]),
+      details: vi.fn().mockResolvedValue(picked),
+    });
+    const { calls, dialog } = open(true, api());
+    await userEvent.type(within(dialog).getByLabelText("Street address"), "1450");
+    await userEvent.click(await within(dialog).findByRole("option", { name: /1450 N Druid/ }));
+    expect(within(dialog).getByLabelText("City")).toHaveValue("Brookhaven");
+    expect(within(dialog).getByLabelText("ZIP")).toHaveValue("30329");
+    await userEvent.type(within(dialog).getByLabelText("Units"), "20");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Add property" }));
+    await waitFor(() => expect(calls.find((c) => c.method === "POST")?.body).toMatchObject({ address: picked.address, city: picked.city, zip: picked.zip, googlePlaceId: "place-1" }));
+  });
+
   it("hides CBES-only fields from representatives and never sends them", async () => {
     const { calls, dialog } = open(false, api());
     // Representatives invite property managers only.
@@ -76,6 +108,9 @@ describe("AddPropertyModal", () => {
     expect(role).toBeDisabled();
     expect(within(dialog).queryByLabelText("Connecteam job ID")).not.toBeInTheDocument();
     expect(within(dialog).queryByLabelText("Steward")).not.toBeInTheDocument();
+    await userEvent.type(within(dialog).getByLabelText("Street address"), "1 Main St");
+    await userEvent.type(within(dialog).getByLabelText("City"), "Decatur");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30030");
     await userEvent.type(within(dialog).getByLabelText("Property name"), "Sage Pointe");
     await userEvent.type(within(dialog).getByLabelText("Units"), "120");
     await userEvent.click(within(dialog).getByRole("button", { name: "Add property" }));
@@ -102,6 +137,9 @@ describe("AddPropertyModal", () => {
     const { dialog } = open(false, (url, method) =>
       method === "POST" ? [409, { error: "This organization has reached its limit of 100 properties.", code: "limit_reached" }] : api()(url, method),
     );
+    await userEvent.type(within(dialog).getByLabelText("Street address"), "1 Main St");
+    await userEvent.type(within(dialog).getByLabelText("City"), "Decatur");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30030");
     await userEvent.type(within(dialog).getByLabelText("Property name"), "Sage Pointe");
     await userEvent.type(within(dialog).getByLabelText("Units"), "120");
     await userEvent.click(within(dialog).getByRole("button", { name: "Add property" }));
@@ -112,9 +150,12 @@ describe("AddPropertyModal", () => {
     const { dialog } = open(false, (url, method) =>
       url.startsWith("/api/organizations/org1/slug-available") ? [200, { available: false, suggestion: "sage-pointe-2" }] : api()(url, method),
     );
+    await userEvent.type(within(dialog).getByLabelText("Street address"), "1 Main St");
+    await userEvent.type(within(dialog).getByLabelText("City"), "Decatur");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30030");
     await userEvent.type(within(dialog).getByLabelText("Property name"), "Sage Pointe");
     await userEvent.click(await within(dialog).findByRole("button", { name: "Use sage-pointe-2" }, { timeout: 2000 }));
-    expect(within(dialog).getByLabelText("Resident report web address")).toHaveValue("sage-pointe-2");
+    expect(within(dialog).getByLabelText("Report an Issue web address")).toHaveValue("sage-pointe-2");
   });
 
   it("closes back to the organization", async () => {

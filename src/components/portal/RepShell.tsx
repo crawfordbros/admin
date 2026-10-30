@@ -1,3 +1,4 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
 import { Link, matchPath, useLocation } from "react-router-dom";
 import { propertyPath } from "../../pages/admin/paths";
 import { useManagerPreview } from "../../lib/preview";
@@ -20,7 +21,7 @@ const SECTIONS: [pattern: string, label: string][] = [
   ["/portal/properties/:propertyId/report", "Weekly report"],
   ["/portal/violations/*", "Violations"],
   ["/portal/issues/*", "Resident issues"],
-  ["/portal/reports", "Reports"],
+  ["/portal/reporting", "Reporting"],
   ["/portal/account", "My account"],
   ["/portal/settings", "Account settings"],
 ];
@@ -37,7 +38,7 @@ function RepTopbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => v
   const { pathname } = useLocation();
   const { kind, org, property, homePath } = useRepContext();
   const crumbs = useAdminCrumbs() ?? sectionCrumbs(pathname, kind);
-  const root = { label: (kind === "property" ? property?.name : org?.name) ?? "Property Portal", to: homePath };
+  const root = { label: (kind === "property" ? property?.name : org?.name) ?? "Property Portal", to: homePath, description: kind === "property" && property ? propertyAddressText(property) : undefined };
   return (
     <header className={topbarClass}>
       <MenuButton onClick={onMenu} />

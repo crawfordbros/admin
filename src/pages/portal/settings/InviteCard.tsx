@@ -1,3 +1,4 @@
+import type { PropertyReference } from "../../../lib/propertyAddress";
 import { useState } from "react";
 import { Switch } from "../../../components/controls";
 import { Icon } from "../../../components/icons";
@@ -12,7 +13,7 @@ import { useFormSubmit } from "../../../lib/useFormSubmit";
  * Invite a manager (REP_PORTAL_SPEC 7.4). Management Directors are retired (migration 0018), so the
  * one role on offer is shown rather than asked.
  */
-export function InviteCard({ orgId, properties, onInvited }: { orgId: string; properties: { id: string; name: string }[]; onInvited: () => Promise<unknown> }) {
+export function InviteCard({ orgId, properties, onInvited }: { orgId: string; properties: PropertyReference[]; onInvited: () => Promise<unknown> }) {
   const api = useApi();
   const toast = useToast();
   const only = properties.length === 1 ? [properties[0].id] : [];

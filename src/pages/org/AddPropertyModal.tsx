@@ -1,3 +1,4 @@
+import { validatePropertyAddress } from "../../lib/propertyAddress";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { Field, PhotoPicker, Section, input, useSlugCheck } from "./propertyFormParts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -91,7 +92,7 @@ export function AddPropertyModal() {
   };
 
   const validate = () => {
-    const found: Record<string, string> = {};
+    const found = validatePropertyAddress({ address, city, zip });
     if (!name.trim()) found.name = "Enter the property name";
     const n = Number(units);
     if (!units || !Number.isInteger(n) || n < 1 || n > 5000) found.unitCount = "Enter the number of units, 1 to 5,000";
@@ -126,7 +127,7 @@ export function AddPropertyModal() {
         method: "POST",
         body: JSON.stringify({
           name: name.trim(),
-          address: address.trim() || undefined,
+          address: address.trim(),
           city: city.trim() || undefined,
           county: county.trim() || undefined,
           zip: zip.trim() || undefined,
@@ -209,14 +210,14 @@ export function AddPropertyModal() {
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_300px]">
             <div className="grid grid-cols-1 content-start gap-3 sm:grid-cols-3">
-              <Field label="City" error={errors.city}>
-                {(id, d) => <input id={id} aria-describedby={d} aria-invalid={errors.city ? true : undefined} value={city} onChange={(e) => setCity(e.target.value)} className={cx(input, fill)} />}
+              <Field label="City" hint="Required" error={errors.city}>
+                {(id, d) => <input id={id} aria-describedby={d} required aria-invalid={errors.city ? true : undefined} value={city} onChange={(e) => setCity(e.target.value)} className={cx(input, fill)} />}
               </Field>
               <Field label="County" error={errors.county}>
                 {(id, d) => <input id={id} aria-describedby={d} aria-invalid={errors.county ? true : undefined} value={county} onChange={(e) => setCounty(e.target.value)} className={cx(input, fill)} />}
               </Field>
-              <Field label="ZIP" error={errors.zip}>
-                {(id, d) => <input id={id} inputMode="numeric" autoComplete="postal-code" aria-describedby={d} aria-invalid={errors.zip ? true : undefined} value={zip} onChange={(e) => setZip(e.target.value)} className={cx(input, fill)} />}
+              <Field label="ZIP" hint="Required" error={errors.zip}>
+                {(id, d) => <input id={id} inputMode="numeric" autoComplete="postal-code" aria-describedby={d} required aria-invalid={errors.zip ? true : undefined} value={zip} onChange={(e) => setZip(e.target.value)} className={cx(input, fill)} />}
               </Field>
               {autofilled && (
                 <p role="status" className="m-0 flex items-center gap-1.5 text-[12.5px] font-semibold text-success sm:col-span-3">
@@ -292,7 +293,7 @@ export function AddPropertyModal() {
               </div>
             </fieldset>
             <Field
-              label="Resident report web address"
+              label="Report an Issue web address"
               error={errors.slug}
               hint={slugCheck.available === false ? undefined : "Printed in the QR code on every container."}
             >

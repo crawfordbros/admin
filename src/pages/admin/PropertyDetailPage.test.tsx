@@ -27,7 +27,8 @@ describe("PropertyDetailPage", () => {
     mockFetch(handler);
     show();
     expect(await screen.findByRole("heading", { name: "Demo Community", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("215 Commerce Dr, Decatur, GA 30030 · DeKalb County")).toBeInTheDocument();
+    expect(screen.getByText("215 Commerce Dr, Decatur, GA 30030")).toBeInTheDocument();
+    expect(screen.getByText(/DeKalb County/)).toBeInTheDocument();
     expect(screen.getByText("312 units · 6 buildings")).toBeInTheDocument();
     expect(screen.getByText("36-month · since Apr 2026")).toBeInTheDocument();
     expect(screen.getByText("Connecteam job 48107")).toBeInTheDocument();
@@ -92,8 +93,8 @@ describe("PropertyDetailPage", () => {
     expect(calls.some((c) => c.url.startsWith("/api/admin/violations?property=p1&stage=all"))).toBe(true);
     expect(screen.getByRole("link", { name: "Open in Violations" })).toHaveAttribute("href", "/admin/violations?property=p1&stage=all");
 
-    await userEvent.click(screen.getByRole("tab", { name: /Reports/ }));
-    expect(await screen.findByRole("link", { name: /#1042/ })).toHaveAttribute("href", "/admin/reports/r1");
+    await userEvent.click(screen.getByRole("tab", { name: /Issues/ }));
+    expect(await screen.findByRole("link", { name: /#1042/ })).toHaveAttribute("href", "/admin/issues/r1");
 
     await userEvent.click(screen.getByRole("tab", { name: "Overwatch" }));
     expect(await screen.findByText("Unit 412")).toBeInTheDocument();

@@ -1,3 +1,5 @@
+import { type PropertyReference } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../PropertyAddress";
 import { Icon } from "../icons";
 import { cx } from "../styles";
 
@@ -9,7 +11,7 @@ export function PropertyChips({
   label = "Properties they can see",
   error,
 }: {
-  properties: { id: string; name: string }[];
+  properties: PropertyReference[];
   value: string[];
   onChange: (ids: string[]) => void;
   label?: string;
@@ -28,13 +30,13 @@ export function PropertyChips({
             <label
               key={p.id}
               className={cx(
-                "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-bold focus-within:ring-2 focus-within:ring-gold",
+                "inline-flex min-h-9 py-2 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-bold focus-within:ring-2 focus-within:ring-gold",
                 on ? "border-navy bg-navy text-white" : "border-field bg-white text-ink hover:border-navy",
               )}
             >
               <input type="checkbox" className="sr-only" checked={on} onChange={() => onChange(on ? value.filter((id) => id !== p.id) : [...value, p.id])} />
               {on && <Icon name="check" size={14} strokeWidth={2.6} />}
-              {p.name}
+              <span>{p.name}<PropertyAddress property={p} className={on ? "text-white/80" : undefined} /></span>
             </label>
           );
         })}

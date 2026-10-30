@@ -40,7 +40,7 @@ describe("the property's violation page", () => {
     show();
     expect(await screen.findByRole("heading", { level: 1, name: "Bag not tied" })).toBeInTheDocument();
     expect(screen.getByText("3rd for this unit in 30 days")).toBeInTheDocument();
-    expect(screen.getByText(/The Oaks at Decatur · Building 4 · Unit 412 · Logged Mon, Oct 26 at 9:14 PM by Marcus Hill/)).toBeInTheDocument();
+    expect(screen.getByText(/Building 4 · Unit 412 · Logged Mon, Oct 26 at 9:14 PM by Marcus Hill/)).toBeInTheDocument();
     const details = screen.getByRole("region", { name: "Details" });
     expect(within(details).getByText("Monday, Oct 26")).toBeInTheDocument();
     expect(within(details).getByText("Marcus Hill, CBES valet")).toBeInTheDocument();

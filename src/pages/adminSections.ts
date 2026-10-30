@@ -18,11 +18,11 @@ export const ADMIN_NAV: { group: string; items: AdminNavItem[] }[] = [
   {
     group: "Operations",
     items: [
-      { path: "/admin", label: "Overview", icon: "grid", detail: "What needs attention tonight: open reports, violations to review, valets clocked in and new quote requests." },
-      { path: "/admin/reports", label: "Reports", icon: "bar-chart", badge: "openReports", badgeTone: "alert", detail: "Resident reports by property, type, status and date, with the 24-hour reply clock, bulk assign and CSV export." },
+      { path: "/admin", label: "Overview", icon: "grid", detail: "What needs attention tonight: open issues, violations to review, valets clocked in and new quote requests." },
+      { path: "/admin/issues", label: "Issues", icon: "message", badge: "openReports", badgeTone: "alert", detail: "Resident issues by property, type, status and date, with the 24-hour reply clock, bulk assign and CSV export." },
       { path: "/admin/violations", label: "Violations", icon: "alert-triangle", badge: "newViolations", badgeTone: "alert", detail: "Violations logged by valets with photos, reviewed by CBES and then sent to the property." },
       { path: "/admin/overwatch", label: "Overwatch", icon: "eye", tag: "Phase 2", detail: "Units that reach the violation threshold, with their history." },
-      { path: "/admin/weekly-reports", label: "Weekly Reports", icon: "calendar", detail: "Each property's weekly report: send or download per property or organization, and see what was delivered." },
+      { path: "/admin/reporting", label: "Reporting", icon: "bar-chart", detail: "Each property's weekly report: send or download per property or organization, and see what was delivered." },
     ],
   },
   {

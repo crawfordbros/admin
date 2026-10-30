@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -188,7 +189,7 @@ function Meter({ value, max, className }: { value: number; max: number; classNam
 
 function OrganizationTile({ org }: { org: OrganizationRow }) {
   const mini: [string, string][] = [
-    ["Open reports", String(org.openReports)],
+    ["Open issues", String(org.openReports)],
     ["Violations 30d", org.violations30d === null ? "—" : String(org.violations30d)],
     ["Avg reply", replyHours(org.avgReplyHours)],
   ];
@@ -276,7 +277,7 @@ function OrganizationList({ rows }: { rows: OrganizationRow[] }) {
           },
           { key: "units", header: "Units", cell: (o) => formatCount(o.units) },
           { key: "reps", header: "Reps", cell: (o) => (o.representatives.length ? <AvatarStack people={o.representatives} max={3} /> : <span className="text-muted">None</span>) },
-          { key: "open", header: "Open reports", cell: (o) => o.openReports },
+          { key: "open", header: "Open issues", cell: (o) => o.openReports },
           { key: "violations", header: "Violations 30d", cell: (o) => o.violations30d ?? "—" },
           { key: "reply", header: "Avg reply", cell: (o) => replyHours(o.avgReplyHours) },
           {
@@ -410,8 +411,7 @@ function UnassignedProperties() {
         {unassigned.map((p) => (
           <li key={p.id}>
             <Link to={`${propertyPath(null, p.id)}?tab=settings`} className="inline-flex min-h-10 items-center gap-1.5 rounded-[10px] border border-field bg-white px-3 text-[14px] font-semibold text-ink no-underline hover:bg-canvas hover:text-ink">
-              Move {p.name}
-              {p.city && <span className="font-normal text-muted">{p.city}</span>}
+              <span>Move {p.name}<PropertyAddress property={p} /></span>
             </Link>
           </li>
         ))}

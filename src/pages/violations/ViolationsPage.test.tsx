@@ -82,7 +82,9 @@ describe("ViolationsPage", () => {
     mockFetch(handler);
     show("/admin/violations?view=grid");
     const card = await screen.findByRole("link", { name: /Trash outside container/ });
-    expect(card).toHaveTextContent("Unit 118 · The Oaks at Decatur");
+    expect(card).toHaveTextContent("The Oaks at Decatur");
+    expect(card).toHaveTextContent("Street address missing");
+    expect(card).toHaveTextContent("Unit 118");
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 });

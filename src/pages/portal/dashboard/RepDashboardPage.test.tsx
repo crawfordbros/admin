@@ -105,7 +105,7 @@ describe("RepDashboardPage", () => {
     expect(await screen.findByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Lauren$/ })).toBeInTheDocument();
     expect(screen.getByText("Peachtree Residential · Week of Oct 25")).toBeInTheDocument();
     expect(screen.getByText("1 violation and 1 resident issue are waiting across your properties.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Reports" })).toHaveAttribute("href", "/portal/reports?scope=organization&org=org1");
+    expect(screen.getByRole("link", { name: "Reporting" })).toHaveAttribute("href", "/portal/reporting?scope=organization&org=org1");
     expect(screen.getByRole("link", { name: "Add property" })).toHaveAttribute("href", "/portal/organizations/org1/properties/new");
     expect(document.title).toBe("Dashboard | CBES Portal");
   });
@@ -151,6 +151,20 @@ describe("RepDashboardPage", () => {
     expect(within(flats).getByText("Starting Nov 8")).toBeInTheDocument();
     expect(within(flats).getByText("No manager yet")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Add a property.*98 of 100 slots left/ })).toBeInTheDocument();
+  });
+
+  it("shows distinct addresses and links for properties with the same name", async () => {
+    api(dashboard({ properties: [
+      card("p1", "The Oaks", { address: "1 North Main St", city: "Decatur", zip: "30030" }),
+      card("p2", "The Oaks", { address: "2 South Main St", city: "Atlanta", zip: "30303" }),
+    ] }));
+    show();
+    const links = await screen.findAllByRole("link", { name: "The Oaks" });
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute("href", "/portal/properties/p1");
+    expect(links[1]).toHaveAttribute("href", "/portal/properties/p2");
+    expect(links[0].closest("article")).toHaveTextContent("1 North Main St, Decatur, GA 30030");
+    expect(links[1].closest("article")).toHaveTextContent("2 South Main St, Atlanta, GA 30303");
   });
 
   it("filters properties as you type", async () => {
@@ -273,6 +287,8 @@ describe("Add a property (Representative)", () => {
     const dialog = await open();
     await userEvent.click(within(dialog).getByRole("button", { name: "Add property" }));
     expect(within(dialog).getByText("Enter the street address")).toBeInTheDocument();
+    expect(within(dialog).getByText("Enter the city")).toBeInTheDocument();
+    expect(within(dialog).getByText("Use a 5-digit ZIP code or ZIP+4")).toBeInTheDocument();
     expect(within(dialog).getByText("Enter the property name")).toBeInTheDocument();
     expect(within(dialog).getByText("Enter the number of units, 1 to 5,000")).toBeInTheDocument();
     expect(calls.some((c) => c.method === "POST")).toBe(false);
@@ -286,6 +302,8 @@ describe("Add a property (Representative)", () => {
     );
     const dialog = await open();
     await userEvent.type(within(dialog).getByLabelText("Street address"), "3400 Scott Blvd");
+    await userEvent.type(within(dialog).getByLabelText("City"), "Decatur");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30030");
     await userEvent.type(within(dialog).getByLabelText("County"), "DeKalb");
     await userEvent.type(within(dialog).getByLabelText("Property name"), "Willow Bend");
     await userEvent.type(within(dialog).getByLabelText("Units"), "228");
@@ -316,6 +334,8 @@ describe("Add a property (Representative)", () => {
     api(dashboard(), (url, method) => (method === "POST" && url === "/api/organizations/org1/properties" ? [409, { error: "limit", code: "limit_reached" }] : undefined));
     const dialog = await open();
     await userEvent.type(within(dialog).getByLabelText("Street address"), "1 Main St");
+    await userEvent.type(within(dialog).getByLabelText("City"), "Decatur");
+    await userEvent.type(within(dialog).getByLabelText("ZIP"), "30030");
     await userEvent.type(within(dialog).getByLabelText("Property name"), "One More");
     await userEvent.type(within(dialog).getByLabelText("Units"), "10");
     await userEvent.click(within(dialog).getByRole("button", { name: "Add property" }));

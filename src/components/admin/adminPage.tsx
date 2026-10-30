@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- the provider and its hook belong together */
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Crumb = { label: string; to?: string };
+export type Crumb = { label: string; to?: string; description?: string };
 
 type Ctx = { crumbs: Crumb[] | null; setCrumbs: (crumbs: Crumb[] | null) => void; suffix: string };
 const AdminPageContext = createContext<Ctx | null>(null);

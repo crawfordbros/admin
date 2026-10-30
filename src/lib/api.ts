@@ -1,3 +1,4 @@
+import type { PropertyAddressFields, PropertyLocationFields, PropertyReference } from "./propertyAddress";
 import { useCallback } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { authenticatedRequest, responseJson } from "./authenticatedRequest";
@@ -75,7 +76,7 @@ export type PropertyRole = "manager";
 export type InviteRole = "representative" | PropertyRole;
 
 export type MeOrganization = { id: string; name: string; propertyCount: number; propertyLimit: number; logoVersion: string | null };
-export type MeProperty = {
+export type MeProperty = PropertyAddressFields & {
   id: string;
   name: string;
   slug: string;
@@ -94,7 +95,7 @@ export type Me = {
 
 export type ContractType = "12_month" | "36_month" | "month_to_month";
 
-export type Property = {
+export type Property = PropertyAddressFields & {
   id: string;
   name: string;
   slug: string;
@@ -126,7 +127,7 @@ export type PropertyOverview = {
 };
 
 /** A resident issue as the property sees it (REP_PORTAL_SPEC 6.5). */
-export type PortalIssueRow = {
+export type PortalIssueRow = PropertyLocationFields & {
   id: string;
   refNo: number;
   issueLabel: string;
@@ -162,7 +163,7 @@ export type PortalIssueList = { items: PortalIssueRow[]; total: number; page: nu
 
 /** GET /portal/reports/summary (REP_PORTAL_SPEC 6.6): the admin's weekly numbers, trimmed to what the property may see. */
 export type PortalReportSummary = {
-  scope: { kind: "organization" | "property"; id: string; name: string };
+  scope: PropertyAddressFields & { kind: "organization" | "property"; id: string; name: string };
   week: { start: string; end: string; label: string };
   kpis: {
     serviceNights: { serviced: number; scheduled: number; activeProperties: number };
@@ -175,10 +176,10 @@ export type PortalReportSummary = {
   trend: { weekStart: string; sent: number; resolvedByProperty: number }[];
   byType: { label: string; count: number }[];
   issuesSummary: string;
-  byProperty: { propertyId: string; name: string; managerName: string | null; nights: string; violations: number; resolved: number; issues: number; avgReplyHours: number | null; repeatUnits: number }[];
+  byProperty: (PropertyAddressFields & { propertyId: string; name: string; managerName: string | null; nights: string; violations: number; resolved: number; issues: number; avgReplyHours: number | null; repeatUnits: number })[];
   /** For the organization PDF: the weekly rows, violations counted once CBES sent them. */
   rows: (Pick<WeeklyRow, "propertyId" | "name" | "nights" | "avgClockIn" | "residentReports" | "resolved" | "avgReplyHours" | "violations" | "overwatchUnits" | "manager"> & { startsOn: string | null })[];
-  recipients: { name: string; scope: string }[];
+  recipients: { name: string; scope: string; properties?: PropertyReference[] }[];
   nextRunAt: string;
 };
 
@@ -223,7 +224,7 @@ export type PropertyHome = Omit<PropertyOverview, "property" | "team"> & {
   reportLink: { url: string };
 };
 
-export type AdminPropertyRow = {
+export type AdminPropertyRow = PropertyAddressFields & {
   id: string;
   name: string;
   slug: string;
@@ -284,7 +285,7 @@ export type OrganizationProfile = {
   createdAt: string;
 };
 
-export type OrganizationProperty = {
+export type OrganizationProperty = PropertyAddressFields & {
   id: string;
   name: string;
   slug: string;
@@ -315,7 +316,7 @@ export type OrganizationDetail = {
   };
   properties: OrganizationProperty[];
   representatives: { id: string; email: string; name: string | null; addedAt: string }[];
-  staff: { id: string; email: string; name: string | null; role: PropertyRole; propertyId: string; propertyName: string }[];
+  staff: { id: string; email: string; name: string | null; role: PropertyRole; propertyId: string; propertyName: string; propertyAddress?: string | null; propertyCity?: string | null; propertyZip?: string | null }[];
   invitations: {
     id: string;
     email: string;
@@ -323,6 +324,9 @@ export type OrganizationDetail = {
     role: InviteRole;
     propertyId: string | null;
     propertyName: string | null;
+    propertyAddress?: string | null;
+    propertyCity?: string | null;
+    propertyZip?: string | null;
     createdAt: string;
   }[];
 };
@@ -349,7 +353,7 @@ export type TrashOutWindow = "18:00-20:00" | "19:00-21:00";
 
 // Property Portal, Representative dashboard (REP_PORTAL_SPEC 6.2).
 
-export type RepAttentionItem = {
+export type RepAttentionItem = PropertyLocationFields & {
   kind: "violation" | "issue";
   id: string;
   /** "V-2041" or "#1042" */
@@ -363,7 +367,7 @@ export type RepAttentionItem = {
   link: string;
 };
 
-export type PortalPropertyCard = {
+export type PortalPropertyCard = PropertyAddressFields & {
   id: string;
   name: string;
   city: string | null;
@@ -393,8 +397,8 @@ export type RepDashboard = {
   topViolationTypes: { label: string; count: number }[];
   lastWeek: { activeProperties: number; serviced: number; scheduled: number; violationsSent: number; issues: number; allRepliedWithin24h: boolean };
   nextWeeklyReportAt: string;
-  pendingInvitations: { id: string; email: string; role: PropertyRole; propertyNames: string[]; createdAt: string; expired: boolean }[];
-  contacts: { id: string; name: string; title: string }[];
+  pendingInvitations: { id: string; email: string; role: PropertyRole; propertyNames: string[]; properties?: PropertyReference[]; createdAt: string; expired: boolean }[];
+  contacts: { id: string; name: string; title: string; properties?: PropertyReference[] }[];
 };
 
 /** GET /organizations/:orgId/properties/:propertyId, for admins and the organization's representatives. */
@@ -426,7 +430,7 @@ export type ValetTimes =
   | { status: "not_configured" | "no_job" | "error" };
 
 export type WeeklyReport = {
-  property: { id: string; name: string; address: string | null; city: string | null };
+  property: PropertyReference;
   week: { start: string; end: string; label: string };
   generatedAt: string;
   residentReports: {
@@ -463,6 +467,7 @@ export type SearchResult = {
   id: string;
   title: string;
   subtitle: string;
+  property?: PropertyReference;
   /** An app path, such as /admin/violations/abc. */
   link: string;
 };
@@ -483,7 +488,7 @@ export type ViolationStatus = "new" | "in_review" | "sent" | "resolved" | "dismi
 export type Person = { id: string; name: string; role: string; email?: string };
 export type ViolationType = { key: string; label: string; countsForOverwatch: boolean; active: boolean };
 
-export type ViolationRow = {
+export type ViolationRow = PropertyLocationFields & {
   id: string;
   refNo: number;
   typeKey: string;
@@ -558,7 +563,7 @@ export type AdminViolationList = ViolationList & { stageCounts: Record<Violation
 export type ReportTab = "open" | "new" | "in_progress" | "resolved" | "closed" | "all";
 export type ReplyClock = { state: "replied"; hours: number } | { state: "open"; hoursLeft: number; targetHours: number } | { state: "none" };
 
-export type ReportRow = {
+export type ReportRow = PropertyLocationFields & {
   id: string;
   refNo: number;
   issueKey: string;
@@ -590,7 +595,7 @@ export type ReportsSummary = {
   byWeek: { weekStart: string; resolved: number; inProgress: number; new: number }[];
   replyBuckets: { under4h: number; h4to12: number; h12to24: number; over24h: number; onTimePct: number | null };
   byType: { key: string; label: string; count: number }[];
-  byProperty: { propertyId: string; name: string; orgName: string | null; count: number; per100Units: number | null; avgReplyHours: number | null; spark: number[] }[];
+  byProperty: (PropertyAddressFields & { propertyId: string; name: string; orgName: string | null; count: number; per100Units: number | null; avgReplyHours: number | null; spark: number[] })[];
 };
 
 export type ReportEvent = {
@@ -634,6 +639,7 @@ export type AdminUserRow = {
   email: string;
   role: "super_admin" | "admin" | "representative" | "lead" | "valet" | "manager";
   access: string;
+  properties?: PropertyReference[];
   orgId: string | null;
   mfa: "passkey" | "authenticator" | "none";
   lastActiveAt: string | null;
@@ -651,7 +657,7 @@ export type AuditEntry = { id: string; actor: { id: string; name: string } | nul
 
 export type Delivery = "sent" | "scheduled" | "bounced" | "failed" | "not_sent";
 
-export type WeeklyRow = {
+export type WeeklyRow = PropertyAddressFields & {
   propertyId: string;
   name: string;
   units: number | null;
@@ -680,7 +686,7 @@ export type WeeklyAdminView = {
 
 export type WeeklyScope = "property" | "organization" | "all";
 export type WeeklyRecipients = {
-  recipients: { email: string; name: string | null; kind: "manager" | "member" | "representative" | "admin"; propertyName: string | null }[];
+  recipients: { email: string; name: string | null; kind: "manager" | "member" | "representative" | "admin"; propertyName: string | null; propertyId?: string; propertyAddress?: string | null; propertyCity?: string | null; propertyZip?: string | null }[];
   skippedNoManager: string[];
 };
 export type WeeklySendResult = { sent: number; failed: number; recipients: number; skippedNoManager: string[] };
@@ -781,7 +787,7 @@ export type AdminSettings = {
 
 export type OverwatchPreview = {
   threshold: OverwatchRule;
-  units: { propertyId: string; propertyName: string; orgId: string | null; orgName: string | null; unit: string; count: number; mostCommon: string; lastAt: string }[];
+  units: (PropertyLocationFields & { propertyId: string; propertyName: string; orgId: string | null; orgName: string | null; unit: string; count: number; mostCommon: string; lastAt: string })[];
 };
 
 export type OverviewRange = "today" | "7d" | "30d";
@@ -790,6 +796,7 @@ export type AttentionItem = {
   kind: "report_due" | "violations_to_review" | "no_clock_in" | "quote_waiting" | "invites_stale" | "property_needs_setup";
   title: string;
   subtitle: string;
+  property?: PropertyReference;
   tag: string;
   severity: "high" | "medium" | "low";
   link: string;
@@ -811,7 +818,7 @@ export type AdminOverview = {
     clockedIn: number;
     total: number;
   };
-  tonight: { propertyId: string; orgId: string | null; name: string; orgName: string | null; stewardName: string | null; progressPct: number | null; status: TonightStatus }[];
+  tonight: (PropertyAddressFields & { propertyId: string; orgId: string | null; name: string; orgName: string | null; stewardName: string | null; progressPct: number | null; status: TonightStatus })[];
   orgs: { id: string; name: string; logoVersion: string | null; properties: number; openReports: number; violations30d: number; avgReplyHours: number | null }[];
 };
 
@@ -826,7 +833,7 @@ export type TeamMember = {
   email: string;
   role: "representative" | PropertyRole;
   you: boolean;
-  properties: { id: string; name: string }[] | "all";
+  properties: PropertyReference[] | "all";
   receivesWeeklyReport: boolean;
   lastSeenAt: string | null;
   mfa: "passkey" | "authenticator" | "none";
@@ -837,7 +844,7 @@ export type TeamInvitation = {
   email: string;
   name: string | null;
   role: "representative" | PropertyRole;
-  properties: { id: string; name: string }[];
+  properties: PropertyReference[];
   receivesWeeklyReport: boolean;
   createdAt: string;
 };

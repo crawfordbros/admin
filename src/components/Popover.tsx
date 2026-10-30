@@ -164,7 +164,7 @@ export function Popover({
   );
 }
 
-export type MenuItem = { label: string; to?: string; onSelect?: () => void; tone?: "danger"; disabled?: boolean };
+export type MenuItem = { label: string; id?: string; description?: string; to?: string; onSelect?: () => void; tone?: "danger"; disabled?: boolean };
 
 /** A row-action menu: arrow keys move between items, Enter or Space picks one. */
 export function Menu({ label, items, trigger }: { label: string; items: MenuItem[]; trigger: (props: TriggerProps) => ReactNode }) {
@@ -205,10 +205,10 @@ export function MenuList({ label, items, close }: { label: string; items: MenuIt
           item.disabled && "cursor-not-allowed opacity-50",
         );
         return (
-          <li key={item.label} role="none">
+          <li key={item.id ?? item.label} role="none">
             {item.to && !item.disabled ? (
               <Link role="menuitem" tabIndex={-1} to={item.to} className={cls} onClick={close}>
-                {item.label}
+                <span>{item.label}{item.description && <span className="block whitespace-normal break-words text-[12px] font-normal text-muted">{item.description}</span>}</span>
               </Link>
             ) : (
               <button
@@ -223,7 +223,7 @@ export function MenuList({ label, items, close }: { label: string; items: MenuIt
                   item.onSelect?.();
                 }}
               >
-                {item.label}
+                <span>{item.label}{item.description && <span className="block whitespace-normal break-words text-[12px] font-normal text-muted">{item.description}</span>}</span>
               </button>
             )}
           </li>

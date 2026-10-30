@@ -1,3 +1,6 @@
+import { propertyLocation, type PropertyReference } from "../../lib/propertyAddress";
+import { PropertyNames } from "../../components/PropertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { Suspense, lazy, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet } from "react-router-dom";
@@ -81,7 +84,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
   const propertyLink = (propertyId: string) => (area === "admin" ? propertyPath(organization.id, propertyId) : `/portal/properties/${propertyId}`);
   const slots = Math.max(0, organization.propertyLimit - properties.length);
   const people = new Set([...representatives.map((r) => r.id), ...staff.map((s) => s.id)]).size;
-  // Reports, Violations and Activity read admin-only endpoints; Representatives see them per property.
+  // Issues, Violations and Activity read admin-only endpoints; Representatives see them per property.
   const tabs: Tab[] = area === "admin" ? ["properties", "people", "invitations", "reports", "violations", "activity"] : ["properties", "people", "invitations"];
   const tab = (tabs.includes(params.get("tab") as Tab) ? params.get("tab") : defaultTab) as Tab;
 
@@ -148,7 +151,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
               { value: "invitations", label: "Invitations", count: invitations.length },
               ...(area === "admin"
                 ? ([
-                    { value: "reports", label: "Reports", count: kpis.openReports || undefined },
+                    { value: "reports", label: "Issues", count: kpis.openReports || undefined },
                     { value: "violations", label: "Violations", count: kpis.violations30d || undefined },
                     { value: "activity", label: "Activity" },
                   ] as const)
@@ -162,7 +165,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
         <StatTile label="Properties" value={`${kpis.properties} of ${organization.propertyLimit}`} sub={`${slots} slot${slots === 1 ? "" : "s"} left`} />
         <StatTile label="Units under service" value={formatCount(kpis.units)} />
         <StatTile
-          label="Open resident reports"
+          label="Open resident issues"
           value={kpis.openReports}
           sub={kpis.oldestOpenHours === null ? "None waiting" : `Oldest ${age(kpis.oldestOpenHours)}`}
           tone={kpis.oldestOpenHours !== null && kpis.oldestOpenHours >= 20 ? "bad" : "neutral"}
@@ -209,7 +212,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
                 ) : (
                   <PersonList>
                     {groupStaff(staff).map((s) => (
-                      <PersonRow key={s.id} id={s.id} name={s.name} detail={`${s.roles} · ${s.properties}`} />
+                      <PersonRow key={s.id} id={s.id} name={s.name} detail={<span>{s.roles}<PropertyNames properties={s.properties} /></span>} />
                     ))}
                   </PersonList>
                 )}
@@ -223,7 +226,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
                           <strong className="block break-words">{i.email}</strong>
                           <span className="text-[12px] text-muted">
                             {INVITE_ROLE_LABELS[i.role]}
-                            {i.propertyName ? ` · ${i.propertyName}` : ""} · {timeAgo(i.createdAt)}
+                            {i.propertyName && <span className="block">{i.propertyName}<PropertyAddress property={propertyLocation(i)} /></span>} · {timeAgo(i.createdAt)}
                           </span>
                         </span>
                       </li>
@@ -278,7 +281,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
                     name={s.name ?? s.email}
                     email={s.email}
                     role={PROPERTY_ROLE_LABELS[s.role]}
-                    detail={s.propertyName}
+                    detail={<span>{s.propertyName}<PropertyAddress property={propertyLocation(s)} /></span>}
                     action={
                       <Button
                         variant="secondary"
@@ -319,7 +322,7 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
                     name={i.name ?? i.email}
                     email={i.name ? i.email : null}
                     role={INVITE_ROLE_LABELS[i.role]}
-                    detail={`${i.propertyName ?? `All of ${organization.name}`} · sent ${timeAgo(i.createdAt)}`}
+                    detail={<span>{i.propertyName ? <span>{i.propertyName}<PropertyAddress property={propertyLocation(i)} /></span> : `All of ${organization.name}`} · sent {timeAgo(i.createdAt)}</span>}
                     action={
                       // Representatives manage the property manager invitations they can send.
                       (isAdmin || i.role === "manager") && (
@@ -395,14 +398,14 @@ export function OrganizationView({ id, area, isAdmin, defaultTab = "properties" 
 
 /** One row per person, with their roles and properties joined. */
 function groupStaff(staff: OrganizationDetail["staff"]) {
-  const byId = new Map<string, { id: string; name: string; roles: Set<string>; properties: string[] }>();
+  const byId = new Map<string, { id: string; name: string; roles: Set<string>; properties: PropertyReference[] }>();
   for (const s of staff) {
     const row = byId.get(s.id) ?? { id: s.id, name: s.name ?? s.email, roles: new Set(), properties: [] };
     row.roles.add(PROPERTY_ROLE_LABELS[s.role]);
-    row.properties.push(s.propertyName);
+    row.properties.push({ id: s.propertyId, name: s.propertyName, ...propertyLocation(s) });
     byId.set(s.id, row);
   }
-  return [...byId.values()].map((r) => ({ id: r.id, name: r.name, roles: [...r.roles].join(", "), properties: r.properties.join(", ") }));
+  return [...byId.values()].map((r) => ({ id: r.id, name: r.name, roles: [...r.roles].join(", "), properties: r.properties }));
 }
 
 function AsideCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
@@ -421,7 +424,7 @@ function PersonList({ children }: { children: ReactNode }) {
   return <ul className="m-0 flex list-none flex-col gap-3 p-0">{children}</ul>;
 }
 
-function PersonRow({ id, name, detail }: { id: string; name: string; detail: string }) {
+function PersonRow({ id, name, detail }: { id: string; name: string; detail: ReactNode }) {
   return (
     <li className="flex items-center gap-2.5">
       <Avatar name={name} seed={id} size={34} />
@@ -433,7 +436,7 @@ function PersonRow({ id, name, detail }: { id: string; name: string; detail: str
   );
 }
 
-function PeopleRow({ id, name, email, role, detail, action }: { id: string; name: string; email: string | null; role: string; detail: string; action?: ReactNode }) {
+function PeopleRow({ id, name, email, role, detail, action }: { id: string; name: string; email: string | null; role: string; detail: ReactNode; action?: ReactNode }) {
   return (
     <li className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
       <Avatar name={name} seed={id} size={36} />
@@ -509,7 +512,7 @@ function PropertyGrid({
 
 function PropertyCard({ orgId, property: p, to }: { orgId: string; property: OrganizationProperty; to: string }) {
   const status = p.status === "inactive" ? (["Inactive", "neutral"] as const) : p.starting && p.serviceStartDate ? ([`Starting ${monthDay(p.serviceStartDate)}`, "warning"] as const) : (["Active", "success"] as const);
-  const facts = [p.city, p.unitCount ? `${formatCount(p.unitCount)} units` : null, p.contractType ? CONTRACT_LABELS[p.contractType] : null].filter(Boolean).join(" · ");
+  const facts = [p.unitCount ? `${formatCount(p.unitCount)} units` : null, p.contractType ? CONTRACT_LABELS[p.contractType] : null].filter(Boolean).join(" · ");
   return (
     <Link to={to} className="flex h-full flex-col overflow-hidden rounded-[14px] border border-line bg-white text-ink no-underline hover:border-navy/40 hover:text-ink">
       <span className="relative block aspect-video">
@@ -520,12 +523,12 @@ function PropertyCard({ orgId, property: p, to }: { orgId: string; property: Org
       </span>
       <span className="flex flex-1 flex-col gap-2.5 px-4 pt-3.5 pb-4">
         <span>
-          <span className="block font-heading text-[16.5px] font-bold">{p.name}</span>
+          <span className="block font-heading text-[16.5px] font-bold">{p.name}</span><PropertyAddress property={p} />
           <span className="mt-0.5 block text-[12.5px] text-muted">{facts || "No details yet"}</span>
         </span>
         <span className="flex flex-wrap gap-1.5">
           <Pill tone={p.openReports ? "danger" : "success"}>
-            {p.openReports} open report{p.openReports === 1 ? "" : "s"}
+            {p.openReports} open issue{p.openReports === 1 ? "" : "s"}
           </Pill>
           {p.violations30d !== undefined && (
             <Pill tone={p.violations30d ? "warning" : "neutral"}>
@@ -746,7 +749,7 @@ function InviteModal({
                 {properties.map((p) => (
                   <label key={p.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1 hover:bg-tint">
                     <input type="checkbox" name="propertyIds" value={p.id} defaultChecked={properties.length === 1} className="size-5 accent-navy" />
-                    <span className="min-w-0 break-words">{p.name}</span>
+                    <span className="min-w-0 break-words">{p.name}<PropertyAddress property={p} /></span>
                   </label>
                 ))}
               </div>

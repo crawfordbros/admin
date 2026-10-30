@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useRef, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -291,7 +293,7 @@ export function PropertyViolation({ v, queryKey, readOnly, previewQuery }: { v: 
     onError: (err) => toast.error(errorMessage(err)),
   });
   const open = v.status === "sent";
-  const where = [v.propertyName, v.building && `Building ${v.building}`, unitLabel(v.unit), `Logged ${at(v.loggedAt)} by ${v.valet.name}`].filter(Boolean).join(" · ");
+  const where = [v.building && `Building ${v.building}`, unitLabel(v.unit), `Logged ${at(v.loggedAt)} by ${v.valet.name}`].filter(Boolean).join(" · ");
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -311,6 +313,7 @@ export function PropertyViolation({ v, queryKey, readOnly, previewQuery }: { v: 
             )}
           </p>
           <h1 className="mt-1.5 mb-0 text-[30px] text-navy-ink">{v.typeLabel}</h1>
+          <p className="mt-1.5 mb-0 text-[14px]">{v.propertyName}<PropertyAddress property={propertyLocation(v)} /></p>
           <p className="mt-1.5 mb-0 text-[14px] text-muted">{where}</p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useParams } from "react-router-dom";
@@ -71,7 +73,8 @@ export function ViolationDetailPage() {
             <h1 className="mt-0.5 mb-0 text-[24px] text-navy-ink sm:text-[28px]">
               {v.typeLabel} · Unit {v.unit}
             </h1>
-            <p className="mt-1 mb-0 text-[14px] text-muted">{[v.propertyName, v.building && `Building ${v.building}`, v.orgName].filter(Boolean).join(" · ")}</p>
+            <p className="mt-1 mb-0 text-[14px]">{v.propertyName}<PropertyAddress property={propertyLocation(v)} /></p>
+            <p className="mt-1 mb-0 text-[14px] text-muted">{[v.building && `Building ${v.building}`, v.orgName].filter(Boolean).join(" · ")}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 print:hidden">
@@ -419,7 +422,7 @@ export function Details({ v, area, onType }: { v: ViolationDetail; area: Violati
   const types = useQuery({ queryKey: ["admin", "violation-types"], queryFn: () => api<{ items: ViolationType[] }>("/admin/violation-types"), enabled: editing, staleTime: 10 * 60_000 });
   const rows: [string, ReactNode][] = [
     ["Organization", v.orgId && area === "admin" ? <Link to={`/admin/organizations/${v.orgId}`}>{v.orgName}</Link> : v.orgName],
-    ["Property", area === "admin" && v.orgId ? <Link to={`/admin/organizations/${v.orgId}/properties/${v.propertyId}`}>{v.propertyName}</Link> : v.propertyName],
+    ["Property", <span>{area === "admin" && v.orgId ? <Link to={`/admin/organizations/${v.orgId}/properties/${v.propertyId}`}>{v.propertyName}</Link> : v.propertyName}<PropertyAddress property={propertyLocation(v)} /></span>],
     ["Building · Unit", [v.building && `Building ${v.building}`, v.unit].filter(Boolean).join(" · ")],
     [
       "Type",

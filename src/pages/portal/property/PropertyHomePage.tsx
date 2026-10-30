@@ -1,3 +1,5 @@
+import { propertyAddressText } from "../../../lib/propertyAddress";
+import { PropertyAddress } from "../../../components/PropertyAddress";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
@@ -57,7 +59,7 @@ export function PropertyHomePage() {
   });
   const name = home?.property.name ?? null;
   // Representatives see "{Organization} / {Property}"; a manager's breadcrumb already starts with it.
-  usePortalPage(name, name && shell?.kind === "organization" ? [{ label: name }] : undefined);
+  usePortalPage(name, name && shell?.kind === "organization" ? [{ label: name, description: home ? propertyAddressText(home.property) : undefined }] : undefined);
 
   if (preview.denied) return <Alert>{MANAGER_PREVIEW_DENIED}</Alert>;
   if (isPending) return <Loading />;
@@ -97,7 +99,7 @@ export function PropertyHomePage() {
   };
 
   const h = home.header;
-  const facts = [h.address, h.units ? `${formatCount(h.units)} units` : null, h.buildings ? plural(h.buildings, "building") : null].filter(Boolean).join(" · ");
+  const facts = [h.units ? `${formatCount(h.units)} units` : null, h.buildings ? plural(h.buildings, "building") : null].filter(Boolean).join(" · ");
 
   return (
     <div className="flex flex-col gap-5">
@@ -110,12 +112,13 @@ export function PropertyHomePage() {
             <div className="min-w-0">
               {home.organization && <p className="m-0 text-[12.5px] font-bold tracking-[0.08em] text-gold-text uppercase">{home.organization.name}</p>}
               <h1 className="mt-1 mb-0 text-[30px] text-navy-ink">{p.name}</h1>
+              <PropertyAddress property={p} className="text-[14px]" />
               {facts && <p className="mt-1 mb-0 text-[14px] text-muted">{facts}</p>}
             </div>
             <div className="flex flex-wrap gap-2.5">
-              <ButtonLink to={`/portal/reports?scope=property&property=${p.id}`}>
+              <ButtonLink to={`/portal/reporting?scope=property&property=${p.id}`}>
                 <Icon name="bar-chart" size={20} strokeWidth={2} />
-                Reports
+                Reporting
               </ButtonLink>
               <Button variant="secondary" onClick={lastWeekPdf} disabled={downloading}>
                 <Icon name="download" size={18} strokeWidth={2} />
@@ -189,7 +192,9 @@ export function PropertyHomePage() {
           property={{
             id: p.id,
             name: p.name,
+            address: p.address,
             city: p.city,
+            zip: p.zip,
             units: p.unitCount,
             photoVersion: p.photoVersion,
             status: "active",

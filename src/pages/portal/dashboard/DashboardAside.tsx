@@ -1,3 +1,4 @@
+import { PropertyNames } from "../../../components/PropertyAddress";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { errorMessage, useApi, type RepDashboard } from "../../../lib/api";
@@ -45,8 +46,8 @@ export function WeeklyReportCard({ dashboard }: { dashboard: RepDashboard }) {
       </div>
       <p className="m-0 text-[13.5px] text-on-navy">{lastWeekSentence(dashboard.lastWeek)}</p>
       <div className="flex flex-wrap gap-2">
-        <Link to={`/portal/reports?scope=organization&org=${dashboard.organization.id}`} className="inline-flex h-10 items-center rounded-[10px] bg-white px-3.5 text-[13.5px] font-bold text-navy-ink no-underline hover:bg-tint-2 hover:text-navy-ink">
-          Open reports
+        <Link to={`/portal/reporting?scope=organization&org=${dashboard.organization.id}`} className="inline-flex h-10 items-center rounded-[10px] bg-white px-3.5 text-[13.5px] font-bold text-navy-ink no-underline hover:bg-tint-2 hover:text-navy-ink">
+          Open Reporting
         </Link>
       </div>
     </section>
@@ -134,8 +135,9 @@ export function InvitationsWaiting({ dashboard, onResent }: { dashboard: RepDash
           <li key={inv.id} className="flex items-center justify-between gap-2">
             <span className="min-w-0">
               <strong className="block truncate">{inv.email}</strong>
+              {inv.properties?.length ? <PropertyNames properties={inv.properties} /> : inv.propertyNames.map((name, index) => <span key={index} className="block">{name}</span>)}
               <span className="text-[12px] text-muted">
-                {[PROPERTY_ROLE_LABELS[inv.role], inv.propertyNames.join(", ") || null].filter(Boolean).join(" · ")} ·{" "}
+                {PROPERTY_ROLE_LABELS[inv.role]} ·{" "}
                 {inv.expired ? <span className="font-bold text-danger">Expired</span> : daysAgo(inv.createdAt)}
               </span>
             </span>
@@ -168,7 +170,7 @@ export function CbesContacts({ dashboard }: { dashboard: RepDashboard }) {
               <Avatar name={c.name} seed={c.id} size={34} />
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-bold">{c.name}</span>
-                <span className="block text-[12px] text-muted">{c.title}</span>
+                <span className="block text-[12px] text-muted">{c.title}</span>{c.properties?.length ? <PropertyNames properties={c.properties} /> : null}
               </span>
             </li>
           ))}

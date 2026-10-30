@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -20,7 +22,7 @@ const STATUSES: ReportStatus[] = ["new", "assigned", "in_progress", "resolved", 
 function describe(e: ReportEvent): string {
   switch (e.kind) {
     case "created":
-      return e.actor ? "logged this report" : "sent this report";
+      return e.actor ? "logged this issue" : "sent this issue";
     case "status":
       return `marked it ${statusLabel("report", e.toStatus ?? "new").toLowerCase()}`;
     case "assigned":
@@ -45,7 +47,7 @@ function Photo({ reportId, photoId, n }: { reportId: string; photoId: string; n:
   );
 }
 
-/** /admin/reports/:id — one report in a drawer over the list. The only place the resident's contact shows. */
+/** /admin/issues/:id — one issue in a drawer over the list. The only place the resident's contact shows. */
 export function ReportDrawer() {
   const { id = "" } = useParams();
   const api = useApi();
@@ -56,8 +58,8 @@ export function ReportDrawer() {
   const key = ["admin", "report", id];
   const { data: r, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<ReportDetail>(`/admin/reports/${id}`) });
   const assignees = useQuery({ queryKey: ["admin", "assignees"], queryFn: () => api<{ items: { id: string; name: string }[] }>("/admin/assignees") });
-  useAdminPage(r ? `Report #${r.refNo}` : null, r && [{ label: "Reports", to: `/admin/reports${location.search}` }, { label: `#${r.refNo}` }]);
-  const close = () => navigate({ pathname: "/admin/reports", search: location.search });
+  useAdminPage(r ? `Issue #${r.refNo}` : null, r && [{ label: "Issues", to: `/admin/issues${location.search}` }, { label: `#${r.refNo}` }]);
+  const close = () => navigate({ pathname: "/admin/issues", search: location.search });
 
   const saved = async (report: ReportDetail, message: string) => {
     queryClient.setQueryData(key, report);
@@ -67,13 +69,13 @@ export function ReportDrawer() {
   };
   const patch = useMutation({
     mutationFn: (body: { status?: ReportStatus; assigneeUserId?: string | null }) => api<{ report: ReportDetail }>(`/admin/reports/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
-    onSuccess: ({ report }) => saved(report, "Report updated."),
+    onSuccess: ({ report }) => saved(report, "Issue updated."),
     onError: (err) => toast.error(errorMessage(err)),
   });
 
   return (
     <Drawer
-      title={r ? r.issueLabel : "Report"}
+      title={r ? r.issueLabel : "Issue"}
       context={r ? `#${r.refNo} · ${dateTime(r.createdAt)}` : undefined}
       icon={r && <IssueIcon issueKey={r.issueKey} />}
       onClose={close}
@@ -86,7 +88,7 @@ export function ReportDrawer() {
             <ReplyClockChip clock={r.replyClock} />
             <SourceChip source={r.source} />
             <span className="text-[13px] text-muted">
-              {r.propertyName}
+              <span>{r.propertyName}<PropertyAddress property={propertyLocation(r)} /></span>
               {r.unit ? ` · ${[r.building && `Bldg ${r.building}`, `Unit ${r.unit}`].filter(Boolean).join(" · ")}` : ""}
             </span>
           </div>

@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../PropertyAddress";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -24,15 +25,15 @@ const MODES = {
   admin: {
     endpoint: "/admin/search",
     dialog: "Search the Admin Portal",
-    placeholder: "Search orgs, properties, units, tickets…",
-    hint: "Type a name, unit, ticket number (#1042) or violation (V-2041).",
+    placeholder: "Search orgs, properties, units, issues…",
+    hint: "Type a name, unit, issue number (#1042) or violation (V-2041).",
     recentKey: "cbes-admin:recent-searches",
     groups: [
       { kind: "page", label: "Pages" },
       { kind: "org", label: "Organizations" },
       { kind: "property", label: "Properties" },
       { kind: "unit", label: "Units" },
-      { kind: "report", label: "Reports" },
+      { kind: "report", label: "Issues" },
       { kind: "violation", label: "Violations" },
       { kind: "user", label: "Users" },
       { kind: "quote", label: "Quotes" },
@@ -91,7 +92,7 @@ function useDebounced(value: string, ms: number) {
 }
 
 /**
- * The ⌘K command palette. In the Admin Portal: organizations, properties, units, tickets, people
+ * The ⌘K command palette. In the Admin Portal: organizations, properties, units, issues, people
  * and quotes. In the Property Portal (`mode="portal"`): properties, units, violations and resident
  * issues the person can see, plus the sidebar's pages (`pages`).
  */
@@ -202,7 +203,7 @@ export function SearchPalette({ onClose, mode = "admin", pages = ADMIN_PAGES }: 
           {term.length >= 2 && search.isPending && ordered.length === 0 && <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">Searching…</p>}
           {term.length >= 2 && !search.isPending && !search.error && ordered.length === 0 && (
             <p role="status" className="m-0 px-4 py-6 text-center text-[14px] text-muted">
-              Nothing matches “{term}”. Try a unit number, a ticket number or part of a name.
+              Nothing matches “{term}”. Try a unit number, an issue number or part of a name.
             </p>
           )}
 
@@ -227,7 +228,8 @@ export function SearchPalette({ onClose, mode = "admin", pages = ADMIN_PAGES }: 
                       className={cx("flex min-h-12 cursor-pointer flex-col justify-center rounded-lg px-3 py-1.5", i === at && "bg-tint-2")}
                     >
                       <span className="text-[14px] font-semibold">{r.title}</span>
-                      <span className="text-[12.5px] text-muted">{r.subtitle}</span>
+                      {r.property && <span>{r.kind !== "property" && <span className="block text-[13px]">{r.property.name}</span>}<PropertyAddress property={r.property} /></span>}
+                      <span className="text-[12.5px] text-muted">{r.property && r.subtitle.startsWith(`${r.property.name} · `) ? r.subtitle.slice(r.property.name.length + 3) : r.subtitle === r.property?.name ? "" : r.subtitle}</span>
                     </div>
                   ))}
                 </div>

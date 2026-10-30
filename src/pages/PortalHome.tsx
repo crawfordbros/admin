@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../components/PropertyAddress";
 import { Link, Navigate } from "react-router-dom";
 import { ROLE_LABELS, isAdmin as isAdminRole, roleFrom } from "../access";
 import { errorMessage } from "../lib/api";
@@ -73,7 +74,8 @@ export function PortalHome() {
                   <Link to={`/portal/properties/${p.id}`} className={stretched}>
                     {p.name}
                   </Link>
-                  {(p.organizationName || p.city) && <span className="truncate text-[14px] text-muted">{[p.organizationName, p.city].filter(Boolean).join(" · ")}</span>}
+                  <PropertyAddress property={p} />
+                  {(p.organizationName || p.city) && <span className="truncate text-[14px] text-muted">{[p.organizationName].filter(Boolean).join(" · ")}</span>}
                 </span>
               </li>
             ))}

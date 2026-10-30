@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
@@ -40,7 +42,7 @@ function FieldStaffViolation({ v, queryKey }: { v: ViolationDetail; queryKey: un
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
       <Link to={`/portal/properties/${v.propertyId}`} className="self-start text-[15px] font-semibold">
-        {v.propertyName}
+        <span>{v.propertyName}<PropertyAddress property={propertyLocation(v)} /></span>
       </Link>
       <div className="min-w-0">
         <p className="m-0 text-[13px] font-bold text-muted">

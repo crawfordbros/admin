@@ -1,3 +1,6 @@
+import { propertyLocation } from "../../../lib/propertyAddress";
+import { PropertyAddress } from "../../../components/PropertyAddress";
+import { propertyOptionLabel } from "../../../lib/propertyAddress";
 import type { ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useParams } from "react-router-dom";
@@ -92,7 +95,8 @@ function IssueDetail({ id, backTo, opened }: { id: string; backTo: string; opene
           <h2 id="issue-title" className="mt-1.5 mb-0 text-[24px] text-navy-ink">
             {d.issueLabel}
           </h2>
-          <p className="m-0 mt-1 text-[13.5px] text-muted">{[d.propertyName, where(d), at(d.createdAt)].filter(Boolean).join(" · ")}</p>
+          <p className="m-0 mt-1 text-[14px]">{d.propertyName}<PropertyAddress property={propertyLocation(d)} /></p>
+          <p className="m-0 mt-1 text-[13.5px] text-muted">{[where(d), at(d.createdAt)].filter(Boolean).join(" · ")}</p>
         </div>
         {d.firstReplyHours !== null ? (
           <span className="rounded-[10px] bg-success-bg px-3 py-1.5 text-[12.5px] font-bold text-success">First reply in {duration(d.firstReplyHours)}</span>
@@ -210,7 +214,7 @@ export function RepIssuesPage() {
                 {ctx.kind === "organization" && <option value="">All {plural(ctx.properties.length, "property", "properties")}</option>}
                 {ctx.properties.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {propertyOptionLabel(p)}
                   </option>
                 ))}
               </select>
@@ -269,7 +273,8 @@ export function RepIssuesPage() {
                           <strong className="text-[14.5px]">{r.issueLabel}</strong>
                           <span className="text-[12px] whitespace-nowrap text-muted">{serviceTime(r.createdAt)}</span>
                         </span>
-                        <span className="mt-0.5 block text-[12.5px] text-muted">{[`#${r.refNo}`, r.propertyName, where(r)].filter(Boolean).join(" · ")}</span>
+                        <span className="mt-1 block text-[13px]">{r.propertyName}<PropertyAddress property={propertyLocation(r)} /></span>
+                        <span className="mt-0.5 block text-[12.5px] text-muted">{[`#${r.refNo}`, where(r)].filter(Boolean).join(" · ")}</span>
                         <span className="mt-2 flex flex-wrap gap-1.5">
                           <StatusBadge kind="portalIssue" status={r.statusLabel} />
                           <ClockPill clock={r.replyClock} />

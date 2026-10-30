@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../../../components/PropertyAddress";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { errorMessage, useApi, type PortalPropertyCard } from "../../../lib/api";
@@ -65,6 +66,7 @@ export function AssignManagerModal({ orgId, property, onClose }: { orgId: string
   return (
     <Modal
       title={`Managers for ${property.name}`}
+      context={<PropertyAddress property={property} />}
       onClose={onClose}
       footer={
         <>

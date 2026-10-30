@@ -99,7 +99,7 @@ describe("RepIssuesPage", () => {
     expect(await within(listPane).findByText("Trash left in hallway")).toBeInTheDocument();
     expect(within(listPane).getByText("Reply due in 18h")).toBeInTheDocument();
     expect(within(listPane).getByText("Replied in 3h")).toBeInTheDocument();
-    expect(within(listPane).getByText("#1047 · The Oaks at Decatur · 2nd floor")).toBeInTheDocument();
+    expect(within(listPane).getByText("#1047 · 2nd floor")).toBeInTheDocument();
     expect(within(listPane).getByRole("link", { name: /Missed pickup/ })).toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("tab", { name: /Resolved/ })).toHaveTextContent("21");
     expect(await screen.findByRole("heading", { level: 2, name: "Missed pickup" })).toBeInTheDocument();

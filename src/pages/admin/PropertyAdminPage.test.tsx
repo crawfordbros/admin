@@ -12,6 +12,7 @@ const detail = (overrides: Partial<AdminPropertyDetail> = {}): AdminPropertyDeta
     slug: "demo-community",
     address: "100 Demo Way",
     city: "Clarkston",
+    zip: "30021",
     county: "DeKalb",
     unitCount: 30,
     organizationId: "org1",

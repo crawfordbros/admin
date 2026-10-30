@@ -93,7 +93,7 @@ describe("RepShell", () => {
     expect(await within(nav).findByRole("link", { name: /^Dashboard/ })).toHaveAttribute("aria-current", "page");
     expect(await within(nav).findByRole("link", { name: "Violations, 5 to review" })).toHaveAttribute("href", "/portal/violations?org=org1");
     expect(within(nav).getByRole("link", { name: "Resident issues, 3 open" })).toHaveAttribute("href", "/portal/issues?org=org1");
-    expect(within(nav).getByRole("link", { name: "Reports" })).toHaveAttribute("href", "/portal/reports?scope=organization&org=org1");
+    expect(within(nav).getByRole("link", { name: "Reporting" })).toHaveAttribute("href", "/portal/reporting?scope=organization&org=org1");
     expect(within(nav).getByRole("link", { name: "Team and settings, 1 waiting" })).toHaveAttribute("href", "/portal/organizations/org1/settings");
     expect(within(nav).getByText("Peachtree Residential")).toBeInTheDocument();
     expect(within(nav).getByText("2 properties · Representative")).toBeInTheDocument();
@@ -155,7 +155,7 @@ describe("RepShell", () => {
     api(managerMe());
     renderShell("/portal/violations/v1");
     const crumb = screen.getByRole("navigation", { name: "Breadcrumb" });
-    expect(await within(crumb).findByRole("link", { name: "The Oaks at Decatur" })).toHaveAttribute("href", "/portal/properties/p1");
+    expect(await within(crumb).findByRole("link", { name: /^The Oaks at Decatur/ })).toHaveAttribute("href", "/portal/properties/p1");
     expect(within(crumb).getByRole("link", { name: "Violations" })).toHaveAttribute("href", "/portal/violations");
     expect(within(crumb).getByText("V-2041")).toHaveAttribute("aria-current", "page");
     expect(document.title).toBe("V-2041 Bag not tied | CBES Portal");

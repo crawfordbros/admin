@@ -112,5 +112,5 @@ export const SECTION_NAV: { id: string; label: string; icon: IconName }[] = [
   { id: "issues", label: "Issue types", icon: "message" },
   { id: "violations", label: "Violation types", icon: "alert-triangle" },
   { id: "calendar", label: "Nights and holidays", icon: "calendar" },
-  { id: "reports", label: "Reports and email", icon: "mail" },
+  { id: "reports", label: "Weekly reports and email", icon: "mail" },
 ];

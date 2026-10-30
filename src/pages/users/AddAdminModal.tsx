@@ -55,7 +55,7 @@ function InviteAdmin() {
         <TextField label="Name" optional autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} disabled={save.isPending} />
         <label className="flex items-start gap-3 text-sm">
           <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-navy" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} disabled={save.isPending} />
-          <span>I understand this user will see and manage every organization, property, report and quote.</span>
+          <span>I understand this user will see and manage every organization, property, issue and quote.</span>
         </label>
         <StepUpField stepUp={stepUp} code={code} onCode={setCode} />
         {save.error && <Alert>{errorMessage(save.error)}</Alert>}

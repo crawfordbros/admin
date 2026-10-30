@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -11,7 +13,7 @@ import { cx } from "../../components/styles";
 import { UnitHistory, ViolationThumb } from "../violations/shared";
 import { ReplyClockChip } from "../reports/shared";
 
-// The Violations and Reports tabs on an organization or property (ADMIN_PORTAL_SPEC 7.8, 7.10):
+// The Violations and Issues tabs on an organization or property (ADMIN_PORTAL_SPEC 7.8, 7.10):
 // the same rows as the full pages, pre-filtered, with a link to open the full page on that filter.
 
 export type Scope = { org: string } | { property: string };
@@ -93,8 +95,9 @@ export function ScopedViolations({ scope, showProperty }: { scope: Scope; showPr
                   <span className="block truncate text-[14px] font-bold">
                     V-{v.refNo} · {v.typeLabel}
                   </span>
+                  {showProperty && <span className="block text-[13px]">{v.propertyName}<PropertyAddress property={propertyLocation(v)} /></span>}
                   <span className="block truncate text-[12.5px] text-muted">
-                    {[showProperty ? v.propertyName : null, v.building && `Building ${v.building}`, `Unit ${v.unit}`, serviceTime(v.loggedAt)].filter(Boolean).join(" · ")}
+                    {[v.building && `Building ${v.building}`, `Unit ${v.unit}`, serviceTime(v.loggedAt)].filter(Boolean).join(" · ")}
                   </span>
                 </span>
                 <span className="hidden sm:block">
@@ -130,11 +133,11 @@ export function ScopedReports({ scope, showProperty }: { scope: Scope; showPrope
   }));
 
   return (
-    <section aria-label="Resident reports" className={card}>
+    <section aria-label="Resident issues" className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-row-line px-4 py-3">
         <SegmentedControl label="Status" size="sm" options={options} value={tab} onChange={(v) => (setTab(v), setPage(1))} />
-        <Link to={`/admin/reports?${scopeQuery(scope)}&tab=${tab}&dates=all`} className="text-[13px] font-bold">
-          Open in Reports
+        <Link to={`/admin/issues?${scopeQuery(scope)}&tab=${tab}&dates=all`} className="text-[13px] font-bold">
+          Open in Issues
         </Link>
       </div>
       {list.isError ? (
@@ -144,18 +147,19 @@ export function ScopedReports({ scope, showProperty }: { scope: Scope; showPrope
       ) : !list.data ? (
         <RowsLoading />
       ) : !list.data.items.length ? (
-        <EmptyState icon="message" title={tab === "open" ? "No open reports" : "No reports"} body={tab === "open" ? "Every resident report here has been resolved." : "Residents haven't reported anything here yet."} />
+        <EmptyState icon="message" title={tab === "open" ? "No open issues" : "No issues"} body={tab === "open" ? "Every resident issue here has been resolved." : "Residents haven't reported anything here yet."} />
       ) : (
         <ul className="m-0 list-none p-0">
           {list.data.items.map((r) => (
             <li key={r.id} className="border-b border-row-line last:border-b-0">
-              <Link to={`/admin/reports/${r.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 text-ink no-underline hover:bg-subtle hover:text-ink">
+              <Link to={`/admin/issues/${r.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3 text-ink no-underline hover:bg-subtle hover:text-ink">
                 <span className="min-w-0 flex-[1_1_240px]">
                   <span className="block truncate text-[14px] font-bold">
                     #{r.refNo} · {r.issueLabel}
                   </span>
+                  {showProperty && <span className="block text-[13px]">{r.propertyName}<PropertyAddress property={propertyLocation(r)} /></span>}
                   <span className="block truncate text-[12.5px] text-muted">
-                    {[showProperty ? r.propertyName : null, r.building && `Building ${r.building}`, r.unit, timeAgo(r.createdAt)].filter(Boolean).join(" · ")}
+                    {[r.building && `Building ${r.building}`, r.unit, timeAgo(r.createdAt)].filter(Boolean).join(" · ")}
                   </span>
                 </span>
                 <ReplyClockChip clock={r.replyClock} />

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { generatePath, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { errorMessage, useApi, type AdminPropertyDetail } from "../../lib/api";
 import { Alert, Loading } from "../../components/ui";
 import { useToast } from "../../components/Toast";
@@ -34,4 +34,11 @@ export function PropertyRedirect() {
   if (!data) return <Loading />;
   const orgId = data.property.organizationId;
   return <Navigate to={orgId ? propertyPath(orgId, id) : "/admin/organizations?unassigned=1"} replace />;
+}
+
+/** A renamed page: keeps the query, hash and route params, so old links and emailed deep links still land. */
+export function KeepQueryRedirect({ to }: { to: string }) {
+  const params = useParams();
+  const { search, hash } = useLocation();
+  return <Navigate to={{ pathname: generatePath(to, params), search, hash }} replace />;
 }

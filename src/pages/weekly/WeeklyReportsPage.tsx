@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -33,14 +35,14 @@ type SendTarget = { scope: WeeklyScope; id?: string; label: string };
 // Older API responses without night dates: the default Sunday–Thursday calendar.
 const NIGHTS = ["Sun", "Mon", "Tue", "Wed", "Thu"];
 
-/** /admin/weekly-reports: every property's week, sent or downloaded per property, organization or all (ADMIN_PORTAL_SPEC 7.3). */
+/** /admin/reporting: every property's week, sent or downloaded per property, organization or all (ADMIN_PORTAL_SPEC 7.3). */
 export function WeeklyReportsPage() {
   const api = useApi();
   const { params, update } = useQueryState();
   const [sending, setSending] = useState<SendTarget | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const toast = useToast();
-  useAdminPage("Weekly reports");
+  useAdminPage("Reporting");
 
   const latest = lastCompletedWeek();
   const week = params.get("week") ?? latest;
@@ -115,7 +117,7 @@ export function WeeklyReportsPage() {
   return (
     <>
       <PageHeader
-        title="Weekly reports"
+        title="Reporting"
         description="Sent every Monday at 7:00 AM Eastern to each property's Property Manager. Send again or download any property or organization."
         actions={
           <>
@@ -153,7 +155,7 @@ export function WeeklyReportsPage() {
                 ["Properties", formatCount(data.summary.properties), ""],
                 ["Sent", formatCount(data.summary.sent), ""],
                 ["Failed", formatCount(data.summary.failed), data.summary.failed ? "text-danger" : ""],
-                ["Resident reports", formatCount(data.summary.residentReports), ""],
+                ["Resident issues", formatCount(data.summary.residentReports), ""],
                 ["Violations", formatCount(data.summary.violations), ""],
               ] as const
             ).map(([label, value, tone]) => (
@@ -309,8 +311,8 @@ function OrgCard({
                 <span className="flex items-center gap-2.5">
                   <span className="block size-[34px] flex-none overflow-hidden rounded-lg">{own.id ? <PropertyPhoto orgId={own.id} property={{ id: r.propertyId, photoVersion: r.photoVersion }} /> : <span className="block size-full bg-tint-2" />}</span>
                   <span>
-                    <strong className="block">{r.name}</strong>
-                    <span className="text-[12px] text-muted">{[showOrg && own.name, r.units && `${formatCount(r.units)} units`, r.city].filter(Boolean).join(" · ")}</span>
+                    <strong className="block">{r.name}</strong><PropertyAddress property={r} />
+                    <span className="text-[12px] text-muted">{[showOrg && own.name, r.units && `${formatCount(r.units)} units`].filter(Boolean).join(" · ")}</span>
                   </span>
                 </span>
               );
@@ -336,7 +338,7 @@ function OrgCard({
           { key: "clock", header: "Avg clock-in", cell: (r) => r.avgClockIn ?? "—" },
           {
             key: "reports",
-            header: "Resident reports",
+            header: "Resident issues",
             cell: (r) => (
               <>
                 <strong>{r.residentReports}</strong> <span className="text-muted">({r.resolved} resolved)</span>
@@ -456,11 +458,11 @@ function SendModal({ week, weekLabel, target, onClose }: { week: string; weekLab
           ) : (
             <ul aria-label="Recipients" className="m-0 flex max-h-72 list-none flex-col gap-2 overflow-y-auto p-0">
               {list.map((r) => (
-                <li key={`${r.email}-${r.propertyName}`} className="flex items-center gap-2.5 text-[14px]">
+                <li key={`${r.email}-${r.kind}-${r.propertyId ?? "all"}`} className="flex items-center gap-2.5 text-[14px]">
                   <Avatar name={r.name ?? r.email} seed={r.email} size={28} />
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold break-words">{r.name ?? r.email}</span>
-                    <span className="block text-[12.5px] text-muted">{[KIND_LABELS[r.kind], r.propertyName].filter(Boolean).join(" · ")}</span>
+                    <span className="block text-[12.5px] text-muted">{KIND_LABELS[r.kind]}{r.propertyName && <span className="block">{r.propertyName}<PropertyAddress property={propertyLocation(r)} /></span>}</span>
                   </span>
                 </li>
               ))}

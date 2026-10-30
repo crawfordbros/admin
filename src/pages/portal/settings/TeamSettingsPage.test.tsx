@@ -96,7 +96,7 @@ describe("TeamSettingsPage", () => {
     expect(await screen.findByText("Choose at least one property")).toBeInTheDocument();
     expect(calls.some((c) => c.url.endsWith("/invitations"))).toBe(false);
 
-    await userEvent.click(screen.getByRole("checkbox", { name: "Brookhaven Terrace" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: /^Brookhaven Terrace/ }));
     await userEvent.click(screen.getByRole("switch", { name: "Send them the Monday weekly report" }));
     await userEvent.click(screen.getByRole("button", { name: "Send invitation" }));
     expect(await screen.findByText("Invitation sent to dee@peachtreeres.com.")).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe("TeamSettingsPage", () => {
     show();
     await userEvent.click(await screen.findByRole("button", { name: "Edit access for Chris Patel" }));
     const dialog = within(screen.getByRole("dialog", { name: "Edit access" }));
-    await userEvent.click(dialog.getByRole("checkbox", { name: "Brookhaven Terrace" }));
+    await userEvent.click(dialog.getByRole("checkbox", { name: /^Brookhaven Terrace/ }));
     await userEvent.click(dialog.getByRole("switch", { name: "Monday weekly report" }));
     await userEvent.click(dialog.getByRole("button", { name: "Save access" }));
     expect(await screen.findByText("Access updated for Chris Patel.")).toBeInTheDocument();

@@ -134,10 +134,10 @@ export function ReportLinkCard({ home }: { home: PropertyHome }) {
   return (
     <section aria-labelledby="report-link-title" className={`${card} flex flex-col gap-3`}>
       <h2 id="report-link-title" className="m-0 text-[17px]">
-        Resident report link
+        Report an Issue link
       </h2>
       <div className="flex items-center gap-3.5">
-        <QrCode value={url} size={84} label="QR code for the resident report link" />
+        <QrCode value={url} size={84} label="QR code for the Report an Issue link" />
         <span className="min-w-0 text-[13px] text-muted">
           Printed on every container. Residents scan it to report a missed pickup or a problem.
           <span className="mt-1.5 block font-bold break-all text-ink">{url.replace(/^https?:\/\//, "")}</span>

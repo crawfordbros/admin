@@ -32,7 +32,7 @@ export function TeamSettingsPage() {
   const refresh = () => Promise.all([queryClient.invalidateQueries({ queryKey: ["organization", orgId] }), queryClient.invalidateQueries({ queryKey: ["portal", "nav-counts"] })]);
 
   const org = detail.data?.organization;
-  const properties = (detail.data?.properties ?? []).map((p) => ({ id: p.id, name: p.name }));
+  const properties = detail.data?.properties ?? [];
   const error = detail.error ?? team.error;
 
   const profile = org && <OrganizationProfileCard key={`${org.name}|${org.phone}|${org.billingEmail}`} org={org} />;

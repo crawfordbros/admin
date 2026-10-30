@@ -1,3 +1,4 @@
+import { propertyOptionLabel } from "../../lib/propertyAddress";
 import { useState } from "react";
 import { useApi, type AdminPropertyRow } from "../../lib/api";
 import { nyToday } from "../../lib/format";
@@ -46,7 +47,7 @@ export function PhoneReportModal({
   return (
     <Modal
       size="lg"
-      title="Log a phone report"
+      title="Log a phone issue"
       context="Source is recorded as Phone"
       onClose={onClose}
       footer={
@@ -55,7 +56,7 @@ export function PhoneReportModal({
             Cancel
           </Button>
           <Button type="submit" form="phone-report" disabled={saving}>
-            {saving ? "Logging…" : "Log report"}
+            {saving ? "Logging…" : "Log issue"}
           </Button>
         </>
       }
@@ -67,7 +68,7 @@ export function PhoneReportModal({
           </option>
           {active.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.name}
+              {propertyOptionLabel(p)}
               {p.city ? ` (${p.city})` : ""}
             </option>
           ))}

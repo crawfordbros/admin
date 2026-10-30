@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../../../components/PropertyAddress";
 import { Link, Navigate } from "react-router-dom";
 import { usePortalPage } from "../../../components/admin/adminPage";
 import { Skeleton } from "../../../components/display";
@@ -45,8 +46,8 @@ export function AccountPage() {
                         <Icon name="home" size={18} strokeWidth={2} />
                       </span>
                       <span className="min-w-0">
-                        <span className="block truncate text-[14px] font-bold">{p.name}</span>
-                        <span className="block truncate text-[12.5px] text-muted">{[p.city, p.organizationName].filter(Boolean).join(" · ")}</span>
+                        <span className="block truncate text-[14px] font-bold">{p.name}</span><PropertyAddress property={p} />
+                        <span className="block truncate text-[12.5px] text-muted">{[p.organizationName].filter(Boolean).join(" · ")}</span>
                       </span>
                     </Link>
                   </li>

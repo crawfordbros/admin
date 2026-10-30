@@ -1,3 +1,6 @@
+import { PropertyAddress } from "../../../components/PropertyAddress";
+import { invalidateProperties } from "../../../lib/invalidateProperties";
+import { validatePropertyAddress } from "../../../lib/propertyAddress";
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError, errorMessage, useApi, type PropertyHome, type TrashOutWindow } from "../../../lib/api";
@@ -25,6 +28,7 @@ export function EditPropertyModal({ home, onClose }: { home: PropertyHome; onClo
   const [name, setName] = useState(p.name);
   const [address, setAddress] = useState(p.address ?? "");
   const [city, setCity] = useState(p.city ?? "");
+  const [zip, setZip] = useState(p.zip ?? "");
   const [county, setCounty] = useState(p.county ?? "");
   const [units, setUnits] = useState(p.unitCount ? String(p.unitCount) : "");
   const [buildings, setBuildings] = useState(p.buildingCount ? String(p.buildingCount) : "");
@@ -48,7 +52,7 @@ export function EditPropertyModal({ home, onClose }: { home: PropertyHome; onClo
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const found: Record<string, string> = {};
+    const found = validatePropertyAddress({ address, city, zip });
     if (!name.trim()) found.name = "Enter the property name";
     const n = Number(units);
     if (!units || !Number.isInteger(n) || n < 1 || n > 5000) found.unitCount = "Enter the number of units, 1 to 5,000";
@@ -67,6 +71,7 @@ export function EditPropertyModal({ home, onClose }: { home: PropertyHome; onClo
           name: name.trim(),
           address: address.trim(),
           city: city.trim(),
+          zip: zip.trim(),
           county: county.trim(),
           unitCount: n,
           buildingCount: buildings ? Number(buildings) : "",
@@ -75,12 +80,7 @@ export function EditPropertyModal({ home, onClose }: { home: PropertyHome; onClo
           ...(photoUploadId ? { photoUploadId } : {}),
         }),
       });
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["portal", "property", p.id] }),
-        queryClient.invalidateQueries({ queryKey: ["me"] }),
-        queryClient.invalidateQueries({ queryKey: ["rep"] }),
-        queryClient.invalidateQueries({ queryKey: ["organization"] }),
-      ]);
+      await invalidateProperties(queryClient);
       toast.success("Property saved.");
       onClose();
     } catch (err) {
@@ -94,7 +94,7 @@ export function EditPropertyModal({ home, onClose }: { home: PropertyHome; onClo
     <Modal
       size="lg"
       title="Edit property"
-      context={p.name}
+      context={<span>{p.name}<PropertyAddress property={p} /></span>}
       onClose={onClose}
       footer={
         <>
@@ -123,11 +123,14 @@ export function EditPropertyModal({ home, onClose }: { home: PropertyHome; onClo
           </div>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Field label="Street address" error={errors.address} className="sm:col-span-3">
-            {(id, d) => <input id={id} autoComplete="street-address" aria-describedby={d} value={address} onChange={(e) => setAddress(e.target.value)} className={input} />}
+          <Field label="Street address" hint="Required" error={errors.address} className="sm:col-span-3">
+            {(id, d) => <input id={id} autoComplete="street-address" aria-describedby={d} required aria-invalid={errors.address ? true : undefined} value={address} onChange={(e) => setAddress(e.target.value)} className={input} />}
           </Field>
-          <Field label="City" error={errors.city}>
-            {(id, d) => <input id={id} aria-describedby={d} value={city} onChange={(e) => setCity(e.target.value)} className={input} />}
+          <Field label="City" hint="Required" error={errors.city}>
+            {(id, d) => <input id={id} aria-describedby={d} required aria-invalid={errors.city ? true : undefined} value={city} onChange={(e) => setCity(e.target.value)} className={input} />}
+          </Field>
+          <Field label="ZIP" hint="Required" error={errors.zip}>
+            {(id, d) => <input id={id} required autoComplete="postal-code" aria-describedby={d} aria-invalid={errors.zip ? true : undefined} value={zip} onChange={(e) => setZip(e.target.value)} className={input} />}
           </Field>
           <Field label="County" error={errors.county}>
             {(id, d) => <input id={id} aria-describedby={d} value={county} onChange={(e) => setCounty(e.target.value)} className={input} />}

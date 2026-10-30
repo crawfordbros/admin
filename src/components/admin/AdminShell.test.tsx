@@ -23,7 +23,7 @@ function renderShell(url = "/admin") {
           <Routes>
             <Route path="/admin" element={<AdminShell />}>
               <Route index element={<p>Overview page</p>} />
-              <Route path="reports" element={<p>Reports page</p>} />
+              <Route path="issues" element={<p>Issues page</p>} />
               <Route path="settings" element={<p>Settings page</p>} />
               <Route path="organizations/:orgId" element={<Page />} />
             </Route>
@@ -41,12 +41,12 @@ afterEach(() => vi.unstubAllGlobals());
 describe("AdminShell", () => {
   it("shows the sidebar sections with counts from the API and marks the current one", async () => {
     mockFetch((url) => (url === "/api/admin/nav-counts" ? [200, { openReports: 7, newViolations: 12, newQuotes: 0 }] : notFound));
-    renderShell("/admin/reports");
+    renderShell("/admin/issues");
     const nav = screen.getAllByRole("navigation", { name: "Admin Portal" })[0];
-    expect(within(nav).getByRole("link", { name: /^Reports/ })).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getByRole("link", { name: /^Issues/ })).toHaveAttribute("aria-current", "page");
     expect(within(nav).getByRole("link", { name: /^Overview/ })).not.toHaveAttribute("aria-current");
     expect(await within(nav).findByRole("link", { name: "Violations, 12 new" })).toBeInTheDocument();
-    expect(within(nav).getByRole("link", { name: "Reports, 7 open" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Issues, 7 open" })).toBeInTheDocument();
     // No badge for zero, and Properties now live inside Organizations.
     expect(within(nav).getByRole("link", { name: "Quotes" })).toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: /Properties/ })).not.toBeInTheDocument();
@@ -63,8 +63,8 @@ describe("AdminShell", () => {
 
   it("builds the breadcrumb from the page, falling back to the section", async () => {
     mockFetch(() => notFound);
-    const { unmount } = renderShell("/admin/reports");
-    expect(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByText("Reports")).toHaveAttribute("aria-current", "page");
+    const { unmount } = renderShell("/admin/issues");
+    expect(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByText("Issues")).toHaveAttribute("aria-current", "page");
     unmount();
 
     renderShell("/admin/organizations/org1");
@@ -140,7 +140,7 @@ describe("AdminShell", () => {
   });
 
   it("lists notifications and marks them read", async () => {
-    const items = [{ id: "n1", kind: "violation_note", title: "Dana mentioned you on V-2041", body: "Photo looks right.", link: "/admin/reports", readAt: null, createdAt: new Date().toISOString() }];
+    const items = [{ id: "n1", kind: "violation_note", title: "Dana mentioned you on V-2041", body: "Photo looks right.", link: "/admin/issues", readAt: null, createdAt: new Date().toISOString() }];
     const calls = mockFetch((url, method) =>
       url === "/api/notifications" ? [200, { items, unread: 1 }] : url === "/api/notifications/read" && method === "POST" ? [204, null] : notFound,
     );
@@ -151,7 +151,7 @@ describe("AdminShell", () => {
     await userEvent.click(within(panel).getByRole("button", { name: "Mark all read" }));
     await waitFor(() => expect(calls.find((c) => c.url === "/api/notifications/read")?.body).toEqual({}));
     await userEvent.click(within(panel).getByRole("link", { name: /Dana mentioned you/ }));
-    expect(await screen.findByText("Reports page")).toBeInTheDocument();
+    expect(await screen.findByText("Issues page")).toBeInTheDocument();
     expect(calls.filter((c) => c.url === "/api/notifications/read").at(-1)?.body).toEqual({ ids: ["n1"] });
   });
 
@@ -161,9 +161,9 @@ describe("AdminShell", () => {
     const open = screen.getByRole("button", { name: "Open menu" });
     await userEvent.click(open);
     const drawer = screen.getByRole("dialog", { name: "Menu" });
-    await userEvent.click(within(drawer).getByRole("link", { name: "Reports" }));
+    await userEvent.click(within(drawer).getByRole("link", { name: "Issues" }));
     expect(screen.queryByRole("dialog", { name: "Menu" })).not.toBeInTheDocument();
-    expect(screen.getByText("Reports page")).toBeInTheDocument();
+    expect(screen.getByText("Issues page")).toBeInTheDocument();
 
     await userEvent.click(open);
     await userEvent.keyboard("{Escape}");

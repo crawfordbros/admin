@@ -1,3 +1,6 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
+import { invalidateProperties } from "../../lib/invalidateProperties";
 import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router-dom";
@@ -43,11 +46,7 @@ export function PropertyAdminPage() {
   const key = ["admin", "property", id];
   const { data, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<AdminPropertyDetail>(`/admin/properties/${id}`) });
 
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: key }),
-      queryClient.invalidateQueries({ queryKey: ["admin", "properties"] }),
-    ]);
+  const refresh = () => invalidateProperties(queryClient);
 
   const p = data?.property;
   useAdminPage(
@@ -55,7 +54,7 @@ export function PropertyAdminPage() {
     p && [
       { label: "Organizations", to: "/admin/organizations" },
       p.organizationId ? { label: p.organizationName ?? "Organization", to: `/admin/organizations/${p.organizationId}` } : { label: "Unassigned", to: "/admin/organizations?unassigned=1" },
-      { label: p.name },
+      { label: p.name, description: propertyAddressText(p) },
     ],
   );
 
@@ -69,6 +68,7 @@ export function PropertyAdminPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
       <PageHeader
         title={property.name}
+        description={<PropertyAddress property={property} />}
         back={
           property.organizationId
             ? { to: `/admin/organizations/${property.organizationId}`, label: property.organizationName ?? "Organization" }

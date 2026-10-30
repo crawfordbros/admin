@@ -26,7 +26,7 @@ export function AdminShell() {
           <header className={topbarClass}>
             <MenuButton onClick={onMenu} />
             <AdminBreadcrumb />
-            <SearchButtons onClick={onSearch} placeholder="Search orgs, properties, units, tickets…" />
+            <SearchButtons onClick={onSearch} placeholder="Search orgs, properties, units, issues…" />
             <Notifications />
             <AccountMenu settingsPath="/admin/settings/account" />
           </header>

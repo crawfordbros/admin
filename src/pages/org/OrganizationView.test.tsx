@@ -21,8 +21,9 @@ describe("OrganizationView", () => {
     expect(screen.getByText("98 slots left")).toBeInTheDocument();
     expect(screen.getByText("Oldest 21 hours")).toBeInTheDocument();
     const card = screen.getByRole("link", { name: /Demo Community/ });
-    expect(card).toHaveTextContent("Clarkston · 30 units · 36-month");
-    expect(card).toHaveTextContent("2 open reports");
+    expect(card).toHaveTextContent("100 Demo Way, Clarkston, GA 30021");
+    expect(card).toHaveTextContent("30 units · 36-month");
+    expect(card).toHaveTextContent("2 open issues");
     expect(card).toHaveTextContent("Steward Dana B.");
     expect(screen.getByRole("link", { name: /Willow Bend/ })).toHaveTextContent("Starting Jan 4");
   });
@@ -80,7 +81,7 @@ describe("OrganizationView", () => {
     expect(within(role).getAllByRole("option").map((o) => o.textContent)).toEqual(["Property Manager"]);
     expect(role).toBeDisabled();
     await userEvent.type(within(dialog).getByLabelText("Email"), "sam@demo-mgmt.com");
-    await userEvent.click(within(dialog).getByRole("checkbox", { name: "Willow Bend" }));
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /^Willow Bend/ }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Send invitation" }));
     expect(await screen.findByText(/Invitation sent to sam@demo-mgmt.com/)).toBeInTheDocument();
     expect(calls.find((c) => c.method === "POST")).toMatchObject({

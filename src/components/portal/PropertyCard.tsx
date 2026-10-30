@@ -1,3 +1,4 @@
+import { PropertyAddress } from "../PropertyAddress";
 import { Link } from "react-router-dom";
 import type { PortalPropertyCard } from "../../lib/api";
 import { PROPERTY_ROLE_LABELS, formatCount } from "../../lib/format";
@@ -36,8 +37,9 @@ export function PropertyCard({ orgId, property, canAssign, onAssign }: { orgId: 
               {property.name}
             </Link>
           </h3>
+          <PropertyAddress property={property} />
           <p className="m-0 mt-0.5 text-[12.5px] text-muted">
-            {[property.city, property.units ? `${formatCount(property.units)} units` : null].filter(Boolean).join(" · ") || "Details to come"}
+            {[property.units ? `${formatCount(property.units)} units` : null].filter(Boolean).join(" · ") || "Details to come"}
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5">

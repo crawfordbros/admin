@@ -1,3 +1,7 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
+import { invalidateProperties } from "../../lib/invalidateProperties";
+import { validatePropertyAddress } from "../../lib/propertyAddress";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,17 +62,11 @@ export function PropertyDetailPage() {
     p && [
       { label: "Organizations", to: "/admin/organizations" },
       { label: p.organizationName ?? "Organization", to: `/admin/organizations/${orgId}` },
-      { label: p.name },
+      { label: p.name, description: propertyAddressText(p) },
     ],
   );
 
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: key }),
-      queryClient.invalidateQueries({ queryKey: ["organization", orgId] }),
-      queryClient.invalidateQueries({ queryKey: ["organizations"] }),
-      queryClient.invalidateQueries({ queryKey: ["admin"] }),
-    ]);
+  const refresh = () => invalidateProperties(queryClient);
 
   if (isPending) return <Loading />;
   // The property may have moved to another organization since the link was made.
@@ -78,7 +76,6 @@ export function PropertyDetailPage() {
   const { property } = data;
   const tab = (TABS.includes(params.get("tab") as Tab) ? params.get("tab") : "overview") as Tab;
   const status = property.status === "inactive" ? (["Inactive", "neutral"] as const) : property.starting ? (["Starting", "warning"] as const) : (["Active", "success"] as const);
-  const where = [property.address, property.city, [property.city ? "GA" : null, property.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
 
   return (
     <div className="flex flex-col gap-5">
@@ -91,7 +88,7 @@ export function PropertyDetailPage() {
             <div className="min-w-0">
               <h1 className="m-0 text-[24px] text-navy-ink sm:text-[28px]">{property.name}</h1>
               <p className="mt-1 mb-2.5 text-[14px] text-muted">
-                {where || "No address yet"}
+                <PropertyAddress property={property} className="text-[14px]" />
                 {property.county && ` · ${property.county} County`}
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -132,10 +129,10 @@ export function PropertyDetailPage() {
             tabs={[
               { value: "overview", label: "Overview" },
               { value: "violations", label: "Violations" },
-              { value: "reports", label: "Reports", count: data.stats.openReports || undefined },
+              { value: "reports", label: "Issues", count: data.stats.openReports || undefined },
               { value: "overwatch", label: "Overwatch" },
               { value: "team", label: "Team", count: data.valets.length + (data.steward ? 1 : 0) + data.members.length },
-              { value: "weekly", label: "Weekly reports" },
+              { value: "weekly", label: "Reporting" },
               { value: "settings", label: "Settings" },
             ]}
           />
@@ -177,7 +174,7 @@ function Overview({ detail, onTeam }: { detail: PropertyDetail; onTeam: () => vo
         <StatTile label="Nights serviced" value={nights === null ? "—" : nights} sub={valet && valet.status !== "ok" ? "Connecteam not linked" : week.data ? week.data.week.label : "Last week"} />
         <StatTile label="Avg valet clock-in" value={valet?.status === "ok" ? (valet.avgClockIn ?? "—") : "—"} sub="From Connecteam" />
         <StatTile
-          label="Open resident reports"
+          label="Open resident issues"
           value={stats.openReports}
           sub={stats.oldestOpenHours === null ? "None waiting" : `Oldest ${age(stats.oldestOpenHours)}`}
           tone={stats.oldestOpenHours !== null && stats.oldestOpenHours >= 20 ? "bad" : "neutral"}
@@ -189,13 +186,13 @@ function Overview({ detail, onTeam }: { detail: PropertyDetail; onTeam: () => vo
       <div className="flex flex-wrap items-start gap-5">
         <section className={cx(card, "min-w-0 flex-[2_1_560px]")}>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="m-0 text-lg text-ink">Resident reports</h2>
+            <h2 className="m-0 text-lg text-ink">Resident issues</h2>
             <Link to={`/portal/properties/${property.id}`} className="text-[13px] font-bold">
-              All reports
+              All issues
             </Link>
           </div>
           {recentReports.length === 0 ? (
-            <p className="m-0 text-[14px] text-muted">No resident reports yet.</p>
+            <p className="m-0 text-[14px] text-muted">No resident issues yet.</p>
           ) : (
             <ul className="m-0 list-none p-0">
               {recentReports.map((r) => (
@@ -466,7 +463,7 @@ function PropertyInviteModal({ orgId, property, onClose, onDone }: { orgId: stri
   return (
     <Modal
       title="Invite property staff"
-      context={property.name}
+      context={<span>{property.name}<PropertyAddress property={property} /></span>}
       onClose={onClose}
       footer={
         <>
@@ -535,6 +532,8 @@ function Settings({ orgId, property, onSaved }: { orgId: string; property: Prope
   const { onSubmit, errors, formError, saving } = useFormSubmit(
     (v) => {
       const text = (k: string) => String(v.get(k) ?? "").trim() || null;
+      const locationErrors = validatePropertyAddress({ address: text("address"), city: text("city"), zip: text("zip") });
+      if (Object.keys(locationErrors).length) return Promise.reject(new ApiError(422, "Please fix the highlighted fields.", locationErrors));
       const num = (k: string) => (text(k) === null ? null : Number(text(k)));
       return api<{ property: PropertyProfile }>(base, {
         method: "PATCH",
@@ -568,10 +567,10 @@ function Settings({ orgId, property, onSaved }: { orgId: string; property: Prope
         <h2 className="m-0 mb-4 text-lg text-ink">Details</h2>
         <form onSubmit={onSubmit} noValidate className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <TextField label="Property name" name="name" required defaultValue={property.name} error={errors.name} className="sm:col-span-2" />
-          <TextField label="Street address" name="address" optional defaultValue={property.address ?? ""} error={errors.address} className="sm:col-span-2" />
-          <TextField label="City" name="city" optional defaultValue={property.city ?? ""} error={errors.city} />
+          <TextField label="Street address" hint="Required" name="address" required defaultValue={property.address ?? ""} error={errors.address} className="sm:col-span-2" />
+          <TextField label="City" hint="Required" name="city" required defaultValue={property.city ?? ""} error={errors.city} />
           <TextField label="County" name="county" optional defaultValue={property.county ?? ""} error={errors.county} />
-          <TextField label="ZIP" name="zip" optional inputMode="numeric" defaultValue={property.zip ?? ""} error={errors.zip} />
+          <TextField label="ZIP" hint="Required" name="zip" required inputMode="numeric" defaultValue={property.zip ?? ""} error={errors.zip} />
           <SelectField label="Property type" name="propertyType" optional defaultValue={property.propertyType ?? ""} error={errors.propertyType}>
             <option value="">Not set</option>
             {(Object.keys(PROPERTY_TYPE_LABELS) as PropertyType[]).map((t) => (
@@ -591,7 +590,7 @@ function Settings({ orgId, property, onSaved }: { orgId: string; property: Prope
               </option>
             ))}
           </SelectField>
-          <TextField label="Resident report web address" name="slug" defaultValue={property.slug} hint={`/report?p=${property.slug} is printed in the QR code on every container. Changing it breaks printed codes.`} error={errors.slug} />
+          <TextField label="Report an Issue web address" name="slug" defaultValue={property.slug} hint={`/report?p=${property.slug} is printed in the QR code on every container. Changing it breaks printed codes.`} error={errors.slug} />
           <SelectField label="Status" name="status" defaultValue={property.status} error={errors.status}>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -614,7 +613,7 @@ function Settings({ orgId, property, onSaved }: { orgId: string; property: Prope
 
       <section className="rounded-[14px] border border-danger/30 bg-white p-5">
         <h2 className="m-0 text-lg text-danger">Move to another organization</h2>
-        <p className="mt-1 mb-4 text-[13.5px] text-muted">Its people and reports move with it. The old organization's Representatives lose access.</p>
+        <p className="mt-1 mb-4 text-[13.5px] text-muted">Its people and issues move with it. The old organization's Representatives lose access.</p>
         <MoveForm
           current={orgId}
           organizations={orgs.data?.organizations ?? []}

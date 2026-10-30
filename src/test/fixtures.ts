@@ -6,8 +6,8 @@ export const orgDetail = (overrides: Partial<OrganizationDetail> = {}): Organiza
   organization: { id: "org1", name: "Demo Management", status: "active", serviceArea: "Clarkston, Tucker", customerSince: "2026-03-01", propertyLimit: 100, logoVersion: null, createdAt: "2026-03-01T12:00:00Z" },
   kpis: { properties: 2, units: 30, openReports: 2, oldestOpenHours: 21, avgReplyHours: 4.9 },
   properties: [
-    { id: "p1", name: "Demo Community", slug: "demo-community", city: "Clarkston", status: "active", starting: false, serviceStartDate: "2026-04-01", unitCount: 30, contractType: "36_month", photoVersion: null, openReports: 2, manager: { id: "user_pm", name: "Pat Manager" }, steward: { id: "user_lead", name: "Dana Brooks" } },
-    { id: "p2", name: "Willow Bend", slug: "willow-bend", city: "Tucker", status: "active", starting: true, serviceStartDate: "2027-01-04", unitCount: null, contractType: null, photoVersion: null, openReports: 0, manager: null, steward: null },
+    { id: "p1", name: "Demo Community", slug: "demo-community", address: "100 Demo Way", city: "Clarkston", zip: "30021", status: "active", starting: false, serviceStartDate: "2026-04-01", unitCount: 30, contractType: "36_month", photoVersion: null, openReports: 2, manager: { id: "user_pm", name: "Pat Manager" }, steward: { id: "user_lead", name: "Dana Brooks" } },
+    { id: "p2", name: "Willow Bend", slug: "willow-bend", address: "200 Willow Rd", city: "Tucker", zip: "30084", status: "active", starting: true, serviceStartDate: "2027-01-04", unitCount: null, contractType: null, photoVersion: null, openReports: 0, manager: null, steward: null },
   ],
   representatives: [{ id: "user_rep", email: "riley@demo-mgmt.com", name: "Riley Rep", addedAt: "2026-10-02T12:00:00Z" }],
   staff: [{ id: "user_pm", email: "pat@demo-mgmt.com", name: "Pat Manager", role: "manager", propertyId: "p1", propertyName: "Demo Community" }],

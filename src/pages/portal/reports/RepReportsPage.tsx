@@ -1,3 +1,6 @@
+import { PropertyNames } from "../../../components/PropertyAddress";
+import { propertyOptionLabel } from "../../../lib/propertyAddress";
+import { PropertyAddress } from "../../../components/PropertyAddress";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -48,7 +51,7 @@ function save(blob: Blob, name: string) {
 }
 
 /**
- * /portal/reports (REP_PORTAL_SPEC 7.8): the numbers CBES emails every Monday, for an organization
+ * /portal/reporting (REP_PORTAL_SPEC 7.8): the numbers CBES emails every Monday, for an organization
  * (Representatives) or one property, any past week, with PDFs and email.
  */
 export function RepReportsPage() {
@@ -57,7 +60,7 @@ export function RepReportsPage() {
   const ctx = useRepContext();
   const { params, update } = useQueryState();
   const [busy, setBusy] = useState<string | null>(null);
-  usePortalPage("Reports");
+  usePortalPage("Reporting");
 
   const isRep = ctx.kind === "organization";
   // Managers only ever see their properties; Representatives choose the organization or one property.
@@ -139,7 +142,7 @@ export function RepReportsPage() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 flex-[1_1_420px]">
-          <h1 className="m-0 text-[30px] text-navy-ink">Reports</h1>
+          <h1 className="m-0 text-[30px] text-navy-ink">Reporting</h1>
           <p className="mt-1.5 mb-0 text-[14.5px] text-muted">The same numbers CBES emails every Monday at 7 AM ET, for your whole organization or one property.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -185,7 +188,7 @@ export function RepReportsPage() {
                 {scopeKind === "organization" && <option value="">All {plural(ctx.properties.length, "property", "properties")}</option>}
                 {ctx.properties.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {propertyOptionLabel(p)}
                   </option>
                 ))}
               </select>
@@ -308,7 +311,7 @@ export function RepReportsPage() {
                     {d.byProperty.map((r) => (
                       <tr key={r.propertyId} className="border-t border-row-line">
                         <td className="px-5 py-3">
-                          <span className="block font-bold">{r.name}</span>
+                          <span className="block font-bold">{r.name}</span><PropertyAddress property={r} />
                           <span className="block text-[12px] text-muted">{r.managerName ? `PM ${r.managerName}` : "No manager yet"}</span>
                         </td>
                         <td className="px-2 py-3">{r.nights}</td>
@@ -399,7 +402,7 @@ export function RepReportsPage() {
                   {d.recipients.map((r) => (
                     <li key={`${r.name}-${r.scope}`} className="flex justify-between gap-2">
                       <span className="font-bold">{r.name}</span>
-                      <span className="text-[12.5px] text-nav-pill">{r.scope}</span>
+                      <span className="text-[12.5px] text-nav-pill">{r.properties?.length ? <PropertyNames properties={r.properties} addressClassName="text-nav-pill" /> : r.scope}</span>
                     </li>
                   ))}
                 </ul>

@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderRoute } from "../../test/render";
-import { PropertyRedirect } from "./redirects";
+import { KeepQueryRedirect, PropertyRedirect } from "./redirects";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -24,5 +24,17 @@ describe("PropertyRedirect", () => {
     mockFetch(() => [404, { error: "Property not found." }]);
     renderRoute("/admin/properties/:id", "/admin/properties/p1", <PropertyRedirect />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Property not found.");
+  });
+});
+
+describe("KeepQueryRedirect", () => {
+  it("sends an old Reports link to Issues with its filters", async () => {
+    renderRoute("/admin/reports", "/admin/reports?tab=open&dates=all", <KeepQueryRedirect to="/admin/issues" />);
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/issues?tab=open&dates=all"));
+  });
+
+  it("keeps the issue an old emailed link points at", async () => {
+    renderRoute("/admin/reports/:id", "/admin/reports/r1?tab=new", <KeepQueryRedirect to="/admin/issues/:id" />);
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/issues/r1?tab=new"));
   });
 });

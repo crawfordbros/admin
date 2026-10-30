@@ -14,7 +14,7 @@ import { PortalHome } from "./pages/PortalHome";
 import { ComingSoon } from "./pages/ComingSoon";
 import { ADMIN_SECTIONS } from "./pages/adminSections";
 import { AcceptInvitePage } from "./pages/AcceptInvitePage";
-import { NewPropertyRedirect, PropertyRedirect } from "./pages/admin/redirects";
+import { KeepQueryRedirect, NewPropertyRedirect, PropertyRedirect } from "./pages/admin/redirects";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
 
 // Each Admin Portal section downloads when it's first opened (ADMIN_PORTAL_SPEC 10, performance).
@@ -66,7 +66,7 @@ function ClerkWithRouter({ children }: { children: ReactNode }) {
   );
 }
 
-const BUILT = new Set(["/admin", "/admin/organizations", "/admin/violations", "/admin/reports", "/admin/users", "/admin/weekly-reports", "/admin/quotes", "/admin/overwatch", "/admin/settings"]);
+const BUILT = new Set(["/admin", "/admin/organizations", "/admin/violations", "/admin/issues", "/admin/users", "/admin/reporting", "/admin/quotes", "/admin/overwatch", "/admin/settings"]);
 
 export function App() {
   if (!config.clerkPublishableKey.startsWith("pk_")) {
@@ -103,7 +103,8 @@ export function App() {
               <Route path="/portal/violations/:violationId" element={<RequireArea area="portal"><PortalViolationPage /></RequireArea>} />
               <Route path="/portal/issues" element={<RequireArea area="manager"><RepIssuesPage /></RequireArea>} />
               <Route path="/portal/issues/:reportId" element={<RequireArea area="manager"><RepIssuesPage /></RequireArea>} />
-              <Route path="/portal/reports" element={<RequireArea area="manager"><RepReportsPage /></RequireArea>} />
+              <Route path="/portal/reporting" element={<RequireArea area="manager"><RepReportsPage /></RequireArea>} />
+              <Route path="/portal/reports" element={<KeepQueryRedirect to="/portal/reporting" />} />
               <Route path="/portal/account" element={<RequireArea area="manager"><AccountPage /></RequireArea>} />
               <Route path="/portal/settings" element={<RequireArea area="portal"><PortalAccountPage /></RequireArea>} />
             </Route>
@@ -116,13 +117,13 @@ export function App() {
               {/* Properties from before Organizations open on the old page until they're moved into one. */}
               <Route path="organizations/unassigned/properties/:propertyId" element={<PropertyAdminPage />} />
               <Route path="organizations/:orgId/properties/:propertyId" element={<PropertyDetailPage />} />
-              <Route path="reports" element={<ReportsPage />}>
+              <Route path="issues" element={<ReportsPage />}>
                 <Route path=":id" element={<ReportDrawer />} />
               </Route>
               <Route path="users" element={<UsersPage />}>
                 <Route path="add-admin" element={<AddAdminModal />} />
               </Route>
-              <Route path="weekly-reports" element={<WeeklyReportsPage />} />
+              <Route path="reporting" element={<WeeklyReportsPage />} />
               <Route path="quotes" element={<QuotesPage />} />
               <Route path="quotes/:id" element={<QuoteDetailPage />} />
               <Route path="violations" element={<ViolationsPage />} />
@@ -134,6 +135,10 @@ export function App() {
               <Route path="properties" element={<Navigate to="/admin/organizations" replace />} />
               <Route path="properties/new" element={<NewPropertyRedirect />} />
               <Route path="properties/:id" element={<PropertyRedirect />} />
+              {/* Resident reports became Issues and Weekly Reports became Reporting. Old links and emails still work. */}
+              <Route path="reports" element={<KeepQueryRedirect to="/admin/issues" />} />
+              <Route path="reports/:id" element={<KeepQueryRedirect to="/admin/issues/:id" />} />
+              <Route path="weekly-reports" element={<KeepQueryRedirect to="/admin/reporting" />} />
               {ADMIN_SECTIONS.filter((s) => !BUILT.has(s.path)).map((s) => (
                 <Route key={s.path} path={s.path} element={<ComingSoon title={s.label} detail={s.detail} icon={s.icon} />} />
               ))}

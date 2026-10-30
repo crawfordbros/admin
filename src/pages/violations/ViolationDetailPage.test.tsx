@@ -22,7 +22,7 @@ describe("ViolationDetailPage", () => {
     mockFetch(handler);
     show();
     expect(await screen.findByRole("heading", { name: "Bag not tied · Unit 412", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("The Oaks at Decatur · Building 4 · Peachtree")).toBeInTheDocument();
+    expect(screen.getByText("Building 4 · Peachtree")).toBeInTheDocument();
     const progress = screen.getByRole("list", { name: "Progress" });
     expect(within(progress).getByText("In review").closest("li")).toHaveAttribute("aria-current", "step");
     expect(within(progress).getByText("Chris Patel")).toBeInTheDocument();

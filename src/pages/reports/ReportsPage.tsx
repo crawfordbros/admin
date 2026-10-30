@@ -1,3 +1,6 @@
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { Suspense, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -41,7 +44,7 @@ const BULK_STATUSES: ReportStatus[] = ["new", "assigned", "in_progress", "resolv
 
 const card = "rounded-[14px] border border-line bg-white p-5";
 
-/** /admin/reports: every resident report, with filters, charts and the 24-hour reply clock (ADMIN_PORTAL_SPEC 7.2). */
+/** /admin/issues: every resident issue, with filters, charts and the 24-hour reply clock (ADMIN_PORTAL_SPEC 7.2). */
 export function ReportsPage() {
   const api = useApi();
   const blob = useApiBlob();
@@ -54,7 +57,7 @@ export function ReportsPage() {
   const [selection, setSelection] = useState<{ list: string; ids: Set<string> }>({ list: "", ids: new Set() });
   const [logging, setLogging] = useState(false);
   const [naming, setNaming] = useState(false);
-  useAdminPage("Reports");
+  useAdminPage("Issues");
 
   const tab = (TABS.includes(params.get("tab") as never) ? params.get("tab") : "open") as Exclude<ReportTab, "all">;
   const sort = (params.get("sort") ?? "submitted") as keyof typeof SORTS;
@@ -78,7 +81,7 @@ export function ReportsPage() {
 
   const listKey = listQuery.toString();
   const reports = useQuery({ queryKey: ["admin", "reports", "list", listKey], queryFn: () => api<AdminReportList>(`/admin/reports?${listKey}`), placeholderData: (p) => p });
-  // Bulk actions only ever reach reports on screen now: changing a filter, the tab, the sort or the
+  // Bulk actions only ever reach issues on screen now: changing a filter, the tab, the sort or the
   // page clears the selection, and rows that leave the list (after a refresh) drop out of it.
   const shown = new Set(reports.isPlaceholderData ? [] : (reports.data?.items ?? []).map((r) => r.id));
   const selected = selection.list === listKey ? new Set([...selection.ids].filter((id) => shown.has(id))) : new Set<string>();
@@ -90,7 +93,7 @@ export function ReportsPage() {
   const bulk = useMutation({
     mutationFn: (body: { status?: ReportStatus; assigneeUserId?: string | null }) => api<{ updated: number }>("/admin/reports/bulk", { method: "POST", body: JSON.stringify({ ids: [...selected], ...body }) }),
     onSuccess: async ({ updated }) => {
-      toast.success(`${updated} report${updated === 1 ? "" : "s"} updated.`);
+      toast.success(`${updated} issue${updated === 1 ? "" : "s"} updated.`);
       setSelected(new Set());
       await queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
@@ -110,7 +113,7 @@ export function ReportsPage() {
       if (!file) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(file);
-      a.download = `resident-reports-${nyToday()}.csv`;
+      a.download = `resident-issues-${nyToday()}.csv`;
       a.click();
       URL.revokeObjectURL(a.href);
     } catch (err) {
@@ -124,7 +127,7 @@ export function ReportsPage() {
       dates: v.dates?.length ? (v.dates.length === 1 && v.dates[0] === "30d" ? null : v.dates) : "all",
     });
   const applyOnly = (key: "type" | "property", value: string) => update({ [key]: value });
-  const openReport = (id: string) => navigate({ pathname: `/admin/reports/${id}`, search: location.search });
+  const openReport = (id: string) => navigate({ pathname: `/admin/issues/${id}`, search: location.search });
 
   const filterDefs: FilterDef[] = [
     { key: "org", label: "Organization", icon: "building", type: "multi", options: options.orgs },
@@ -149,7 +152,7 @@ export function ReportsPage() {
   return (
     <>
       <PageHeader
-        title="Resident reports"
+        title="Resident issues"
         description="Every issue residents report, across all organizations and properties. Each one gets a reply within 24 hours."
         actions={
           <>
@@ -159,7 +162,7 @@ export function ReportsPage() {
             </Button>
             <Button onClick={() => setLogging(true)}>
               <Icon name="phone" size={18} strokeWidth={2} />
-              Log a phone report
+              Log a phone issue
             </Button>
           </>
         }
@@ -170,12 +173,12 @@ export function ReportsPage() {
           filters={filterDefs}
           value={filters}
           onChange={setFilters}
-          search={<SearchField label="Search reports" placeholder="Report number, unit or resident" value={q} onChange={(v) => update({ q: v })} />}
+          search={<SearchField label="Search issues" placeholder="Issue number, unit or resident" value={q} onChange={(v) => update({ q: v })} />}
           savedViews={{
             views: views.data?.items ?? [],
             onApply: (id) => {
               const v = views.data?.items.find((x) => x.id === id);
-              if (v) navigate({ pathname: "/admin/reports", search: v.query });
+              if (v) navigate({ pathname: "/admin/issues", search: v.query });
             },
             onSave: () => setNaming(true),
           }}
@@ -185,7 +188,7 @@ export function ReportsPage() {
             Saved views:
             {views.data!.items.map((v) => (
               <span key={v.id} className="inline-flex items-center gap-1">
-                <Link to={{ pathname: "/admin/reports", search: v.query }} className="font-bold text-ink no-underline hover:underline">
+                <Link to={{ pathname: "/admin/issues", search: v.query }} className="font-bold text-ink no-underline hover:underline">
                   {v.name}
                 </Link>
                 <Menu
@@ -209,7 +212,7 @@ export function ReportsPage() {
         <section className={cx(card, "min-w-0 flex-[2_1_560px]")}>
           <div className="mb-2.5 flex flex-wrap items-start justify-between gap-2.5">
             <div>
-              <h2 className="m-0 text-lg text-ink">Reports by week</h2>
+              <h2 className="m-0 text-lg text-ink">Issues by week</h2>
               <p className="mt-0.5 mb-0 text-[13px] text-muted">Stacked by current status, last 12 weeks</p>
             </div>
             <Legend
@@ -222,7 +225,7 @@ export function ReportsPage() {
           </div>
           {s ? (
             <StackedBars
-              label={`Resident reports per week for the last 12 weeks, ${s.byWeek.reduce((n, w) => n + w.resolved + w.inProgress + w.new, 0)} in all`}
+              label={`Resident issues per week for the last 12 weeks, ${s.byWeek.reduce((n, w) => n + w.resolved + w.inProgress + w.new, 0)} in all`}
               data={s.byWeek.map((w) => ({ label: formatDay(w.weekStart).slice(5), resolved: w.resolved, inProgress: w.inProgress, new: w.new }))}
               series={[
                 { key: "resolved", label: "Resolved", tone: "success" },
@@ -236,7 +239,7 @@ export function ReportsPage() {
         </section>
         <section className={cx(card, "min-w-0 flex-[1_1_300px]")}>
           <h2 className="m-0 text-lg text-ink">24-hour reply promise</h2>
-          <p className="mt-0.5 mb-3 text-[13px] text-muted">Share of reports with a first reply within 24 hours</p>
+          <p className="mt-0.5 mb-3 text-[13px] text-muted">Share of issues with a first reply within 24 hours</p>
           {s && <ReplyPromise buckets={s.replyBuckets} />}
         </section>
       </div>
@@ -244,10 +247,10 @@ export function ReportsPage() {
       <div className="flex flex-wrap gap-5">
         <section className={cx(card, "min-w-0 flex-[1_1_380px]")}>
           <h2 className="m-0 mb-3.5 text-lg text-ink">By issue type</h2>
-          {s && s.byType.length === 0 && <p className="m-0 text-muted">No reports in this range.</p>}
+          {s && s.byType.length === 0 && <p className="m-0 text-muted">No issues in this range.</p>}
           {s && (
             <HBarList
-              label="Reports by issue type"
+              label="Issues by type"
               items={s.byType.map((t) => ({
                 key: t.key,
                 value: t.count,
@@ -263,9 +266,9 @@ export function ReportsPage() {
         <section className={cx(card, "min-w-0 flex-[1.4_1_480px]")}>
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="m-0 text-lg text-ink">By property</h2>
-            <span className="text-[12.5px] text-muted">Reports per 100 units</span>
+            <span className="text-[12.5px] text-muted">Issues per 100 units</span>
           </div>
-          {s && s.byProperty.length === 0 && <p className="m-0 text-muted">No reports in this range.</p>}
+          {s && s.byProperty.length === 0 && <p className="m-0 text-muted">No issues in this range.</p>}
           {s && s.byProperty.length > 0 && <ByProperty rows={s.byProperty} onPick={(id) => applyOnly("property", id)} />}
         </section>
       </div>
@@ -282,7 +285,7 @@ export function ReportsPage() {
             tabs={TABS.map((t) => ({ value: t, label: TAB_LABELS[t], count: data?.tabCounts[t] }))}
           />
           {selected.size > 0 ? (
-            <div role="region" aria-label="Selected reports" className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
+            <div role="region" aria-label="Selected issues" className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
               <span>{selected.size} selected</span>
               <Menu
                 label="Assign to"
@@ -322,7 +325,7 @@ export function ReportsPage() {
           </div>
         )}
         <DataTable
-          label="Resident reports"
+          label="Resident issues"
           rows={data?.items ?? []}
           loading={reports.isPending}
           rowKey={(r) => r.id}
@@ -331,16 +334,16 @@ export function ReportsPage() {
           onSelect={setSelected}
           onRowClick={(r) => openReport(r.id)}
           minWidth={980}
-          empty={<EmptyState icon="message" title={`No ${TAB_LABELS[tab].toLowerCase()} reports`} body={tab === "open" ? "Every report in this range has been handled." : "Nothing matches these filters."} />}
+          empty={<EmptyState icon="message" title={`No ${TAB_LABELS[tab].toLowerCase()} issues`} body={tab === "open" ? "Every issue in this range has been handled." : "Nothing matches these filters."} />}
           columns={[
             {
               key: "report",
-              header: "Report",
+              header: "Issue",
               cell: (r) => (
                 <span className="flex items-center gap-2.5">
                   <IssueIcon issueKey={r.issueKey} />
                   <span>
-                    <Link to={{ pathname: `/admin/reports/${r.id}`, search: location.search }} className="block font-bold text-ink no-underline hover:underline">
+                    <Link to={{ pathname: `/admin/issues/${r.id}`, search: location.search }} className="block font-bold text-ink no-underline hover:underline">
                       {r.issueLabel}
                     </Link>
                     <span className="text-[12px] text-muted">
@@ -355,7 +358,7 @@ export function ReportsPage() {
               header: "Organization · Property",
               cell: (r) => (
                 <>
-                  <span className="block font-semibold">{r.propertyName}</span>
+                  <span className="block font-semibold">{r.propertyName}</span><PropertyAddress property={propertyLocation(r)} />
                   <span className="text-[12px] text-muted">{r.orgName ?? "No organization"}</span>
                 </>
               ),
@@ -389,7 +392,7 @@ export function ReportsPage() {
           onClose={() => setLogging(false)}
           onDone={async (id, refNo) => {
             setLogging(false);
-            toast.success(`Phone report #${refNo} logged.`);
+            toast.success(`Phone issue #${refNo} logged.`);
             await queryClient.invalidateQueries({ queryKey: ["admin"] });
             openReport(id);
           }}
@@ -424,11 +427,11 @@ function Kpis({ summary }: { summary: ReportsSummary | undefined }) {
   const k = summary.kpis;
   const total = k.total.value ?? 0;
   const tiles: { label: string; value: string; sub: { text: string; tone: "good" | "bad" | "neutral" } | null }[] = [
-    { label: "Reports", value: String(total), sub: delta(k.total.value, k.total.previous, "") ? { ...delta(k.total.value, k.total.previous, "")!, tone: "neutral" } : null },
+    { label: "Issues", value: String(total), sub: delta(k.total.value, k.total.previous, "") ? { ...delta(k.total.value, k.total.previous, "")!, tone: "neutral" } : null },
     { label: "Open now", value: String(k.open.value), sub: k.open.nearingDue ? { text: `${k.open.nearingDue} nearing 24 hours`, tone: "bad" } : { text: "None near 24 hours", tone: "good" } },
     { label: "Avg first reply", value: replyHours(k.avgFirstReplyHours.value), sub: k.avgFirstReplyHours.value === null ? null : k.avgFirstReplyHours.value < 24 ? { text: "Goal: under 24h", tone: "good" } : { text: "Over the 24h goal", tone: "bad" } },
     { label: "Avg time to resolve", value: k.avgResolveDays.value === null ? "—" : `${k.avgResolveDays.value.toFixed(1)}d`, sub: delta(k.avgResolveDays.value, k.avgResolveDays.previous, " days", true) },
-    { label: "Top issue", value: k.topIssue ? String(k.topIssue.count) : "—", sub: k.topIssue ? { text: `${k.topIssue.label} · ${Math.round(k.topIssue.share * 100)}% of all reports`, tone: "neutral" } : null },
+    { label: "Top issue type", value: k.topIssue ? String(k.topIssue.count) : "—", sub: k.topIssue ? { text: `${k.topIssue.label} · ${Math.round(k.topIssue.share * 100)}% of all issues`, tone: "neutral" } : null },
   ];
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-3.5">
@@ -475,7 +478,7 @@ function ByProperty({ rows, onPick }: { rows: ReportsSummary["byProperty"]; onPi
       <table className="w-full min-w-[480px] border-collapse text-[13.5px]">
         <thead>
           <tr className="text-left text-[12px] text-muted">
-            {["Property", "Reports", "Per 100 units", "Avg reply", "Last 4 weeks"].map((h) => (
+            {["Property", "Issues", "Per 100 units", "Avg reply", "Last 4 weeks"].map((h) => (
               <th key={h} scope="col" className="border-b border-line px-1.5 py-2 font-semibold">
                 {h}
               </th>
@@ -487,7 +490,7 @@ function ByProperty({ rows, onPick }: { rows: ReportsSummary["byProperty"]; onPi
             <tr key={p.propertyId} className="border-b border-row-line">
               <td className="px-1.5 py-2.5">
                 <button type="button" onClick={() => onPick(p.propertyId)} className="text-left hover:underline" title={`Show only ${p.name}`}>
-                  <strong className="block">{p.name}</strong>
+                  <strong className="block">{p.name}</strong><PropertyAddress property={p} />
                   <span className="text-[12px] text-muted">{p.orgName}</span>
                 </button>
               </td>
@@ -574,7 +577,7 @@ function useFilterOptions(orgIds: string[]) {
   return {
     orgs: orgs.data?.organizations.map((o) => ({ value: o.id, label: o.name })) ?? [],
     propertyRows,
-    properties: propertyRows.filter((p) => orgIds.length === 0 || (p.organizationId && orgIds.includes(p.organizationId))).map((p) => ({ value: p.id, label: p.name })),
+    properties: propertyRows.filter((p) => orgIds.length === 0 || (p.organizationId && orgIds.includes(p.organizationId))).map((p) => ({ value: p.id, label: p.name, description: propertyAddressText(p) })),
     types: types.data?.items.map((t) => ({ value: t.key, label: t.label })) ?? [],
     assignees: assignees.data?.items.map((a) => ({ value: a.id, label: a.name })) ?? [],
   };

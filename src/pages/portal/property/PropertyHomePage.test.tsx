@@ -123,10 +123,11 @@ describe("PropertyHomePage", () => {
     api();
     show();
     expect(await screen.findByRole("heading", { level: 1, name: "The Oaks at Decatur" })).toBeInTheDocument();
-    expect(screen.getByText("2150 Lawrenceville Hwy, Decatur, 30033 · 312 units · 6 buildings")).toBeInTheDocument();
+    expect(screen.getByText("2150 Lawrenceville Hwy, Decatur, GA 30033")).toBeInTheDocument();
+    expect(screen.getByText("312 units · 6 buildings")).toBeInTheDocument();
     expect(screen.getByText("Service active · Sun–Thu nights")).toBeInTheDocument();
     expect(screen.getByText("Trash out 6–8 PM · pickup from 8 PM")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Reports" })).toHaveAttribute("href", "/portal/reports?scope=property&property=p1");
+    expect(screen.getByRole("link", { name: "Reporting" })).toHaveAttribute("href", "/portal/reporting?scope=property&property=p1");
     expect(screen.getByRole("link", { name: /Violations to review/ })).toHaveAttribute("href", "/portal/violations?property=p1");
     expect(screen.getByText("Avg 1.4 days to resolve")).toBeInTheDocument();
     expect(screen.getByText("CBES replied in 3.0h")).toBeInTheDocument();
@@ -228,9 +229,9 @@ describe("PropertyHomePage", () => {
     show();
     await userEvent.click(await screen.findByRole("button", { name: "Last week's PDF" }));
     await waitFor(() => expect(download).toHaveBeenCalledWith({ property: { id: "p1" } }));
-    const link = screen.getByRole("region", { name: "Resident report link" });
+    const link = screen.getByRole("region", { name: "Report an Issue link" });
     expect(within(link).getByText("cbenvironments.com/report?p=the-oaks")).toBeInTheDocument();
-    expect(within(link).getByRole("img", { name: "QR code for the resident report link" })).toBeInTheDocument();
+    expect(within(link).getByRole("img", { name: "QR code for the Report an Issue link" })).toBeInTheDocument();
     await userEvent.click(within(link).getByRole("button", { name: "Copy link" }));
     expect(writeText).toHaveBeenCalledWith("https://cbenvironments.com/report?p=the-oaks");
     expect(await screen.findByText("Link copied.")).toBeInTheDocument();

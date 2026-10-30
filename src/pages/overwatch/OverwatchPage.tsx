@@ -1,3 +1,5 @@
+import { propertyLocation } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { errorMessage, useApi, type OverwatchPreview } from "../../lib/api";
@@ -128,7 +130,7 @@ function Units({ data }: { data: OverwatchPreview }) {
                 </td>
                 <td className="border-b border-row-line px-1.5 py-2.5">
                   <Link to={propertyPath(u.orgId, u.propertyId)} className="text-ink no-underline hover:underline">
-                    {u.propertyName}
+                    <span>{u.propertyName}<PropertyAddress property={propertyLocation(u)} /></span>
                   </Link>
                   {u.orgName && <span className="text-muted"> · {u.orgName}</span>}
                 </td>

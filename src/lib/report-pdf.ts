@@ -63,19 +63,19 @@ function writeReport(doc: jsPDF, r: WeeklyReport, top: number) {
   y += 30;
 
   const rr = r.residentReports;
-  heading("Resident reports");
+  heading("Resident issues");
   table(
     ["This week", "Open", "Resolved", "Avg first reply", "Open overall"],
     [[rr.total, rr.open, rr.resolved, hours(rr.avgFirstResponseHours), r.stillOpen]],
   );
-  if (rr.byType.length) table(["Issue", "Reports"], rr.byType.map((t) => [t.label, t.count]));
+  if (rr.byType.length) table(["Issue type", "Issues"], rr.byType.map((t) => [t.label, t.count]));
   if (rr.items.length) {
     table(
       ["Ref", "Date", "Issue", "Unit", "Status"],
       rr.items.map((i) => [`#${i.refNo}`, formatDay(i.date), i.issueLabel, i.unit ?? "—", i.statusLabel]),
     );
   } else {
-    note("No resident reports this week.");
+    note("No resident issues this week.");
   }
 
   heading("Valet service times");
@@ -132,7 +132,7 @@ export function buildOrgPdf(orgName: string, weekLabel: string, rows: OrgPdfRow[
   const sum = (f: (r: OrgPdfRow) => number) => rows.reduce((n, r) => n + f(r), 0);
   autoTable(doc, {
     startY: y,
-    head: [["Properties", "Resident reports", "Resolved", "Violations", "Overwatch units"]],
+    head: [["Properties", "Resident issues", "Resolved", "Violations", "Overwatch units"]],
     body: [[rows.length, sum((r) => r.residentReports), sum((r) => r.resolved), sum((r) => r.violations), sum((r) => r.overwatchUnits)]],
     margin: { left: MARGIN, right: MARGIN },
     styles: { font: "helvetica", fontSize: 10, cellPadding: 5, textColor: [26, 28, 61] },
@@ -140,7 +140,7 @@ export function buildOrgPdf(orgName: string, weekLabel: string, rows: OrgPdfRow[
   });
   autoTable(doc, {
     startY: (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 18,
-    head: [["Property", "Nights", "Avg clock-in", "Reports", "Avg reply", "Violations", "Overwatch"]],
+    head: [["Property", "Nights", "Avg clock-in", "Issues", "Avg reply", "Violations", "Overwatch"]],
     body: rows.map((r) => [
       r.name,
       `${r.nights.serviced}/${r.nights.scheduled}`,

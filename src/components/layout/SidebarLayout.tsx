@@ -45,26 +45,26 @@ export function Breadcrumb({ root, crumbs }: { root: Crumb; crumbs: Crumb[] }) {
         <li className={cx(crumbs.length ? "hidden sm:block" : "min-w-0 truncate")}>
           {root.to ? (
             <Link to={root.to} className="text-muted no-underline hover:text-navy hover:underline">
-              {root.label}
+              {root.label}{root.description && <span className="block whitespace-normal break-words text-[11px] font-normal text-muted">{root.description}</span>}
             </Link>
           ) : (
-            <strong className="text-ink">{root.label}</strong>
+            <strong className="text-ink">{root.label}{root.description && <span className="block whitespace-normal break-words text-[11px] font-normal text-muted">{root.description}</span>}</strong>
           )}
         </li>
         {crumbs.map((c, i) => {
           const last = i === crumbs.length - 1;
           return (
-            <li key={`${c.label}-${i}`} className={last ? "flex min-w-0 items-center gap-1.5" : "hidden items-center gap-1.5 sm:flex"}>
+            <li key={c.to ?? `${c.label}-${i}`} className={last ? "flex min-w-0 items-center gap-1.5" : "hidden items-center gap-1.5 sm:flex"}>
               <span aria-hidden="true" className={i === 0 ? "hidden text-placeholder sm:inline" : "text-placeholder"}>
                 /
               </span>
               {last || !c.to ? (
                 <strong aria-current={last ? "page" : undefined} className="truncate text-ink">
-                  {c.label}
+                  {c.label}{c.description && <span className="block whitespace-normal break-words text-[11px] font-normal text-muted">{c.description}</span>}
                 </strong>
               ) : (
                 <Link to={c.to} className="text-muted no-underline hover:text-navy hover:underline">
-                  {c.label}
+                  {c.label}{c.description && <span className="block whitespace-normal break-words text-[11px] font-normal text-muted">{c.description}</span>}
                 </Link>
               )}
             </li>

@@ -74,7 +74,7 @@ describe("Users roles", () => {
     await userEvent.selectOptions(select, "manager");
     const submit = within(dialog).getByRole("button", { name: "Change Role" });
     expect(submit).toBeDisabled();
-    await userEvent.click(await within(dialog).findByRole("checkbox", { name: "The Oaks" }));
+    await userEvent.click(await within(dialog).findByRole("checkbox", { name: /^The Oaks/ }));
     expect(within(dialog).queryByRole("checkbox", { name: "Elsewhere" })).not.toBeInTheDocument();
     await userEvent.click(submit);
     expect(await screen.findByText("Lauren Kim is now Property Manager.")).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe("Users roles", () => {
     const dialog = await edit("Dana Brooks");
     expect(within(dialog).getByRole("button", { name: "Change Role" })).toBeDisabled();
     await userEvent.selectOptions(within(dialog).getByLabelText("Role"), "valet");
-    await waitFor(() => expect(within(dialog).getByRole("checkbox", { name: "The Oaks" })).toBeChecked());
+    await waitFor(() => expect(within(dialog).getByRole("checkbox", { name: /^The Oaks/ })).toBeChecked());
     await userEvent.click(within(dialog).getByRole("button", { name: "Change Role" }));
     expect(await screen.findByText("Dana Brooks is now Valet.")).toBeInTheDocument();
     expect(calls.find((c) => c.method === "PATCH")?.body).toEqual({ role: "valet", propertyIds: ["p1"] });

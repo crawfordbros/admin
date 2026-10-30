@@ -3,7 +3,7 @@ import { Icon, type IconName } from "./icons";
 import { Menu, Popover } from "./Popover";
 import { cx } from "./styles";
 
-export type FilterOption = { value: string; label: string };
+export type FilterOption = { value: string; label: string; description?: string };
 
 export type FilterDef =
   | { key: string; label: string; icon?: IconName; type: "multi"; options: FilterOption[]; allLabel?: string }
@@ -16,7 +16,8 @@ export type FilterValue = Record<string, string[] | undefined>;
 
 export type SavedView = { id: string; name: string };
 
-const optionLabel = (def: FilterDef, v: string) => ("options" in def ? def.options : def.presets).find((o) => o.value === v)?.label ?? v;
+const option = (def: FilterDef, v: string) => ("options" in def ? def.options : def.presets).find((o) => o.value === v);
+const optionLabel = (def: FilterDef, v: string) => option(def, v)?.label ?? v;
 
 function summary(def: FilterDef, values: string[]) {
   if (values.length === 0) return def.allLabel ?? "All";
@@ -77,16 +78,16 @@ export function FilterBar({
         <ul aria-label="Active filters" className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
           {active.flatMap((f) => {
             const vals = value[f.key] ?? [];
-            const chips = f.type === "date" ? [{ v: vals.join("|"), text: summary(f, vals) }] : vals.map((v) => ({ v, text: optionLabel(f, v) }));
+            const chips = f.type === "date" ? [{ v: vals.join("|"), text: summary(f, vals), description: undefined }] : vals.map((v) => ({ v, text: optionLabel(f, v), description: option(f, v)?.description }));
             return chips.map((c) => (
-              <li key={`${f.key}:${c.v}`}>
-                <span className="inline-flex h-8 items-center gap-1 rounded-full bg-tint-2 pr-1 pl-3 text-[12.5px] font-semibold text-navy-ink">
-                  {f.type === "single" || f.type === "date" ? `${f.label}: ${c.text}` : c.text}
+              <li key={`${f.key}:${c.v}`} className="min-w-0 max-w-full">
+                <span className="inline-flex min-h-8 max-w-full items-center gap-1 rounded-2xl py-1 bg-tint-2 pr-1 pl-3 text-[12.5px] font-semibold text-navy-ink">
+                  <span className="min-w-0 break-words">{f.type === "single" || f.type === "date" ? `${f.label}: ${c.text}` : c.text}{c.description && <span className="block whitespace-normal text-[12px] font-normal text-muted">{c.description}</span>}</span>
                   <button
                     type="button"
-                    aria-label={`Remove ${f.label} filter ${c.text}`}
+                    aria-label={`Remove ${f.label} filter ${c.text}${c.description ? ` — ${c.description}` : ""}`}
                     onClick={() => set(f.key, f.type === "multi" ? vals.filter((v) => v !== c.v) : [])}
-                    className="flex size-6 items-center justify-center rounded-full hover:bg-white"
+                    className="flex size-6 flex-none items-center justify-center rounded-full hover:bg-white"
                   >
                     <Icon name="x" size={13} strokeWidth={2.4} />
                   </button>
@@ -116,13 +117,13 @@ function FilterButton({ def, values, onChange }: { def: FilterDef; values: strin
           type="button"
           {...p}
           className={cx(
-            "inline-flex h-[38px] max-w-full items-center gap-1.5 rounded-[10px] bg-white px-3 text-[13px] text-ink",
+            "inline-flex min-h-[38px] max-w-full items-center gap-1.5 rounded-[10px] bg-white px-3 py-1.5 text-[13px] text-ink",
             on ? "border-[1.5px] border-navy bg-tint-2" : "border border-field hover:bg-canvas",
           )}
         >
           {def.icon && <Icon name={def.icon} size={15} strokeWidth={2} className="flex-none text-muted" />}
           <span className="font-semibold text-muted">{def.label}:</span>{" "}
-          <strong className="truncate">{summary(def, values)}</strong>
+          <span className="min-w-0 text-left">{values.some((v) => option(def, v)?.description) ? values.map((v) => <span key={v} className="block break-words"><strong>{optionLabel(def, v)}</strong><span className="block whitespace-normal text-[12px] text-muted">{option(def, v)?.description}</span></span>) : <strong className="block truncate">{summary(def, values)}</strong>}</span>
           <Icon name="chevron-down" size={14} strokeWidth={2.2} />
         </button>
       )}
@@ -150,7 +151,7 @@ function FilterPanel({ def, values, onChange, close }: { def: FilterDef; values:
               onChange={(e) => onChange(e.target.checked ? [...values, o.value] : values.filter((v) => v !== o.value))}
               className="size-4 accent-navy"
             />
-            {o.label}
+            <span>{o.label}{o.description && <span className="block whitespace-normal break-words text-[12px] font-normal text-muted">{o.description}</span>}</span>
           </label>
         ))}
       </fieldset>
@@ -162,7 +163,7 @@ function FilterPanel({ def, values, onChange, close }: { def: FilterDef; values:
     <div className="p-1.5">
       <fieldset className="m-0 border-0 p-0">
         <legend className="sr-only">{def.label}</legend>
-        {[{ value: "", label: def.allLabel ?? "All" }, ...options].map((o) => (
+        {[{ value: "", label: def.allLabel ?? "All", description: undefined }, ...options].map((o) => (
           <label key={o.value} className={row}>
             <input
               type="radio"
@@ -174,7 +175,7 @@ function FilterPanel({ def, values, onChange, close }: { def: FilterDef; values:
               }}
               className="size-4 accent-navy"
             />
-            {o.label}
+            <span>{o.label}{o.description && <span className="block whitespace-normal break-words text-[12px] font-normal text-muted">{o.description}</span>}</span>
           </label>
         ))}
       </fieldset>

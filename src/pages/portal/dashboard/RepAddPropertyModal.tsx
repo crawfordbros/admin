@@ -1,3 +1,4 @@
+import { validatePropertyAddress } from "../../../lib/propertyAddress";
 import { useState, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useOutletContext } from "react-router-dom";
@@ -90,7 +91,7 @@ export function RepAddPropertyModal() {
   };
 
   const validate = () => {
-    const found: Record<string, string> = { ...inviteErrors(invites) };
+    const found = { ...inviteErrors(invites), ...validatePropertyAddress({ address, city, zip }) };
     if (!address.trim()) found.address = "Enter the street address";
     if (!name.trim()) found.name = "Enter the property name";
     const n = Number(units);
@@ -204,14 +205,14 @@ export function RepAddPropertyModal() {
           />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_260px]">
             <div className="grid grid-cols-1 content-start gap-3 sm:grid-cols-3">
-              <Field label="City" error={errors.city}>
-                {(id, d) => <input id={id} aria-describedby={d} value={city} onChange={(e) => setCity(e.target.value)} className={cx(input, fill)} />}
+              <Field label="City" hint="Required" error={errors.city}>
+                {(id, d) => <input id={id} aria-describedby={d} required aria-invalid={errors.city ? true : undefined} value={city} onChange={(e) => setCity(e.target.value)} className={cx(input, fill)} />}
               </Field>
               <Field label="County" error={errors.county}>
                 {(id, d) => <input id={id} aria-describedby={d} value={county} onChange={(e) => setCounty(e.target.value)} className={cx(input, fill)} />}
               </Field>
-              <Field label="ZIP" error={errors.zip}>
-                {(id, d) => <input id={id} inputMode="numeric" autoComplete="postal-code" aria-describedby={d} value={zip} onChange={(e) => setZip(e.target.value)} className={cx(input, fill)} />}
+              <Field label="ZIP" hint="Required" error={errors.zip}>
+                {(id, d) => <input id={id} inputMode="numeric" autoComplete="postal-code" aria-describedby={d} required aria-invalid={errors.zip ? true : undefined} value={zip} onChange={(e) => setZip(e.target.value)} className={cx(input, fill)} />}
               </Field>
               {county.trim() && (
                 <p role="status" className={cx("m-0 flex items-center gap-1.5 text-[12.5px] font-semibold sm:col-span-3", inServiceArea(county) ? "text-success" : "text-warning")}>

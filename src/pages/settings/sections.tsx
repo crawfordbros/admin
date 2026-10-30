@@ -205,7 +205,7 @@ export function IssueTypesSection({ rows, onChange, errors, changed }: { rows: I
     <SettingsSection
       id="issues"
       title="Resident issue types"
-      description="What residents choose on the Report an Issue form. Drag or use the arrow keys to reorder. Turn a type off to take it off the form; it stays on past reports."
+      description="What residents choose on the Report an Issue form. Drag or use the arrow keys to reorder. Turn a type off to take it off the form; it stays on past issues."
       changed={changed}
       action={
         <button type="button" onClick={add} className={addButton}>
@@ -574,7 +574,7 @@ export function ReportsSection({
             </option>
           ))}
         </SelectField>
-        <TextField label="Reports sent from" type="email" value={email.reportsFrom} onChange={(e) => onEmail({ ...email, reportsFrom: e.target.value })} error={errors["email.reportsFrom"]} />
+        <TextField label="Weekly reports sent from" type="email" value={email.reportsFrom} onChange={(e) => onEmail({ ...email, reportsFrom: e.target.value })} error={errors["email.reportsFrom"]} />
         <TextField label="Quotes sent from" type="email" value={email.quotesFrom} onChange={(e) => onEmail({ ...email, quotesFrom: e.target.value })} error={errors["email.quotesFrom"]} />
       </div>
     </SettingsSection>
