@@ -48,6 +48,7 @@ describe("the property's violation page", () => {
     expect(within(details).getByText("Left in place, bag torn.")).toBeInTheDocument();
     const timeline = screen.getByRole("list", { name: "Where this violation is" });
     expect(within(timeline).getByText(/waiting on you/)).toBeInTheDocument();
+    expect(within(timeline).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["Resolved", "Sent to property", "Reviewed by CBES", "Logged by valet"].map((step) => expect.stringContaining(step)));
     const notes = screen.getByRole("region", { name: "Notes with CBES" });
     expect(within(notes).getByText("Third untied bag this month.")).toBeInTheDocument();
     expect(within(notes).getByText("Your Steward Dana Brooks and CBES admins get an email.")).toBeInTheDocument();

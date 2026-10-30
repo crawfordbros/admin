@@ -359,7 +359,7 @@ export function PropertyViolation({ v, queryKey, readOnly, previewQuery }: { v: 
             <h2 id="timeline-title" className="m-0 mb-3.5 text-[17px]">
               Timeline
             </h2>
-            <Stepper steps={timeline(v)} label="Where this violation is" orientation="vertical" />
+            <Stepper steps={timeline(v)} label="Where this violation is" orientation="vertical" newestFirst />
           </section>
           <UnitHistory v={v} previewQuery={previewQuery} />
         </aside>

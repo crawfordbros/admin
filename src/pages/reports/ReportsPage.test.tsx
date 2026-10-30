@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { nyToday, addDays } from "../../lib/format";
 import { mockFetch, renderRoute } from "../../test/render";
 import { reportDetail, reportRow, reportsSummary } from "../../test/fixtures";
+import type { ReportDetail } from "../../lib/api";
 import { ReportsPage } from "./ReportsPage";
 import { ReportDrawer } from "./ReportDrawer";
 
@@ -143,6 +144,24 @@ describe("ReportDrawer", () => {
     expect(await within(drawer).findByRole("link", { name: "(404) 555-0100" })).toHaveAttribute("href", "tel:(404) 555-0100");
     expect(within(drawer).getByText(/OK to call/)).toBeInTheDocument();
     expect(within(drawer).getByLabelText("Reply to Jordan Lee")).toBeInTheDocument();
+  });
+
+  it("lists the timeline newest first", async () => {
+    const actor = { id: "u_ad", name: "Nigel Crawford" };
+    const events = [
+      reportDetail().events[0],
+      { id: "e2", kind: "status", actor, body: null, fromStatus: "new", toStatus: "in_progress", assignee: null, createdAt: "2026-10-27T15:00:00Z" },
+      { id: "e3", kind: "comment", actor, body: "Passed on to the crew.", fromStatus: null, toStatus: null, assignee: null, createdAt: "2026-10-27T16:00:00Z" },
+    ] as ReportDetail["events"];
+    mockFetch((url, method, body) => (url === "/api/admin/reports/r1" && method === "GET" ? [200, reportDetail({ events })] : handler(url, method, body)));
+    show("/admin/issues/r1");
+    const drawer = await screen.findByRole("dialog", { name: "Missed pickup" });
+    const timeline = within(await within(drawer).findByRole("region", { name: "Timeline" })).getAllByRole("listitem");
+    expect(timeline.map((li) => li.textContent)).toEqual([
+      expect.stringContaining("added an internal comment"),
+      expect.stringContaining("marked it in progress"),
+      expect.stringContaining("sent this issue"),
+    ]);
   });
 });
 

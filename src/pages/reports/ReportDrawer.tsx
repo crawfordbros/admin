@@ -150,7 +150,7 @@ export function ReportDrawer() {
               Timeline
             </h2>
             <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
-              {r.events.map((e) => (
+              {[...r.events].reverse().map((e) => (
                 <li key={e.id} className="flex gap-2.5">
                   {e.actor ? <Avatar name={e.actor.name} seed={e.actor.id} size={30} /> : <span aria-hidden="true" className="flex size-[30px] flex-none items-center justify-center rounded-full bg-neutral-bg text-muted"><Icon name="message" size={14} /></span>}
                   <div className="min-w-0 flex-1">

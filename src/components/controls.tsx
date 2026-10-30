@@ -139,14 +139,18 @@ export type Step = { label: string; sub?: ReactNode; state: "done" | "current" |
 
 /**
  * Progress through a fixed sequence, such as a violation's review steps. `vertical` stacks the
- * steps with a line between them, for a narrow column.
+ * steps with a line between them, for a narrow column. `newestFirst` lists the last step first;
+ * steps keep their numbers, and a line is filled once the path through it has been reached.
  */
-export function Stepper({ steps, label, orientation = "horizontal" }: { steps: Step[]; label: string; orientation?: "horizontal" | "vertical" }) {
+export function Stepper({ steps, label, orientation = "horizontal", newestFirst = false }: { steps: Step[]; label: string; orientation?: "horizontal" | "vertical"; newestFirst?: boolean }) {
   const vertical = orientation === "vertical";
+  const shown = newestFirst ? [...steps].reverse() : steps;
   return (
-    <ol aria-label={label} className={cx("m-0 flex list-none p-0", vertical ? "flex-col" : "flex-wrap gap-x-2 gap-y-4")}>
-      {steps.map((s, i) => {
-        const last = i === steps.length - 1;
+    <ol aria-label={label} reversed={newestFirst || undefined} className={cx("m-0 flex list-none p-0", vertical ? "flex-col" : "flex-wrap gap-x-2 gap-y-4")}>
+      {shown.map((s, i) => {
+        const last = i === shown.length - 1;
+        const n = newestFirst ? steps.length - i : i + 1;
+        const reached = newestFirst ? s.state !== "todo" : s.state === "done";
         const dot = (
           <span
             className={cx(
@@ -156,7 +160,7 @@ export function Stepper({ steps, label, orientation = "horizontal" }: { steps: S
               s.state === "todo" && "bg-neutral-bg text-muted",
             )}
           >
-            {s.state === "done" ? <Icon name="check" size={15} strokeWidth={2.6} /> : i + 1}
+            {s.state === "done" ? <Icon name="check" size={15} strokeWidth={2.6} /> : n}
             <span className="sr-only">{s.state === "done" ? " (done)" : s.state === "current" ? " (current)" : ""}</span>
           </span>
         );
@@ -170,7 +174,7 @@ export function Stepper({ steps, label, orientation = "horizontal" }: { steps: S
           <li key={s.label} aria-current={s.state === "current" ? "step" : undefined} className="flex gap-3">
             <span className="flex flex-col items-center">
               {dot}
-              {!last && <span aria-hidden="true" className={cx("w-0.5 flex-1", s.state === "done" ? "bg-success" : "bg-line")} />}
+              {!last && <span aria-hidden="true" className={cx("w-0.5 flex-1", reached ? "bg-success" : "bg-line")} />}
             </span>
             {text}
           </li>
@@ -178,7 +182,7 @@ export function Stepper({ steps, label, orientation = "horizontal" }: { steps: S
           <li key={s.label} aria-current={s.state === "current" ? "step" : undefined} className="flex min-w-0 flex-[1_1_160px] items-center gap-2">
             {dot}
             {text}
-            {!last && <span aria-hidden="true" className={cx("h-0.5 min-w-4 flex-1", s.state === "done" ? "bg-success" : "bg-line")} />}
+            {!last && <span aria-hidden="true" className={cx("h-0.5 min-w-4 flex-1", reached ? "bg-success" : "bg-line")} />}
           </li>
         );
       })}
