@@ -7,7 +7,8 @@ import { fakeClerk, fakeSession } from "../test/clerk";
 import { mockFetch } from "../test/render";
 import { endSession, IDLE_MS, lastActivity, publishActivity, releaseSession, WARNING_MS } from "../lib/sessionState";
 import { clearTokenRefresh } from "../lib/authenticatedRequest";
-import { PortalSessionActivity, PortalSessionBoundary, INACTIVITY_NOTICE } from "./PortalSession";
+import { PortalSessionActivity, PortalSessionBoundary } from "./PortalSession";
+import { AUTH_EN } from "../pages/auth/authCopy";
 
 const id = "sess_1";
 function Location() { const location = useLocation(); return <output data-testid="path">{location.pathname + location.search}</output>; }
@@ -49,7 +50,7 @@ describe("portal session boundary", () => {
     await screen.findByText("Protected portal content");
     act(() => endSession(id, "idle"));
     expect(screen.queryByText("Protected portal content")).not.toBeInTheDocument();
-    expect(screen.getByText(INACTIVITY_NOTICE)).toBeVisible();
+    expect(screen.getByText(AUTH_EN.inactivity)).toBeVisible();
     expect(client.getQueryData(["private"])).toBeUndefined();
     await waitFor(() => expect(clerk.signOut).toHaveBeenCalledWith({ sessionId: id, redirectUrl: `/portal/login?reason=inactivity&redirect_url=${encodeURIComponent(path)}` }));
     expect(screen.getByTestId("path")).toHaveTextContent("/portal/login?reason=inactivity");

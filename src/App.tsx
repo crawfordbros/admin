@@ -16,6 +16,10 @@ import { ADMIN_SECTIONS } from "./pages/adminSections";
 import { AcceptInvitePage } from "./pages/AcceptInvitePage";
 import { KeepQueryRedirect, NewPropertyRedirect, PropertyRedirect } from "./pages/admin/redirects";
 import { WeeklyReportPage } from "./pages/portal/WeeklyReportPage";
+import { StewardRoot } from "./components/steward/StewardRoot";
+import { StewardAuthLayout } from "./components/steward/StewardAuthLayout";
+import { StewardArea, StewardOnly, StewardShell } from "./components/steward/StewardShell";
+import { StewardLoginPage } from "./pages/steward/StewardLoginPage";
 
 // Each Admin Portal section downloads when it's first opened (ADMIN_PORTAL_SPEC 10, performance).
 const OrganizationAdminPage = lazy(() => import("./pages/admin/OrganizationsPage").then((m) => ({ default: m.OrganizationAdminPage })));
@@ -45,6 +49,24 @@ const PropertyHomePage = lazy(() => import("./pages/portal/property/PropertyHome
 const RepReportsPage = lazy(() => import("./pages/portal/reports/RepReportsPage").then((m) => ({ default: m.RepReportsPage })));
 const RepIssuesPage = lazy(() => import("./pages/portal/issues/RepIssuesPage").then((m) => ({ default: m.RepIssuesPage })));
 const RepViolationsPage = lazy(() => import("./pages/portal/violations/RepViolationsPage").then((m) => ({ default: m.RepViolationsPage })));
+// The Steward crew app (STEWARD_APP_SPEC section 3).
+const TonightPage = lazy(() => import("./pages/steward/TonightPage").then((m) => ({ default: m.TonightPage })));
+const CrewPage = lazy(() => import("./pages/steward/CrewPage").then((m) => ({ default: m.CrewPage })));
+const CrewManagePage = lazy(() => import("./pages/steward/CrewManagePage").then((m) => ({ default: m.CrewManagePage })));
+const CheckInHistoryPage = lazy(() => import("./pages/steward/CheckInHistoryPage").then((m) => ({ default: m.CheckInHistoryPage })));
+const ReviewPage = lazy(() => import("./pages/steward/ReviewPage").then((m) => ({ default: m.ReviewPage })));
+const StewardIssuesPage = lazy(() => import("./pages/steward/IssuesPage").then((m) => ({ default: m.IssuesPage })));
+const StewardIssueDetailPage = lazy(() => import("./pages/steward/IssueDetailPage").then((m) => ({ default: m.IssueDetailPage })));
+const MyViolationsPage = lazy(() => import("./pages/steward/ViolationsPage").then((m) => ({ default: m.ViolationsPage })));
+const LogViolationPage = lazy(() => import("./pages/steward/LogViolationPage").then((m) => ({ default: m.LogViolationPage })));
+const StewardPropertyPage = lazy(() => import("./pages/steward/PropertyPage").then((m) => ({ default: m.PropertyPage })));
+const StewardPropertyIndexPage = lazy(() => import("./pages/steward/PropertyPage").then((m) => ({ default: m.PropertyIndexPage })));
+const SetupProfilePage = lazy(() => import("./pages/steward/SetupProfilePage").then((m) => ({ default: m.SetupProfilePage })));
+const SetupContactPage = lazy(() => import("./pages/steward/SetupContactPage").then((m) => ({ default: m.SetupContactPage })));
+const SetupDonePage = lazy(() => import("./pages/steward/WaitingPage").then((m) => ({ default: m.SetupDonePage })));
+const CrewGuidePage = lazy(() => import("./pages/steward/TrainingPages").then((m) => ({ default: m.CrewGuidePage })));
+const ViolationTypesPage = lazy(() => import("./pages/steward/TrainingPages").then((m) => ({ default: m.ViolationTypesPage })));
+const MePage = lazy(() => import("./pages/steward/MePage").then((m) => ({ default: m.MePage })));
 const WeeklyReportsPage = lazy(() => import("./pages/weekly/WeeklyReportsPage").then((m) => ({ default: m.WeeklyReportsPage })));
 
 
@@ -89,6 +111,36 @@ export function App() {
           />
           <Route path="/portal/login/*" element={<LoginPage />} />
           <Route path="/portal/accept-invite/*" element={<AcceptInvitePage />} />
+          {/* The Steward crew app: its own sign-in, theme and language, behind the valet area. */}
+          <Route element={<StewardRoot />}>
+            <Route
+              path="/steward/login/sso-callback"
+              element={<AuthenticateWithRedirectCallback signInUrl="/steward/login" secondFactorUrl="/steward/login" transferable={false} />}
+            />
+            <Route path="/steward/login/*" element={<StewardLoginPage />} />
+            <Route element={<RequireSecurity layout={StewardAuthLayout}><StewardArea><StewardShell /></StewardArea></RequireSecurity>}>
+              <Route path="/steward" element={<TonightPage />} />
+              <Route path="/steward/crew" element={<StewardOnly><CrewPage /></StewardOnly>} />
+              <Route path="/steward/crew/:propertyId" element={<StewardOnly><CrewManagePage /></StewardOnly>} />
+              <Route path="/steward/review" element={<StewardOnly><ReviewPage /></StewardOnly>} />
+              <Route path="/steward/issues" element={<StewardIssuesPage />} />
+              <Route path="/steward/issues/:id" element={<StewardIssueDetailPage />} />
+              <Route path="/steward/violations" element={<MyViolationsPage />} />
+              <Route path="/steward/violations/new" element={<LogViolationPage />} />
+              <Route path="/steward/properties" element={<StewardPropertyIndexPage />} />
+              <Route path="/steward/properties/:id" element={<StewardPropertyPage />} />
+              <Route path="/steward/me" element={<MePage />} />
+              <Route path="/steward/me/profile" element={<SetupProfilePage edit />} />
+              <Route path="/steward/me/contact" element={<SetupContactPage edit />} />
+              <Route path="/steward/me/check-ins" element={<CheckInHistoryPage />} />
+              <Route path="/steward/setup/profile" element={<SetupProfilePage />} />
+              <Route path="/steward/setup/security" element={<SetupContactPage />} />
+              <Route path="/steward/setup/done" element={<SetupDonePage />} />
+              <Route path="/steward/training/guide" element={<CrewGuidePage />} />
+              <Route path="/steward/training/types" element={<ViolationTypesPage />} />
+              <Route path="/steward/*" element={<Navigate to="/steward" replace />} />
+            </Route>
+          </Route>
           <Route element={<RequireSecurity><Outlet /></RequireSecurity>}>
             {/* The Property Portal (REP_PORTAL_SPEC 3.1). /portal/settings is the full Account settings (sign-in methods, devices) for everyone. */}
             <Route element={<RepShell />}>

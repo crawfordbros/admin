@@ -19,6 +19,13 @@ import { IssueIcon, ReplyClockChip, SourceChip } from "./shared";
 
 const STATUSES: ReportStatus[] = ["new", "assigned", "in_progress", "resolved", "closed"];
 
+/** Who can own an issue, grouped: valets and Stewards work theirs in the Steward app. */
+const ASSIGNEE_GROUPS: [string, string[]][] = [
+  ["CBES admins", ["admin", "super_admin"]],
+  ["Stewards", ["lead"]],
+  ["Valets", ["valet"]],
+];
+
 function describe(e: ReportEvent): string {
   switch (e.kind) {
     case "created":
@@ -36,11 +43,11 @@ function describe(e: ReportEvent): string {
   }
 }
 
-function Photo({ reportId, photoId, n }: { reportId: string; photoId: string; n: number }) {
-  const src = useAuthedImage(`/admin/reports/${reportId}/photos/${photoId}`, photoId);
+function Photo({ reportId, photoId, n, after = false }: { reportId: string; photoId: string; n: number; after?: boolean }) {
+  const src = useAuthedImage(`/admin/reports/${reportId}/${after ? "after-photos" : "photos"}/${photoId}`, photoId);
   return src ? (
     <a href={src} target="_blank" rel="noreferrer" className="block size-24 overflow-hidden rounded-lg border border-line">
-      <img src={src} alt={`Resident photo ${n}`} className="size-full object-cover" />
+      <img src={src} alt={after ? `After photo ${n}` : `Resident photo ${n}`} className="size-full object-cover" />
     </a>
   ) : (
     <span aria-hidden="true" className="block size-24 animate-pulse rounded-lg bg-neutral-bg" />
@@ -57,7 +64,7 @@ export function ReportDrawer() {
   const queryClient = useQueryClient();
   const key = ["admin", "report", id];
   const { data: r, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<ReportDetail>(`/admin/reports/${id}`) });
-  const assignees = useQuery({ queryKey: ["admin", "assignees"], queryFn: () => api<{ items: { id: string; name: string }[] }>("/admin/assignees") });
+  const assignees = useQuery({ queryKey: ["admin", "assignees"], queryFn: () => api<{ items: { id: string; name: string; role: string }[] }>("/admin/assignees") });
   useAdminPage(r ? `Issue #${r.refNo}` : null, r && [{ label: "Issues", to: `/admin/issues${location.search}` }, { label: `#${r.refNo}` }]);
   const close = () => navigate({ pathname: "/admin/issues", search: location.search });
 
@@ -108,11 +115,20 @@ export function ReportDrawer() {
               Assigned to
               <select value={r.assignee?.id ?? ""} disabled={patch.isPending} onChange={(e) => patch.mutate({ assigneeUserId: e.target.value || null })} className="min-h-10 rounded-lg border border-field bg-white px-2.5 text-[14px] font-normal">
                 <option value="">Unassigned</option>
-                {(assignees.data?.items ?? (r.assignee ? [r.assignee] : [])).map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
+                {assignees.data
+                  ? ASSIGNEE_GROUPS.map(([label, roles]) => {
+                      const people = assignees.data.items.filter((a) => roles.includes(a.role));
+                      return people.length ? (
+                        <optgroup key={label} label={label}>
+                          {people.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ) : null;
+                    })
+                  : r.assignee && <option value={r.assignee.id}>{r.assignee.name}</option>}
               </select>
             </label>
           </div>
@@ -158,6 +174,15 @@ export function ReportDrawer() {
                       <strong>{e.actor?.name ?? r.reporterName}</strong> <span className="text-muted">{describe(e)}</span> <span className="text-[12px] text-muted">· {timeAgo(e.createdAt)}</span>
                     </p>
                     {e.body && <p className={cx("mt-1 mb-0 rounded-lg px-3 py-2 text-[14px] whitespace-pre-wrap", e.kind === "comment" ? "bg-gold-tint" : "bg-canvas")}>{e.body}</p>}
+                    {(r.afterPhotos ?? []).some((p) => p.eventId === e.id) && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(r.afterPhotos ?? [])
+                          .filter((p) => p.eventId === e.id)
+                          .map((p, i) => (
+                            <Photo key={p.id} reportId={r.id} photoId={p.id} n={i + 1} after />
+                          ))}
+                      </div>
+                    )}
                   </div>
                 </li>
               ))}

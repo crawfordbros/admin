@@ -8,6 +8,8 @@ import { Alert, Button, Loading } from "../../components/ui";
 import { authErrorMessage } from "./clerkErrors";
 import { CodeField, StepHeading, TextButton } from "./fields";
 import { useSecurityApi, useSecurityStatus, type SecurityStatus } from "./security";
+import { loginPathFor } from "./redirect";
+import { useAuthCopy } from "./authCopy";
 import { ApiError } from "../../lib/authenticatedRequest";
 import { loadPasskeyBrowser, PasskeyModuleLoadError } from "../../lib/passkeyBrowser";
 
@@ -15,12 +17,13 @@ import { loadPasskeyBrowser, PasskeyModuleLoadError } from "../../lib/passkeyBro
 export function SetupMfaStep({ to }: { to: string }) {
   const clerk = useClerk();
   const status = useSecurityStatus();
-  if (status.isPending) return <Loading label="Checking your security methods…" />;
+  const copy = useAuthCopy();
+  if (status.isPending) return <Loading label={copy.checkingMethods} />;
   if (status.error) {
     const denied = status.error instanceof ApiError && status.error.details.code === "impersonation_forbidden";
     return <><Alert>{status.error.message}</Alert>{denied
-      ? <Button onClick={() => clerk.signOut({ redirectUrl: "/portal/login" })}>Sign out</Button>
-      : <Button onClick={() => void status.refetch()}>Try again</Button>}</>;
+      ? <Button onClick={() => clerk.signOut({ redirectUrl: loginPathFor() })}>{copy.signOut}</Button>
+      : <Button onClick={() => void status.refetch()}>{copy.tryAgain}</Button>}</>;
   }
   return <SecurityStep key={clerk.session?.id} to={to} status={status.data} />;
 }
@@ -44,6 +47,7 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
   const navigate = useNavigate();
   const queries = useQueryClient();
   const api = useSecurityApi();
+  const copy = useAuthCopy();
   const [method, setMethod] = useState<"authenticator" | null>(null);
   const [error, setError] = useState("");
   const [reloadRequired, setReloadRequired] = useState(false);
@@ -63,9 +67,9 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
     if (!isCurrent()) return;
     const current = await api<SecurityStatus>("/status");
     if (!isCurrent()) return;
-    if (!current.verified) throw new Error("Complete two-step verification before continuing.");
+    if (!current.verified) throw new Error(copy.notVerified);
     if (current.pending || clerk.session?.currentTask) {
-      throw new Error("Your security method is saved. Sign out and sign in again to finish updating your session.");
+      throw new Error(copy.savedSignInAgain);
     }
     await queries.cancelQueries({ queryKey: ["security", sessionId], exact: true });
     if (!isCurrent()) return;
@@ -76,7 +80,7 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
     await clerk.setActive({ session: sessionId, navigate: async () => {
       if (clerk.session?.id === sessionId) navigate(to, { replace: true });
     } });
-  }, [api, clerk, isCurrent, navigate, queries, sessionId, to]);
+  }, [api, clerk, copy, isCurrent, navigate, queries, sessionId, to]);
 
   const run = useCallback(async (action: () => Promise<void>) => {
     if (running.current || !isCurrent()) return;
@@ -90,14 +94,14 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
       if (isCurrent()) {
         setReloadRequired(err instanceof PasskeyModuleLoadError);
         setError(err && typeof err === "object" && "name" in err && (err.name === "NotAllowedError" || err.name === "AbortError")
-          ? "The passkey prompt was cancelled or timed out. Try again when you're ready."
-          : authErrorMessage(err));
+          ? copy.passkeyCancelled
+          : authErrorMessage(err, copy));
       }
     } finally {
       running.current = false;
       if (isCurrent()) setBusy(false);
     }
-  }, [isCurrent]);
+  }, [copy, isCurrent]);
 
   const passkey = useCallback(async () => {
     const { startRegistration, startAuthentication } = await loadPasskeyBrowser();
@@ -130,49 +134,47 @@ function SecurityStep({ to, status }: { to: string; status: SecurityStatus }) {
 
   return (
     <>
-      <StepHeading title={enrolled ? "Two-step verification" : "Add two-step verification"}>
-        {enrolled
-          ? "Verify with your saved security method to enter the portal."
-          : "Choose a passkey or an authenticator app. Every CBES account must complete this step, including accounts that use Google."}
+      <StepHeading title={enrolled ? copy.twoStepTitle : copy.addTwoStepTitle}>
+        {enrolled ? copy.twoStepIntroEnrolled : copy.twoStepIntroNew}
       </StepHeading>
       {error && <Alert>{error}</Alert>}
       {reloadRequired ? (
-        <Button onClick={() => window.location.reload()}>Reload page</Button>
+        <Button onClick={() => window.location.reload()}>{copy.reloadPage}</Button>
       ) : status.verified && !authenticatorBusy ? (
-        error && !busy ? <Button onClick={() => run(finish)}>Continue</Button> : <Loading label="Finishing sign-in…" />
+        error && !busy ? <Button onClick={() => run(finish)}>{copy.continue}</Button> : <Loading label={copy.finishing} />
       ) : status.passkey ? (
         !canUsePasskey
-          ? <p className="text-sm text-muted">Open this page over HTTPS in a browser that supports passkeys.</p>
+          ? <p className="text-sm text-muted">{copy.needsHttps}</p>
           : error && !busy
-            ? <Button onClick={() => run(passkey)}>Try passkey again</Button>
-            : <Loading label="Follow your device's prompt…" />
+            ? <Button onClick={() => run(passkey)}>{copy.tryPasskeyAgain}</Button>
+            : <Loading label={copy.followPrompt} />
       ) : method === "authenticator" || status.authenticator ? (
         <AuthenticatorSetup existing={status.authenticator} onDone={finish}
           onEnrolled={() => setAuthenticatorEnrolled(true)} onBusyChange={setAuthenticatorBusy} />
       ) : (
         <div className="flex flex-col gap-5">
           <div className="rounded-xl border border-line p-5">
-            <h2 className="mt-0 mb-2 text-lg font-bold text-navy">Passkey</h2>
+            <h2 className="mt-0 mb-2 text-lg font-bold text-navy">{copy.passkey}</h2>
             <p className="mt-0 mb-4 text-sm leading-relaxed text-muted">
-              Use Face ID, Touch ID, Windows Hello, your device PIN, or a security key. No authenticator app is needed.
+              {copy.passkeyBody}
             </p>
             <Button type="button" onClick={() => run(passkey)} disabled={busy || !canUsePasskey}>
-              {busy ? "Follow your device's prompt…" : "Create a passkey"}
+              {busy ? copy.followPrompt : copy.createPasskey}
             </Button>
-            {!canUsePasskey && <p className="mb-0 text-sm text-muted">Open this page over HTTPS in a browser that supports passkeys.</p>}
+            {!canUsePasskey && <p className="mb-0 text-sm text-muted">{copy.needsHttps}</p>}
           </div>
           <div className="rounded-xl border border-line p-5">
-            <h2 className="mt-0 mb-2 text-lg font-bold text-navy">Authenticator app</h2>
-            <p className="mt-0 mb-4 text-sm leading-relaxed text-muted">Use a six-digit code from Google Authenticator, Microsoft Authenticator, 1Password, or another authenticator app.</p>
+            <h2 className="mt-0 mb-2 text-lg font-bold text-navy">{copy.authenticatorApp}</h2>
+            <p className="mt-0 mb-4 text-sm leading-relaxed text-muted">{copy.authenticatorBody}</p>
             <Button type="button" onClick={() => { setError(""); setMethod("authenticator"); }} disabled={busy}>
-              Set up authenticator app
+              {copy.setUpAuthenticator}
             </Button>
           </div>
         </div>
       )}
       <div className="mt-6 flex flex-wrap gap-5">
-        {!reloadRequired && method && !enrolled && <TextButton disabled={authenticatorBusy} onClick={() => setMethod(null)}>Back to security methods</TextButton>}
-        <TextButton disabled={busy || authenticatorBusy} onClick={() => void clerk.signOut({ redirectUrl: "/portal/login" })}>Sign out</TextButton>
+        {!reloadRequired && method && !enrolled && <TextButton disabled={authenticatorBusy} onClick={() => setMethod(null)}>{copy.backToMethods}</TextButton>}
+        <TextButton disabled={busy || authenticatorBusy} onClick={() => void clerk.signOut({ redirectUrl: loginPathFor() })}>{copy.signOut}</TextButton>
       </div>
     </>
   );
@@ -185,6 +187,7 @@ function AuthenticatorSetup({ existing, onDone, onEnrolled, onBusyChange }: {
   const isCurrent = useCurrentSession();
   const api = useSecurityApi();
   const queries = useQueryClient();
+  const copy = useAuthCopy();
   const user = clerk.session?.user ?? clerk.user;
   const [totp, setTotp] = useState<{ secret: string; qr: string }>();
   const [code, setCode] = useState("");
@@ -199,12 +202,12 @@ function AuthenticatorSetup({ existing, onDone, onEnrolled, onBusyChange }: {
     started.current = true;
     void user.createTOTP().then(async (res) => {
       if (!isCurrent()) return;
-      if (!res.uri || !res.secret) throw new Error("We couldn't prepare your setup code. Reload the page and try again.");
+      if (!res.uri || !res.secret) throw new Error(copy.setupCodeFailed);
       const svg = await QRCode.toString(res.uri, { type: "svg", margin: 0, color: { dark: "#1a1c3d", light: "#ffffff" } });
       if (!isCurrent()) return;
       setTotp({ secret: res.secret, qr: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}` });
-    }).catch((err: unknown) => { if (isCurrent()) setError(authErrorMessage(err)); });
-  }, [existing, isCurrent, user]);
+    }).catch((err: unknown) => { if (isCurrent()) setError(authErrorMessage(err, copy)); });
+  }, [copy, existing, isCurrent, user]);
 
   async function verify(e: FormEvent) {
     e.preventDefault();
@@ -227,7 +230,7 @@ function AuthenticatorSetup({ existing, onDone, onEnrolled, onBusyChange }: {
         await queries.invalidateQueries({ queryKey: ["security", session.id] });
         return;
       }
-      if (code === enrollmentCode) throw new Error("Wait for a new code in your authenticator app, then enter it here.");
+      if (code === enrollmentCode) throw new Error(copy.waitForNewCode);
       // Enrollment alone does not prove a second factor for this sign-in. Ask Clerk
       // to verify it when the current session hasn't already verified that factor.
       if ((session.factorVerificationAge?.[1] ?? -1) < 0) {
@@ -236,37 +239,36 @@ function AuthenticatorSetup({ existing, onDone, onEnrolled, onBusyChange }: {
         if (verification.status === "needs_second_factor") {
           await session.attemptSecondFactorVerification({ strategy: "totp", code });
         } else if (verification.status !== "complete") {
-          throw new Error("Sign out and sign in again, then enter your authenticator code.");
+          throw new Error(copy.signOutAndIn);
         }
       }
       if (!isCurrent()) return;
       await api("/authenticator/complete", {});
       if (!isCurrent()) return;
       await onDone();
-    } catch (err) { if (isCurrent()) setError(authErrorMessage(err)); }
+    } catch (err) { if (isCurrent()) setError(authErrorMessage(err, copy)); }
     finally { if (isCurrent()) { setBusy(false); onBusyChange(false); } }
   }
 
   return (
     <>
       <p className="mt-0 text-sm leading-relaxed text-muted">
-        {enrolled ? "Your authenticator is saved. Wait for the code to change, then enter the new code to verify this sign-in."
-          : existing ? "Enter the six-digit code from your authenticator app." : "Scan this QR code with your authenticator app, then enter its six-digit code."}
+        {enrolled ? copy.authenticatorSaved : existing ? copy.enterAppCode : copy.scanQr}
       </p>
-      {!existing && !enrolled && !totp && !error && <Loading label="Preparing your setup code…" />}
+      {!existing && !enrolled && !totp && !error && <Loading label={copy.preparingCode} />}
       {totp && (
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start">
-          <img src={totp.qr} alt="QR code to add the CBES portal to your authenticator app" width={160} height={160} className="size-40 shrink-0 rounded-lg border border-line p-2.5" />
+          <img src={totp.qr} alt={copy.qrAlt} width={160} height={160} className="size-40 shrink-0 rounded-lg border border-line p-2.5" />
           <div className="min-w-0 text-sm text-muted">
-            <p className="mt-0 mb-1.5">Can't scan it? Enter this setup key in the app instead:</p>
+            <p className="mt-0 mb-1.5">{copy.cantScan}</p>
             <p className="m-0 font-mono text-[15px] font-semibold tracking-wider break-all text-ink select-all">{totp.secret.match(/.{1,4}/g)?.join(" ")}</p>
           </div>
         </div>
       )}
       <form onSubmit={verify} className="flex flex-col gap-5">
         {error && <Alert>{error}</Alert>}
-        <CodeField label="Code from the app" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} disabled={!existing && !enrolled && !totp} />
-        <Button type="submit" disabled={(!existing && !enrolled && !totp) || busy}>{busy ? "Verifying…" : "Verify code and continue"}</Button>
+        <CodeField label={copy.codeFromApp} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} disabled={!existing && !enrolled && !totp} />
+        <Button type="submit" disabled={(!existing && !enrolled && !totp) || busy}>{busy ? copy.verifying : copy.verifyAndContinue}</Button>
       </form>
     </>
   );

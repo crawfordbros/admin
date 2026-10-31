@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { TextField } from "../../components/ui";
 import { cx } from "../../components/styles";
+import { useAuthCopy } from "./authCopy";
 
 /** Each step's heading. Later steps take focus so screen readers announce the change. */
 export function StepHeading({ title, focus = true, children }: { title: string; focus?: boolean; children?: ReactNode }) {
@@ -19,9 +20,10 @@ export function StepHeading({ title, focus = true, children }: { title: string; 
 }
 
 export function CodeField({ label, autoComplete, ...props }: Omit<ComponentProps<typeof TextField>, "label"> & { label?: string }) {
+  const copy = useAuthCopy();
   return (
     <TextField
-      label={label ?? "Verification code"}
+      label={label ?? copy.verificationCode}
       autoComplete={autoComplete ?? "one-time-code"}
       inputMode="numeric"
       pattern="[0-9]{6}"
@@ -35,12 +37,13 @@ export function CodeField({ label, autoComplete, ...props }: Omit<ComponentProps
 export function PasswordField(props: ComponentProps<typeof TextField>) {
   const [shown, setShown] = useState(false);
   const id = useId();
+  const copy = useAuthCopy();
   return (
     <div className="flex flex-col gap-2">
       <TextField type={shown ? "text" : "password"} required {...props} />
       <label htmlFor={id} className="inline-flex w-fit cursor-pointer items-center gap-2 text-sm text-muted">
         <input id={id} type="checkbox" checked={shown} onChange={(e) => setShown(e.target.checked)} className="size-4 accent-navy" />
-        Show password
+        {copy.showPassword}
       </label>
     </div>
   );
@@ -62,11 +65,12 @@ export function TextButton({ className, ...props }: ComponentProps<"button">) {
 
 /** The email being signed in, with a way to start over. */
 export function SignedInAs({ email, onChange }: { email: string; onChange: () => void }) {
+  const copy = useAuthCopy();
   return (
     <p className="-mt-3 mb-5 flex flex-wrap items-baseline gap-x-3 text-[15px] text-muted">
       <span className="min-w-0 font-semibold break-all text-ink">{email}</span>
       <TextButton onClick={onChange} className="text-sm">
-        Use a different email
+        {copy.useDifferentEmail}
       </TextButton>
     </p>
   );

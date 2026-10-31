@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentType, type FormEvent, type ReactNode } from "react";
 import { useAuth, useSignIn } from "@clerk/clerk-react";
 import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { Alert, Button, Loading, TextField } from "../components/ui";
 import { AuthLayout } from "./auth/AuthLayout";
-import { apiErrorMessage, authErrorMessage, CBES_EMAIL } from "./auth/clerkErrors";
+import { apiErrorMessage, authErrorMessage } from "./auth/clerkErrors";
+import { useAuthCopy, type AuthCopy } from "./auth/authCopy";
 import { CodeField, PasswordField, SignedInAs, StepHeading, TextButton } from "./auth/fields";
 import { afterSignInPath } from "./auth/redirect";
 import { SetupMfaStep } from "./auth/SetupMfaStep";
 import { useCompleteSession, usePendingMfaSetup } from "./auth/session";
-import { INACTIVITY_NOTICE } from "../components/PortalSession";
 
 type SignIn = NonNullable<ReturnType<typeof useSignIn>["signIn"]>;
 
@@ -23,52 +23,61 @@ type Step =
 
 const RESEND_SECONDS = 30;
 
+type LoginOptions = {
+  /** Frames the steps: the portal's sign-in layout, or the Steward app's. */
+  layout?: ComponentType<{ children: ReactNode }>;
+  /** The first step's heading and the browser tab title. */
+  title?: string;
+  documentTitle?: string;
+  /** Where the sign-in page lives (/portal or /steward): the Google return path and the default landing page. */
+  home?: "/portal" | "/steward";
+};
+
 /** Staff and manager sign-in. Accounts are invite-only, so there is no way to sign up here. */
-export function LoginPage() {
+export function LoginPage({ layout: Layout = AuthLayout, title = "Sign in to the CBES portal", documentTitle = "Sign in | CBES Portal", home = "/portal" }: LoginOptions = {}) {
   const { isLoaded, signIn } = useSignIn();
   const { isSignedIn } = useAuth();
   const pendingMfa = usePendingMfaSetup();
   const { search } = useLocation();
   const [params] = useSearchParams();
-  const to = afterSignInPath(search);
+  const to = afterSignInPath(search, undefined, home);
 
   useEffect(() => {
-    document.title = "Sign in | CBES Portal";
-  }, []);
+    document.title = documentTitle;
+  }, [documentTitle]);
 
   if (!isLoaded) {
     return (
-      <AuthLayout>
+      <Layout>
         <Loading />
-      </AuthLayout>
+      </Layout>
     );
   }
   if (isSignedIn) return <Navigate to={to} replace />;
 
   return (
-    <AuthLayout>
-      {params.get("reason") === "inactivity" && <p role="status">{INACTIVITY_NOTICE}</p>}
-      {params.get("reason") === "expired" && <p role="status">Please sign in again to continue.</p>}
-      {params.get("reason") === "signout" && <p role="status">You signed out.</p>}
-      <SignInSteps signIn={signIn} to={to} ticket={params.get("__clerk_ticket")} pendingMfa={pendingMfa} />
-    </AuthLayout>
+    <Layout>
+      <SignInNotice reason={params.get("reason")} />
+      <SignInSteps signIn={signIn} to={to} ticket={params.get("__clerk_ticket")} pendingMfa={pendingMfa} title={title} home={home} />
+    </Layout>
   );
 }
 
-function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: string; ticket: string | null; pendingMfa: boolean }) {
+function SignInSteps({ signIn, to, ticket, pendingMfa, title, home }: { signIn: SignIn; to: string; ticket: string | null; pendingMfa: boolean; title: string; home: string }) {
   const completeSession = useCompleteSession();
+  const copy = useAuthCopy();
   const resuming = signIn.status === "needs_second_factor";
   const [step, setStep] = useState<Step>(() =>
     pendingMfa
       ? { name: "setup-mfa" }
       : ticket || resuming
-        ? { name: "working", label: "Signing you in…" }
+        ? { name: "working", label: copy.signingIn }
         : { name: "email" },
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
-  const [error, setError] = useState(() => (ticket || resuming ? "" : googleError(signIn)));
+  const [error, setError] = useState(() => (ticket || resuming ? "" : googleError(signIn, copy)));
   const [busy, setBusy] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const resumed = useRef(false);
@@ -97,7 +106,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     try {
       await action();
     } catch (err) {
-      setError(authErrorMessage(err));
+      setError(authErrorMessage(err, copy));
     } finally {
       setBusy(false);
     }
@@ -117,11 +126,11 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
         setResendIn(RESEND_SECONDS);
         return go({ name: "second-factor", strategy: "email_code", sentTo: emailFactor.safeIdentifier });
       }
-      throw new Error(`Your account uses a second step this portal doesn't support. Email CBES at ${CBES_EMAIL}.`);
+      throw new Error(copy.unsupportedSecondStep);
     }
     if (res.status === "needs_new_password") return go({ name: "new-password" });
     if (res.status === "needs_first_factor") return go({ name: "password" });
-    throw new Error("Sign-in didn't finish. Start again.");
+    throw new Error(copy.didntFinish);
   }
 
   // Arriving from an invitation link, or back from Google with a second step still to do.
@@ -131,7 +140,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     const arrival = ticket ? signIn.create({ strategy: "ticket", ticket }) : Promise.resolve(signIn);
     arrival.then(advance).catch((err: unknown) => {
       setStep({ name: "email" });
-      setError(authErrorMessage(err));
+      setError(authErrorMessage(err, copy));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on arrival
   }, []);
@@ -142,7 +151,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
       const res = await signIn.create({ identifier: email.trim() });
       const factors = res.supportedFirstFactors ?? [];
       if (factors.some((f) => f.strategy === "password")) return go({ name: "password" });
-      throw new Error(`This account doesn't have a password. Sign in with Google if it's linked to your account, or email ${CBES_EMAIL} for help. Each person needs their own account.`);
+      throw new Error(copy.noPassword);
     });
   };
 
@@ -156,7 +165,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     run(() =>
       signIn.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: "/portal/login/sso-callback",
+        redirectUrl: `${home}/login/sso-callback`,
         redirectUrlComplete: to,
       }),
     );
@@ -165,7 +174,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "working":
       return (
         <>
-          <StepHeading title="Sign in to the CBES portal" focus={false} />
+          <StepHeading title={title} focus={false} />
           <Loading label={step.label} />
         </>
       );
@@ -176,19 +185,19 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "email":
       return (
         <>
-          <StepHeading title="Sign in to the CBES portal" focus={false} />
+          <StepHeading title={title} focus={false} />
           <div className="flex flex-col gap-5">
             {error && <Alert>{error}</Alert>}
             <Button variant="outline" onClick={google} disabled={busy}>
               <GoogleMark />
-              Continue with Google
+              {copy.continueWithGoogle}
             </Button>
             <p className="m-0 flex items-center gap-3 text-sm text-muted before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">
-              or use your email
+              {copy.orUseEmail}
             </p>
             <form onSubmit={submitEmail} className="flex flex-col gap-5">
               <TextField
-                label="Email address"
+                label={copy.emailLabel}
                 type="email"
                 autoComplete="username"
                 required
@@ -196,7 +205,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
                 onChange={(e) => setEmail(e.target.value)}
               />
               <Button type="submit" disabled={busy}>
-                {busy ? "Checking…" : "Continue"}
+                {busy ? copy.checking : copy.continue}
               </Button>
             </form>
           </div>
@@ -206,7 +215,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "password":
       return (
         <>
-          <StepHeading title="Enter your password" />
+          <StepHeading title={copy.enterPassword} />
           <SignedInAs email={email} onChange={startOver} />
           <form
             onSubmit={(e) => {
@@ -216,14 +225,14 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
             className="flex flex-col gap-5"
           >
             {error && <Alert>{error}</Alert>}
-            <PasswordField label="Password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordField label={copy.passwordLabel} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <Button type="submit" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in"}
+              {busy ? copy.signingInBusy : copy.signIn}
             </Button>
           </form>
           <Alternatives>
             <TextButton onClick={() => run(() => sendResetCode())} disabled={busy}>
-              Forgot your password?
+              {copy.forgotPassword}
             </TextButton>
           </Alternatives>
         </>
@@ -232,29 +241,29 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "second-factor":
       return step.strategy === "totp" ? (
         <CodeStep
-          title="Two-step verification"
-          intro="Enter the 6-digit code from your authenticator app."
+          title={copy.twoStepTitle}
+          intro={copy.totpIntro}
           email={email}
           onStartOver={startOver}
           code={code}
           setCode={setCode}
           error={error}
           busy={busy}
-          codeLabel="Code from the app"
-          submitLabel="Verify code"
+          codeLabel={copy.codeFromApp}
+          submitLabel={copy.verifyCode}
           onSubmit={() => run(async () => advance(await signIn.attemptSecondFactor({ strategy: "totp", code })))}
         />
       ) : (
         <CodeStep
-          title="Confirm it's you"
-          intro={`This is a new device for your account. Enter the code we sent to ${step.sentTo ?? "your email"}.`}
+          title={copy.confirmTitle}
+          intro={copy.emailCodeIntro(step.sentTo ?? copy.yourEmail)}
           email={email}
           onStartOver={startOver}
           code={code}
           setCode={setCode}
           error={error}
           busy={busy}
-          submitLabel="Verify code"
+          submitLabel={copy.verifyCode}
           onSubmit={() => run(async () => advance(await signIn.attemptSecondFactor({ strategy: "email_code", code })))}
           resendIn={resendIn}
           onResend={() => run(() => advance(signIn))}
@@ -264,15 +273,15 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "reset-code":
       return (
         <CodeStep
-          title="Reset your password"
-          intro="Enter the 6-digit code we just emailed you, then choose a new password."
+          title={copy.resetTitle}
+          intro={copy.resetIntro}
           email={email}
           onStartOver={startOver}
           code={code}
           setCode={setCode}
           error={error}
           busy={busy}
-          submitLabel="Continue"
+          submitLabel={copy.continue}
           onSubmit={() =>
             run(async () => advance(await signIn.attemptFirstFactor({ strategy: "reset_password_email_code", code })))
           }
@@ -284,7 +293,7 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
     case "new-password":
       return (
         <>
-          <StepHeading title="Choose a new password" />
+          <StepHeading title={copy.newPasswordTitle} />
           <SignedInAs email={email} onChange={startOver} />
           <form
             onSubmit={(e) => {
@@ -295,15 +304,15 @@ function SignInSteps({ signIn, to, ticket, pendingMfa }: { signIn: SignIn; to: s
           >
             {error && <Alert>{error}</Alert>}
             <PasswordField
-              label="New password"
+              label={copy.newPasswordLabel}
               autoComplete="new-password"
               minLength={10}
-              hint="At least 10 characters. A short phrase works well. You'll be signed out on other devices."
+              hint={copy.newPasswordHint}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <Button type="submit" disabled={busy}>
-              {busy ? "Saving…" : "Save password and sign in"}
+              {busy ? copy.saving : copy.savePassword}
             </Button>
           </form>
         </>
@@ -327,6 +336,7 @@ function CodeStep(props: {
   resendIn?: number;
   onResend?: () => void;
 }) {
+  const copy = useAuthCopy();
   return (
     <>
       <StepHeading title={props.title}>{props.intro}</StepHeading>
@@ -346,13 +356,13 @@ function CodeStep(props: {
           onChange={(e) => props.setCode(e.target.value.replace(/\D/g, ""))}
         />
         <Button type="submit" disabled={props.busy}>
-          {props.busy ? "Checking…" : props.submitLabel}
+          {props.busy ? copy.checking : props.submitLabel}
         </Button>
       </form>
       {props.onResend && (
         <Alternatives>
           <TextButton onClick={props.onResend} disabled={props.busy || (props.resendIn ?? 0) > 0}>
-            {props.resendIn ? `Send a new code in ${props.resendIn}s` : "Send a new code"}
+            {props.resendIn ? copy.resendIn(props.resendIn) : copy.resend}
           </TextButton>
         </Alternatives>
       )}
@@ -361,11 +371,18 @@ function CodeStep(props: {
 }
 
 /** A Google account with no CBES account comes back from the redirect with this error. */
-function googleError(signIn: SignIn): string {
+function googleError(signIn: SignIn, copy: AuthCopy): string {
   const verification = signIn.firstFactorVerification;
   if (!verification?.strategy?.startsWith("oauth_")) return "";
-  if (verification.error) return apiErrorMessage(verification.error);
-  return verification.status === "transferable" ? apiErrorMessage({ code: "external_account_not_found" }) : "";
+  if (verification.error) return apiErrorMessage(verification.error, copy);
+  return verification.status === "transferable" ? apiErrorMessage({ code: "external_account_not_found" }, copy) : "";
+}
+
+/** Why the sign-in page opened: inactivity, an expired session, or signing out. */
+function SignInNotice({ reason }: { reason: string | null }) {
+  const copy = useAuthCopy();
+  const text = reason === "inactivity" ? copy.inactivity : reason === "expired" ? copy.expired : reason === "signout" ? copy.signedOut : null;
+  return text ? <p role="status">{text}</p> : null;
 }
 
 function Alternatives({ children }: { children: ReactNode }) {

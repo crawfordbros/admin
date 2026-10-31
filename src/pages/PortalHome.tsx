@@ -21,9 +21,11 @@ export function PortalHome() {
 
   const { user, organizations, properties } = data;
   const role = roleFrom({ role: user.role });
-  // Admins work from the admin dashboard; a representative of one organization goes straight to it;
+  // Admins work from the admin dashboard and crew from the Steward app; a representative of one organization goes straight to it;
   // a manager with one property, to that.
   if (isAdminRole(role)) return <Navigate to="/admin" replace />;
+  // Valets and Stewards work from the Steward crew app (STEWARD_APP_SPEC section 1).
+  if (role === "lead" || role === "valet") return <Navigate to="/steward" replace />;
   if (organizations.length === 1) return <Navigate to={`/portal/organizations/${organizations[0].id}`} replace />;
   if (organizations.length === 0 && properties.length === 1) {
     return <Navigate to={`/portal/properties/${properties[0].id}`} replace />;

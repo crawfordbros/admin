@@ -6,12 +6,11 @@ import { authenticatedRequest, responseJson, clearTokenRefresh } from "../lib/au
 import { clearPendingWrites } from "../lib/api";
 import { PortalActivity, type ActivitySnapshot, type SessionStatus } from "../lib/portalActivity";
 import { AUTH_EVENT, endedKey, endReason, endSession, IDLE_MS, type AuthEvent, type EndReason } from "../lib/sessionState";
-import { afterSignInPath } from "../pages/auth/redirect";
+import { afterSignInPath, homeFor, loginPathFor } from "../pages/auth/redirect";
+import { AUTH_EN } from "../pages/auth/authCopy";
 import { AuthLayout } from "../pages/auth/AuthLayout";
 import { Alert, Button, Loading } from "./ui";
 import { useFocusTrap } from "./useFocusTrap";
-
-export const INACTIVITY_NOTICE = "You were signed out after 30 minutes of inactivity.";
 
 /** Sits above all routes so authentication failures cannot become page errors or login loops. */
 export function PortalSessionBoundary({ children }: { children: ReactNode }) {
@@ -41,10 +40,12 @@ export function PortalSessionBoundary({ children }: { children: ReactNode }) {
       clearPendingWrites();
       clearTokenRefresh(id);
       const here = locationRef.current;
-      const target = here.pathname.startsWith("/portal/login")
-        ? afterSignInPath(here.search)
-        : afterSignInPath(`?redirect_url=${encodeURIComponent(here.pathname + here.search + here.hash)}`);
-      const login = `/portal/login?reason=${reason === "idle" ? "inactivity" : reason}&redirect_url=${encodeURIComponent(target)}`;
+      const loginPath = loginPathFor(here.pathname);
+      const home = homeFor(here.pathname);
+      const target = here.pathname.startsWith(loginPath)
+        ? afterSignInPath(here.search, undefined, home)
+        : afterSignInPath(`?redirect_url=${encodeURIComponent(here.pathname + here.search + here.hash)}`, undefined, home);
+      const login = `${loginPath}?reason=${reason === "idle" ? "inactivity" : reason}&redirect_url=${encodeURIComponent(target)}`;
       navigate(login, { replace: true });
       // Persist the server tombstone when possible, but never leave protected content on screen
       // while waiting for the API or Clerk to come back online.
@@ -91,7 +92,7 @@ export function PortalSessionBoundary({ children }: { children: ReactNode }) {
   }, [clerk, id, navigate, queryClient]);
 
   if (id && blocked) return <AuthLayout>
-    {blocked !== "signout" && <p role="status">{blocked === "idle" ? INACTIVITY_NOTICE : "Please sign in again to continue."}</p>}
+    {blocked !== "signout" && <p role="status">{blocked === "idle" ? AUTH_EN.inactivity : AUTH_EN.expired}</p>}
     {failed ? <><p>Connect to the internet to finish signing out.</p><Button onClick={() => retry.current()}>Return to sign in</Button></> : <Loading label={blocked === "signout" ? "Signing you out…" : "Returning to sign in…"} />}
   </AuthLayout>;
   return <>{children}</>;

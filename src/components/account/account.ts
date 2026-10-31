@@ -1,6 +1,7 @@
 import { useClerk, useUser } from "@clerk/clerk-react";
 import { ROLE_LABELS, roleFrom } from "../../access";
 import { endSession } from "../../lib/sessionState";
+import { loginPathFor } from "../../pages/auth/redirect";
 
 /** The signed-in person as the portal shows them: Clerk keeps no names here, so usually the email. */
 export function useAccountIdentity() {
@@ -20,6 +21,6 @@ export function useSignOut() {
   return () => {
     const id = clerk.session?.id;
     if (id) endSession(id, "signout");
-    else void clerk.signOut({ redirectUrl: "/portal/login?reason=signout" });
+    else void clerk.signOut({ redirectUrl: `${loginPathFor()}?reason=signout` });
   };
 }

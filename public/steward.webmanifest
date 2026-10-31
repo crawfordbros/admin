@@ -1,0 +1,17 @@
+{
+  "name": "Steward by CBES",
+  "short_name": "Steward",
+  "description": "The CBES crew app for valets and Stewards",
+  "id": "/steward/",
+  "start_url": "/steward/",
+  "scope": "/steward/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#12143f",
+  "theme_color": "#12143f",
+  "icons": [
+    { "src": "steward-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "steward-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "steward-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -143,3 +143,147 @@ select:not([multiple]):not([size]) {
   background-size: 0.875rem;
   padding-right: 2.25rem;
 }
+/* Steward crew app (docs/STEWARD_APP_SPEC.md). Dark is the navy night palette from docs/design/steward;
+   light is the same layout for daylight. StewardRoot sets data-st-theme on <html> while the app is open,
+   so dialogs and the page background follow the theme too. */
+html[data-st-theme="dark"] {
+  color-scheme: dark;
+  --st-bg: #12143f;
+  --st-chrome: #0c0e30;
+  --st-surface: #1c1f5a;
+  --st-raised: #23266b;
+  --st-track: #2e3290;
+  --st-border: #4a4e9e;
+  --st-text: #ffffff;
+  --st-text-2: #c9caf0;
+  --st-text-3: #9fa2d6;
+  --st-accent: #c8bba5;
+  --st-cta: #ffffff;
+  --st-on-cta: #1a1c5e;
+  --st-avatar: #3a3e99;
+  --st-avatar-ink: #6e72c4;
+  --st-ok: #4cc38a;
+  --st-ok-bg: #143d2e;
+  --st-go: #4cc38a;
+  --st-on-go: #0c2a1d;
+  --st-warn: #f5c26b;
+  --st-warn-bg: #3f3215;
+  --st-bad: #ff8a7a;
+  --st-bad-bg: #4a1d25;
+  --st-info: #8db4ff;
+  --st-info-bg: #1b2e5c;
+  --st-badge: #d93a25;
+  --st-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+html[data-st-theme="light"] {
+  color-scheme: light;
+  --st-bg: #edeef8;
+  --st-chrome: #ffffff;
+  --st-surface: #ffffff;
+  --st-raised: #e4e6f5;
+  --st-track: #d3d6ee;
+  --st-border: #8487c2;
+  --st-text: #12143f;
+  --st-text-2: #3d4180;
+  --st-text-3: #575b95;
+  --st-accent: #7a6a50;
+  --st-cta: #272b84;
+  --st-on-cta: #ffffff;
+  --st-avatar: #d3d6ee;
+  --st-avatar-ink: #6e72c4;
+  --st-ok: #0f6b41;
+  --st-ok-bg: #ddf3e8;
+  --st-go: #0f6b41;
+  --st-on-go: #ffffff;
+  --st-warn: #8a5300;
+  --st-warn-bg: #fcefd3;
+  --st-bad: #b42318;
+  --st-bad-bg: #fdecea;
+  --st-info: #1c4fa0;
+  --st-info-bg: #e3ecfc;
+  --st-badge: #d93a25;
+  --st-shadow: 0 8px 24px rgb(18 20 63 / 0.18);
+}
+html[data-st-theme] body {
+  background: var(--st-bg);
+  color: var(--st-text);
+}
+
+@theme inline {
+  --color-st-bg: var(--st-bg);
+  --color-st-chrome: var(--st-chrome);
+  --color-st-surface: var(--st-surface);
+  --color-st-raised: var(--st-raised);
+  --color-st-track: var(--st-track);
+  --color-st-border: var(--st-border);
+  --color-st-text: var(--st-text);
+  --color-st-text-2: var(--st-text-2);
+  --color-st-text-3: var(--st-text-3);
+  --color-st-accent: var(--st-accent);
+  --color-st-cta: var(--st-cta);
+  --color-st-on-cta: var(--st-on-cta);
+  --color-st-avatar: var(--st-avatar);
+  --color-st-avatar-ink: var(--st-avatar-ink);
+  --color-st-ok: var(--st-ok);
+  --color-st-ok-bg: var(--st-ok-bg);
+  /* The "it's done" button: Fixed, Send and resolve. */
+  --color-st-go: var(--st-go);
+  --color-st-on-go: var(--st-on-go);
+  --color-st-warn: var(--st-warn);
+  --color-st-warn-bg: var(--st-warn-bg);
+  --color-st-bad: var(--st-bad);
+  --color-st-bad-bg: var(--st-bad-bg);
+  --color-st-info: var(--st-info);
+  --color-st-info-bg: var(--st-info-bg);
+  --color-st-badge: var(--st-badge);
+  --shadow-st: var(--st-shadow);
+}
+
+/* Links and focus inside the Steward app. Gold on navy at night; the darker gold text color by day. */
+@layer base {
+  .steward a {
+    color: var(--st-accent);
+  }
+  .steward a:hover {
+    color: var(--st-text);
+  }
+  .steward :focus-visible {
+    outline-color: var(--st-accent);
+  }
+}
+
+/* The shared sign-in and two-step screens (LoginPage, SetupMfaStep) inside the Steward app. Their controls
+   use the admin tokens; here those tokens point at the Steward palette, so in the dark theme "white" fields
+   become raised navy and the primary button turns white with navy text, as in the designs. */
+.steward-skin {
+  --color-white: var(--st-raised);
+  --color-ink: var(--st-text);
+  --color-muted: var(--st-text-2);
+  --color-line: var(--st-track);
+  --color-field: var(--st-border);
+  --color-tint: var(--st-surface);
+  --color-canvas: var(--st-surface);
+  --color-navy: var(--st-cta);
+  --color-navy-dark: var(--st-cta);
+  --color-navy-ink: var(--st-text);
+  --color-danger: var(--st-bad);
+  --color-success: var(--st-ok);
+}
+.steward-skin .bg-navy,
+.steward-skin button.bg-navy {
+  color: var(--st-on-cta);
+}
+html[data-st-theme="light"] .steward-skin {
+  --color-white: #ffffff;
+}
+/* 56 px fields and buttons with the designs' 14 px corners; the secondary (Google) button is the quiet navy outline. */
+.steward-skin .min-h-11 {
+  min-height: 3.5rem;
+  border-radius: 14px;
+}
+.steward-skin .border-2.border-navy {
+  border-width: 1px;
+  border-color: var(--st-border);
+  background: var(--st-surface);
+  color: var(--st-text);
+}

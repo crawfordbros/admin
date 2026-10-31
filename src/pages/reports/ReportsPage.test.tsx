@@ -22,7 +22,7 @@ function handler(url: string, method: string, body: unknown): [number, unknown] 
   if (url === "/api/admin/reports/r1/calls") return [201, { report: reportDetail() }];
   if (url === "/api/admin/reports/r1" && method === "PATCH") return [200, { report: reportDetail({ assignee: { id: "u_ad", name: "Nigel Crawford" }, status: "assigned" }) }];
   if (url === "/api/admin/issue-types") return [200, { items: [{ key: "missed_pickup", label: "Missed pickup" }, { key: "spill_mess", label: "Spill or mess" }] }];
-  if (url === "/api/admin/assignees") return [200, { items: [{ id: "u_ad", name: "Nigel Crawford" }] }];
+  if (url === "/api/admin/assignees") return [200, { items: [{ id: "u_ad", name: "Nigel Crawford", role: "admin" }] }];
   if (url === "/api/admin/properties") return [200, { properties: [{ id: "p1", name: "The Oaks at Decatur", city: "Decatur", status: "active", organizationId: "org1" }] }];
   if (url === "/api/organizations") return [200, { organizations: [] }];
   if (url.startsWith("/api/saved-views") && method === "GET") return [200, { items: [{ id: "sv1", name: "Over 20h, no reply", query: "sort=clock", createdAt: "" }] }];

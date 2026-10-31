@@ -609,6 +609,8 @@ function Settings({ orgId, property, onSaved }: { orgId: string; property: Prope
         </form>
       </section>
 
+      <CrewAppSettings orgId={orgId} property={property} onSaved={onSaved} />
+
       <PhotoSettings orgId={orgId} property={property} onSaved={onSaved} />
 
       <section className="rounded-[14px] border border-danger/30 bg-white p-5">
@@ -626,6 +628,74 @@ function Settings({ orgId, property, onSaved }: { orgId: string; property: Prope
         />
       </section>
     </div>
+  );
+}
+
+/**
+ * What the Steward crew app needs at this property (STEWARD_APP_SPEC 5): how far from the map pin a valet
+ * can check in, the gate code (shown to the crew on tap, each view logged) and where the compactor is.
+ */
+function CrewAppSettings({ orgId, property, onSaved }: { orgId: string; property: PropertyProfile; onSaved: () => Promise<unknown> }) {
+  const api = useApi();
+  const toast = useToast();
+  const { onSubmit, errors, formError, saving } = useFormSubmit(
+    (v) => {
+      const text = (k: string) => String(v.get(k) ?? "").trim() || null;
+      return api<{ property: PropertyProfile }>(`/organizations/${orgId}/properties/${property.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ geofenceRadiusM: Number(text("geofenceRadiusM") ?? ""), accessNotes: text("accessNotes"), compactorNote: text("compactorNote") }),
+      });
+    },
+    async () => {
+      toast.success("Crew app details saved.");
+      await onSaved();
+    },
+  );
+  return (
+    <section className={card} aria-labelledby="crew-app-heading">
+      <h2 id="crew-app-heading" className="m-0 text-lg text-ink">
+        Crew app
+      </h2>
+      <p className="mt-1 mb-4 text-[13.5px] text-muted">
+        What valets and Stewards see in the Steward app at this property.
+        {property.lat == null && " Add the property's address from the suggestions so it has a map pin; check-ins can't be checked against the area until it does."}
+      </p>
+      <form onSubmit={onSubmit} noValidate className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TextField
+          label="Check-in area (meters)"
+          name="geofenceRadiusM"
+          type="number"
+          inputMode="numeric"
+          min={25}
+          max={2000}
+          required
+          defaultValue={property.geofenceRadiusM ?? 150}
+          error={errors.geofenceRadiusM}
+          hint="How far from the map pin a check-in counts as at the property, plus the phone's GPS accuracy. Outside it, valets give a reason and their Steward is told."
+        />
+        <TextField label="Compactor location" name="compactorNote" optional defaultValue={property.compactorNote ?? ""} error={errors.compactorNote} hint="For example: behind Bldg 6, by the pool gate." />
+        <TextField
+          label="Gate code and access notes"
+          name="accessNotes"
+          optional
+          autoComplete="off"
+          defaultValue={property.accessNotes ?? ""}
+          error={errors.accessNotes}
+          className="sm:col-span-2"
+          hint="Crew see this only when they tap to show it, and each time is logged. Property managers never see it."
+        />
+        {formError && (
+          <div className="sm:col-span-2">
+            <Alert>{formError}</Alert>
+          </div>
+        )}
+        <div className="sm:col-span-2">
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving…" : "Save crew app details"}
+          </Button>
+        </div>
+      </form>
+    </section>
   );
 }
 

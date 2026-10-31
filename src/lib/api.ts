@@ -350,6 +350,10 @@ export type PropertyProfile = Property & {
   trashOutWindow?: TrashOutWindow | null;
   pressureWashing?: boolean;
   createdBy?: string | null;
+  /** Steward crew app, CBES admins only: the check-in area around the pin, gate code and compactor location. */
+  geofenceRadiusM?: number;
+  accessNotes?: string | null;
+  compactorNote?: string | null;
 };
 
 export type TrashOutWindow = "18:00-20:00" | "19:00-21:00";
@@ -623,6 +627,8 @@ export type ReportDetail = ReportRow & {
   firstResponseAt: string | null;
   resolvedAt: string | null;
   photos: { id: string }[];
+  /** Taken by crew in the Steward app when they marked it fixed; each points at its status event. */
+  afterPhotos?: { id: string; eventId: string | null }[];
   /** Oldest first. */
   events: ReportEvent[];
 };

@@ -5,8 +5,9 @@ export const IMAGE_TYPES = "image/png,image/jpeg,image/webp";
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 /**
- * Crops an image to its centered square and re-encodes it as a 512 px WebP. Re-encoding also
- * drops the EXIF data (camera, location) a phone photo carries. The API accepts up to 1 MB.
+ * Crops an image to its centered square and re-encodes it as a 512 px WebP (JPEG where the browser
+ * can't write WebP). Re-encoding also drops the EXIF data (camera, location) a phone photo carries.
+ * The API accepts up to 1 MB.
  */
 export async function squareWebp(file: Blob, size = 512): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
@@ -17,7 +18,10 @@ export async function squareWebp(file: Blob, size = 512): Promise<Blob> {
   if (!ctx) throw new Error("This browser can't prepare images. Try another browser.");
   ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.86));
+  const encode = (type: string) => new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.86));
+  let blob = await encode("image/webp");
+  // Safari can't encode WebP and hands back a PNG instead; a JPEG is far smaller.
+  if (blob && blob.type !== "image/webp") blob = await encode("image/jpeg");
   if (!blob) throw new Error("The image couldn't be prepared. Try a PNG or JPG.");
   return blob;
 }
