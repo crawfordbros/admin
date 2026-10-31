@@ -26,6 +26,9 @@ export async function squareWebp(file: Blob, size = 512): Promise<Blob> {
   return blob;
 }
 
+/** What the API stores and serves: anything else never becomes an object URL. */
+const SHOWABLE = new Set(["image/jpeg", "image/png", "image/webp"]);
+
 /**
  * An object URL for an image the API serves to signed-in users; null while loading or when there's
  * none. URLs live for the session (each image is a ~40 kB WebP), keyed by its version, so a
@@ -37,7 +40,10 @@ export function useAuthedImage(path: string | null, version: string | null) {
     queryKey: ["image", path, version],
     queryFn: async () => {
       const b = await blob(path!);
-      return b ? URL.createObjectURL(b) : null;
+      // Only images become object URLs, typed as the image they are: a URL that's opened in a new tab
+      // can never render another kind of file on this origin.
+      const type = b?.type.split(";")[0].trim().toLowerCase() ?? "";
+      return b && SHOWABLE.has(type) ? URL.createObjectURL(new Blob([b], { type })) : null;
     },
     enabled: Boolean(path && version),
     staleTime: Infinity,

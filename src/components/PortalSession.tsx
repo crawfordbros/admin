@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authenticatedRequest, responseJson, clearTokenRefresh } from "../lib/authenticatedRequest";
 import { clearPendingWrites } from "../lib/api";
+import { clearOfflineCopies } from "../lib/steward/offline";
 import { PortalActivity, type ActivitySnapshot, type SessionStatus } from "../lib/portalActivity";
 import { AUTH_EVENT, endedKey, endReason, endSession, IDLE_MS, type AuthEvent, type EndReason } from "../lib/sessionState";
 import { afterSignInPath, homeFor, loginPathFor } from "../pages/auth/redirect";
@@ -38,6 +39,8 @@ export function PortalSessionBoundary({ children }: { children: ReactNode }) {
       void queryClient.cancelQueries();
       queryClient.clear();
       clearPendingWrites();
+      // Steward app copies kept on the device (Tonight, the profile, reply drafts) go with the session.
+      clearOfflineCopies();
       clearTokenRefresh(id);
       const here = locationRef.current;
       const loginPath = loginPathFor(here.pathname);

@@ -27,6 +27,9 @@ export async function withOfflineCopy<T extends object>(userId: string | null | 
 }
 
 /** Removes every saved copy, for signing out on a shared phone. */
+/** A key for something kept on this device for one signed-in person, cleared with the offline copies at sign-out. */
+export const personalKey = (userId: string, key: string) => `${PREFIX}${userId}.${key}`;
+
 export function clearOfflineCopies() {
   try {
     for (const key of Object.keys(localStorage)) if (key.startsWith(PREFIX)) localStorage.removeItem(key);

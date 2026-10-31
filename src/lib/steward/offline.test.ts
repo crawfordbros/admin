@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ApiError } from "../api";
-import { clearOfflineCopies, withOfflineCopy } from "./offline";
+import { clearOfflineCopies, personalKey, withOfflineCopy } from "./offline";
 
 describe("offline copies", () => {
   beforeEach(() => localStorage.clear());
@@ -17,6 +17,17 @@ describe("offline copies", () => {
     localStorage.setItem("steward.theme", "dark");
     clearOfflineCopies();
     await expect(withOfflineCopy("u1", "me", () => Promise.reject(new ApiError(0, "offline")))).rejects.toThrow();
+    expect(localStorage.getItem("steward.theme")).toBe("dark");
+  });
+});
+
+describe("personal keys", () => {
+  it("are per person and cleared with the offline copies at sign-out", () => {
+    localStorage.setItem(personalKey("user_a", "replyDraft.r1"), "Sorry about that");
+    localStorage.setItem("steward.theme", "dark");
+    expect(personalKey("user_a", "replyDraft.r1")).not.toBe(personalKey("user_b", "replyDraft.r1"));
+    clearOfflineCopies();
+    expect(localStorage.getItem(personalKey("user_a", "replyDraft.r1"))).toBeNull();
     expect(localStorage.getItem("steward.theme")).toBe("dark");
   });
 });

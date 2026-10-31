@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { ApiError, errorMessage } from "../../lib/api";
 import { useAuthedImage } from "../../lib/images";
 import {
@@ -19,6 +19,7 @@ import { useStewardPreferences } from "../../lib/steward/preferences";
 import type { StringKey } from "../../lib/steward/strings";
 import { dayTime } from "../../lib/steward/shifts";
 import { compressPhoto, typeName } from "../../lib/steward/violations";
+import { personalKey } from "../../lib/steward/offline";
 import { Notice } from "../../components/steward/forms";
 import { Icon } from "../../components/steward/icons";
 import { Avatar, BottomAction, OutlineButton, Panel, ScreenHeader } from "../../components/steward/ui";
@@ -476,15 +477,17 @@ function AssignPanel({ issue, me, onDone }: { issue: CrewIssueDetail; me: string
   );
 }
 
-const draftKey = (id: string) => `steward.replyDraft.${id}`;
+/** Per person, so it's cleared at sign-out and never shown to someone else on a shared phone. */
+const draftKey = (userId: string | null | undefined, id: string) => personalKey(userId ?? "anonymous", `replyDraft.${id}`);
 
 /** The reply to the resident, from the CBES office. What's typed is kept on this device until it's sent. */
 export function ReplyPanel({ issue, onDone }: { issue: CrewIssueDetail; onDone: Done }) {
   const { t } = useStewardPreferences();
+  const { userId } = useAuth();
   const reply = useReplyIssue(issue.id);
   const [body, setBody] = useState(() => {
     try {
-      return localStorage.getItem(draftKey(issue.id)) ?? "";
+      return localStorage.getItem(draftKey(userId, issue.id)) ?? "";
     } catch {
       return "";
     }
@@ -496,8 +499,8 @@ export function ReplyPanel({ issue, onDone }: { issue: CrewIssueDetail; onDone: 
   const keep = (text: string) => {
     setBody(text);
     try {
-      if (text) localStorage.setItem(draftKey(issue.id), text);
-      else localStorage.removeItem(draftKey(issue.id));
+      if (text) localStorage.setItem(draftKey(userId, issue.id), text);
+      else localStorage.removeItem(draftKey(userId, issue.id));
     } catch {
       // Not kept; it's only a draft.
     }
