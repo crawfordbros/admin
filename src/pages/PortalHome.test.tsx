@@ -5,16 +5,42 @@ import { PortalHome } from "./PortalHome";
 
 afterEach(() => vi.unstubAllGlobals());
 
-const me = (role: string, properties: { id: string; name: string }[]) => ({
+const me = (role: string, properties: { id: string; name: string }[], organizations: { id: string; name: string }[] = []) => ({
   user: { id: "u1", email: "pat@demo-mgmt.com", name: "Pat Manager", role },
+  organizations,
   properties: properties.map((p) => ({ ...p, slug: p.id, city: null })),
 });
 
 describe("PortalHome", () => {
+  it.each(["admin", "super_admin"])("takes an %s straight to the admin dashboard", async (role) => {
+    mockFetch(() => [200, me(role, [{ id: "p1", name: "Demo Community" }])]);
+    renderRoute("/portal", "/portal", <PortalHome />);
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent(/^\/admin$/));
+  });
+
   it("takes a manager with one property straight to it", async () => {
     mockFetch(() => [200, me("manager", [{ id: "p1", name: "Demo Community" }])]);
     renderRoute("/portal", "/portal", <PortalHome />);
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/portal/properties/p1"));
+  });
+
+  it("takes a representative of one organization to it", async () => {
+    mockFetch(() => [200, me("representative", [{ id: "p1", name: "Demo Community" }, { id: "p2", name: "Other Place" }], [{ id: "org1", name: "Demo Management" }])]);
+    renderRoute("/portal", "/portal", <PortalHome />);
+    await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/portal/organizations/org1"));
+  });
+
+  it("lists organizations for a representative of several", async () => {
+    mockFetch(() => [
+      200,
+      me("representative", [{ id: "p1", name: "Demo Community" }], [
+        { id: "org1", name: "Demo Management" },
+        { id: "org2", name: "Elsewhere Living" },
+      ]),
+    ]);
+    renderRoute("/portal", "/portal", <PortalHome />);
+    expect(await screen.findByRole("link", { name: "Elsewhere Living" })).toHaveAttribute("href", "/portal/organizations/org2");
+    expect(screen.getByRole("link", { name: "Demo Community" })).toBeInTheDocument();
   });
 
   it("lists properties for a manager with several", async () => {

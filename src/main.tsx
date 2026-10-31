@@ -7,6 +7,9 @@ import "@fontsource/open-sans/latin-600.css";
 import "@fontsource/open-sans/latin-700.css";
 import "./index.css";
 import { App } from "./App";
+import { installDoubleClickGuard } from "./lib/doubleClick";
+
+installDoubleClickGuard();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

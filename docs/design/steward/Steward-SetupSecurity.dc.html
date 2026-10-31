@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward – Contact and sign-in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8BBA5}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #12143F; color: #FFFFFF; font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column; padding: 18px 24px 24px;">
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<a href="Steward-ProfileSetup.dc.html" aria-label="Back" style="width: 44px; height: 44px; border-radius: 12px; background: #1C1F5A; display: flex; align-items: center; justify-content: center; color: #FFFFFF;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<span style="font-size: 13px; font-weight: 700; color: #C8BBA5;">Step 2 of 3</span>
+</div>
+<div aria-hidden="true" style="display: flex; gap: 6px; margin-top: 14px;"><span style="flex: 1; height: 5px; border-radius: 999px; background: #C8BBA5;"></span><span style="flex: 1; height: 5px; border-radius: 999px; background: #C8BBA5;"></span><span style="flex: 1; height: 5px; border-radius: 999px; background: #2E3290;"></span></div>
+
+<h1 style="margin: 22px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 27px;">Contact and sign-in</h1>
+<p style="margin: 6px 0 0; font-size: 14.5px; color: #C9CAF0; line-height: 1.5;">We text you shift reminders and new issues. Your phone stays private to CBES.</p>
+
+<label style="margin-top: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600;">Mobile phone<input type="tel" value="(404) 555-0119" autocomplete="tel" style="height: 56px; border-radius: 12px; border: 1px solid #4A4E9E; background: #23266B; color: #FFFFFF; padding: 0 14px; font-size: 16px;"></label>
+<label style="margin-top: 12px; display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 14px; border-radius: 12px; background: #1C1F5A; font-size: 14px; font-weight: 600;"><span>Text me shift reminders and new issues<span style="display: block; font-weight: 400; font-size: 12.5px; color: #9FA2D6;">Msg and data rates may apply. Reply STOP to opt out.</span></span><span role="switch" aria-checked="true" style="flex: none; width: 50px; height: 30px; border-radius: 999px; background: #4CC38A; position: relative;"><span style="position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF;"></span></span></label>
+
+<fieldset style="border: none; margin: 16px 0 0; padding: 0;"><legend style="font-size: 14px; font-weight: 600; margin-bottom: 8px; padding: 0;">App language</legend>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><label style="height: 52px; border-radius: 12px; border: 2px solid #FFFFFF; background: #FFFFFF; color: #1A1C5E; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;"><input type="radio" name="lang" checked style="accent-color: #1A1C5E;">English</label><label style="height: 52px; border-radius: 12px; border: 2px solid #4A4E9E; color: #FFFFFF; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;"><input type="radio" name="lang">Español</label></div>
+</fieldset>
+
+<section style="margin-top: 18px; border-radius: 14px; border: 2px solid #C8BBA5; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; gap: 12px; align-items: center;"><span style="flex: none; width: 46px; height: 46px; border-radius: 12px; background: #23266B; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C8BBA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11v4M8 7a4 4 0 0 1 8 0v4M6 11h12v9H6z"></path></svg></span><span><strong style="display: block; font-size: 16px;">Add a passkey</strong><span style="font-size: 13px; color: #C9CAF0;">Sign in with Face ID or your fingerprint. Required for every CBES account.</span></span></div>
+<button type="button" style="height: 54px; border-radius: 12px; border: none; background: #FFFFFF; color: #1A1C5E; font-size: 16px; font-weight: 700;">Set up passkey</button>
+<a href="#" style="text-align: center; font-size: 13.5px; font-weight: 600;">Use an authenticator app instead</a>
+</section>
+
+<div style="margin-top: auto;">
+<a href="Steward-Waiting.dc.html" style="height: 58px; border-radius: 14px; background: #2E3290; color: #9FA2D6; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none;" aria-disabled="true">Finish setup</a>
+<p style="margin: 8px 0 0; text-align: center; font-size: 12.5px; color: #9FA2D6;">Set up a passkey or authenticator app to finish.</p>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

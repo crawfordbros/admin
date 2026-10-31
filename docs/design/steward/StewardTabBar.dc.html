@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward tab bar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<nav aria-label="Steward" style="width: 100%; box-sizing: border-box; background: #0C0E30; border-top: 1px solid #2E3290; padding: 8px 6px 18px; display: flex; font-family: 'Open Sans', sans-serif;">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+<a href="{{t.href}}" aria-current="{{t.current}}" style="{{t.style}}">
+<span style="position: relative; display: flex;"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{t.d}}"></path></svg><sc-if value="{{t.badge}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: -6px; right: -10px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #E04F3A; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">{{t.badge}}</span></sc-if></span>
+<span>{{t.label}}</span>
+</a>
+</sc-for>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"role":{"editor":"enum","options":["valet","steward"],"default":"valet"},"active":{"editor":"enum","options":["tonight","violations","issues","property","crew","review","me"],"default":"tonight"},"$preview":{"width":390,"height":84}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const role = this.props.role ?? 'valet';
+    const active = this.props.active ?? 'tonight';
+    const base = 'flex: 1; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; text-decoration: none; font-size: 11.5px; font-weight: 700;';
+    const icons = {
+      tonight: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+      violations: 'M12 3l9 16H3zM12 10v4M12 17.5v.01',
+      issues: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z',
+      property: 'M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6',
+      crew: 'M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM22 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8',
+      review: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',
+      me: 'M20 21v-1a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v1M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    };
+    const mk = (key, label, href, badge) => ({
+      label, href, d: icons[key], badge: badge || '',
+      current: active === key ? 'page' : 'false',
+      style: base + (active === key ? ' color: #FFFFFF; background: #23266B;' : ' color: #9FA2D6;'),
+    });
+    const tabs = role === 'steward' ? [
+      mk('tonight', 'Tonight', 'Steward-Home.dc.html'),
+      mk('crew', 'Crew', 'Steward-Crew.dc.html'),
+      mk('review', 'Review', 'Steward-Review.dc.html', '4'),
+      mk('issues', 'Issues', 'Steward-Issues.dc.html', '2'),
+      mk('me', 'Me', 'Steward-Profile.dc.html'),
+    ] : [
+      mk('tonight', 'Tonight', 'Steward-Home.dc.html'),
+      mk('violations', 'Violations', 'Steward-Violations.dc.html'),
+      mk('issues', 'Issues', 'Steward-Issues.dc.html', '1'),
+      mk('property', 'Property', 'Steward-Property.dc.html'),
+      mk('me', 'Me', 'Steward-Profile.dc.html'),
+    ];
+    return { tabs };
+  }
+}
+</script>
+</body>
+</html>

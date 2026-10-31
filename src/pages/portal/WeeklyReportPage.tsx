@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
+import { reportWeekLabel } from "../../lib/reporting";
+import { lastCompletedWeek } from "../../lib/dates";
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { errorMessage, useApi, type WeeklyReport } from "../../lib/api";
 import { VALET_STATUS_TEXT, addDays, autoClockOutNote, formatDay, hours, lastOut } from "../../lib/format";
 import { Alert, Button, Card, Loading, Stat } from "../../components/ui";
+import { usePortalPage } from "../../components/admin/adminPage";
+import { useOptionalRepContext } from "../../components/portal/RepContext";
 
 const todayInNewYork = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 
@@ -38,14 +44,15 @@ function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) 
 }
 
 export function WeeklyReportPage() {
-  const { id = "" } = useParams();
+  const { propertyId: id = "" } = useParams();
+  const shell = useOptionalRepContext();
   const [params, setParams] = useSearchParams();
   const week = params.get("week") ?? "";
   const api = useApi();
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  const { data, error, isPending } = useQuery({
+  const { data, error, isPending, refetch } = useQuery({
     queryKey: ["portal", "report", id, week],
     queryFn: () => api<WeeklyReport>(`/portal/properties/${id}/report${week ? `?week=${week}` : ""}`),
   });
@@ -55,12 +62,13 @@ export function WeeklyReportPage() {
       api<{ sentTo: string }>(`/portal/properties/${id}/report/email`, { method: "POST", body: JSON.stringify({ week: start }) }),
   });
 
-  useEffect(() => {
-    if (data) document.title = `Weekly report: ${data.property.name}, ${data.week.label} | CBES Portal`;
-  }, [data]);
+  usePortalPage(
+    data ? `Weekly report: ${data.property.name}, ${data.week.label}` : null,
+    data ? [{ label: shell?.kind === "organization" ? data.property.name : "My property", to: `/portal/properties/${id}`, description: propertyAddressText(data.property) }, { label: "Weekly report" }] : undefined,
+  );
 
-  if (isPending) return <Loading label="Building the report…" />;
-  if (error) return <Alert>{errorMessage(error)}</Alert>;
+  if (isPending) return <><p>{reportWeekLabel(week || lastCompletedWeek())}</p><Loading label="Building the report…" /></>;
+  if (error) return <><p>{reportWeekLabel(week || lastCompletedWeek())}</p><Alert>{errorMessage(error)} <Button variant="secondary" onClick={() => refetch()}>Retry report</Button></Alert></>;
 
   const rr = data.residentReports;
   const v = data.valetTimes;
@@ -88,17 +96,18 @@ export function WeeklyReportPage() {
     <div className="mx-auto flex max-w-5xl flex-col gap-5 print:max-w-none print:gap-4">
       <div className="print:hidden">
         <Link to={`/portal/properties/${id}`} className="text-[15px]">
-          {data.property.name}
+          <span>{data.property.name}<PropertyAddress property={data.property} /></span>
         </Link>
       </div>
       <p className="m-0 hidden text-[13px] font-bold tracking-wide text-gold-text uppercase print:block">
-        CB Environment Solutions · (470) 585-2776 · office@cbenvironments.com
+        CB Environment Solutions · office@cbenvironments.com
       </p>
 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <p className="mt-0 mb-1 text-sm font-semibold text-gold-text">Weekly report</p>
           <h1 className="m-0 text-3xl font-bold text-navy">{data.property.name}</h1>
+          <PropertyAddress property={data.property} className="text-[14px]" />
           <p className="mt-1 mb-0 text-lg text-muted">{data.week.label}</p>
         </div>
         <nav aria-label="Choose a week" className="flex w-full gap-2 sm:w-auto print:hidden">
@@ -130,18 +139,18 @@ export function WeeklyReportPage() {
       {downloadError && <Alert>{downloadError}</Alert>}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat value={rr.total} label="Resident reports this week" />
+        <Stat value={rr.total} label="Resident issues this week" />
         <Stat value={rr.open} label="Still open from this week" />
         <Stat value={hours(rr.avgFirstResponseHours)} label="Average first reply" />
-        <Stat value={data.stillOpen} label="Open reports overall" />
+        <Stat value={data.stillOpen} label="Open issues overall" />
       </div>
 
-      <Card title="Resident reports">
+      <Card title="Resident issues">
         {rr.items.length === 0 ? (
-          <p className="m-0 text-muted">No resident reports this week.</p>
+          <p className="m-0 text-muted">No resident issues this week.</p>
         ) : (
           <div className="flex flex-col gap-6">
-            {rr.byType.length > 0 && <Table head={["Issue", "Reports"]} rows={rr.byType.map((t) => [t.label, t.count])} />}
+            {rr.byType.length > 0 && <Table head={["Issue type", "Issues"]} rows={rr.byType.map((t) => [t.label, t.count])} />}
             <Table
               head={["Ref", "Date", "Issue", "Unit", "Status"]}
               rows={rr.items.map((i) => [`#${i.refNo}`, formatDay(i.date), i.issueLabel, i.unit ?? "—", i.statusLabel])}

@@ -1,0 +1,128 @@
+import { PropertyAddress } from "../../components/PropertyAddress";
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ROLE_LABELS, ROLES, isAdmin, type Role } from "../../access";
+import { ApiError, errorMessage, useApi, type AdminPropertyRow, type AdminUserRow, type OrganizationRow } from "../../lib/api";
+import { useStepUp } from "../../lib/stepUp";
+import { Alert, Button, Loading, SelectField } from "../../components/ui";
+import { Modal } from "../../components/overlay";
+import { StepUpField } from "./StepUp";
+
+export function ChangeRoleModal({ user, actorRole, onClose, onDone }: {
+  user: AdminUserRow;
+  actorRole: Role;
+  onClose: () => void;
+  onDone: (message: string) => Promise<void>;
+}) {
+  const api = useApi();
+  const stepUp = useStepUp();
+  const [role, setRole] = useState<Role>(user.role);
+  const [organizationId, setOrganizationId] = useState(user.orgId ?? "");
+  const [propertyIds, setPropertyIds] = useState<string[] | null>(null);
+  const [code, setCode] = useState("");
+  const [understood, setUnderstood] = useState(false);
+  const who = user.name ?? user.email;
+  const fieldRole = role === "lead" || role === "valet";
+  const orgRole = role === "representative" || role === "manager";
+  const needsProperties = role === "manager";
+  const showProperties = fieldRole || (orgRole && role !== "representative");
+  const elevated = isAdmin(user.role) || isAdmin(role);
+  const choices = ROLES.filter((r) => actorRole === "super_admin" || !isAdmin(r));
+  const scope = useQuery({
+    queryKey: ["admin", "users", user.id, "role"],
+    queryFn: () => api<{ organizationId: string | null; propertyIds: string[] }>(`/admin/users/${user.id}/role`),
+  });
+  const organizations = useQuery({
+    queryKey: ["organizations"],
+    queryFn: () => api<{ organizations: OrganizationRow[] }>("/organizations"),
+    enabled: orgRole,
+  });
+  const properties = useQuery({
+    queryKey: ["admin", "properties"],
+    queryFn: () => api<{ properties: AdminPropertyRow[] }>("/admin/properties"),
+    enabled: showProperties,
+  });
+  const available = (properties.data?.properties ?? []).filter((p) => p.status === "active" && (!orgRole || p.organizationId === organizationId));
+  const selectedProperties = (propertyIds ?? scope.data?.propertyIds ?? []).filter((id) => available.some((p) => p.id === id));
+  const ready = role !== user.role && scope.isSuccess
+    && (!orgRole || Boolean(organizationId))
+    && (!needsProperties || selectedProperties.length > 0)
+    && (!elevated || (understood && Boolean(stepUp.method)))
+    && !(orgRole && (organizations.isPending || organizations.isError))
+    && !(showProperties && (properties.isPending || properties.isError));
+  const save = useMutation({
+    mutationFn: async () => api(`/admin/users/${user.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        role,
+        ...(orgRole ? { organizationId } : {}),
+        propertyIds: showProperties ? selectedProperties : [],
+        ...(elevated ? { stepUpToken: await stepUp.confirm(code) } : {}),
+      }),
+    }),
+    onSuccess: () => onDone(`${who} is now ${ROLE_LABELS[role]}.`),
+  });
+  const errors = save.error instanceof ApiError ? save.error.fieldErrors : {};
+  const close = () => { if (!save.isPending) onClose(); };
+
+  return (
+    <Modal title="Change Role" context={who} onClose={close} footer={
+      <>
+        <Button variant="secondary" onClick={onClose} disabled={save.isPending}>Cancel</Button>
+        <Button disabled={!ready || save.isPending} onClick={() => save.mutate()}>
+          {save.isPending ? "Saving…" : elevated ? "Confirm and change role" : "Change Role"}
+        </Button>
+      </>
+    }>
+      <div className="flex flex-col gap-4">
+        <p className="m-0 text-sm text-muted">Choose the user’s role. This replaces their current role and access. Set the organization or properties for their new role below.</p>
+        <SelectField label="Role" value={role} error={errors.role} onChange={(e) => {
+          const next = e.target.value as Role;
+          setRole(next);
+          setPropertyIds((next === "lead" || next === "valet") && (user.role === "lead" || user.role === "valet") ? null : []);
+          setUnderstood(false);
+          save.reset();
+        }} disabled={save.isPending}>
+          {choices.map((choice) => <option key={choice} value={choice}>{ROLE_LABELS[choice]}</option>)}
+        </SelectField>
+        {orgRole && (
+          <SelectField label="Organization" value={organizationId} error={errors.organizationId} onChange={(e) => { setOrganizationId(e.target.value); setPropertyIds([]); }} disabled={save.isPending || organizations.isPending}>
+            <option value="">Choose an organization</option>
+            {(organizations.data?.organizations ?? []).filter((o) => o.status !== "inactive").map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </SelectField>
+        )}
+        {role === "representative" && <p className="m-0 text-sm text-muted">Reps can manage every property in the selected organization.</p>}
+        {showProperties && (
+          <fieldset disabled={save.isPending} className="m-0 min-w-0 border-0 p-0">
+            <legend className="mb-2 text-sm font-semibold">Properties{fieldRole ? " (optional)" : ""}</legend>
+            {properties.isPending ? <Loading /> : (
+              <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-lg border border-line p-2">
+                {available.map((p) => (
+                  <label key={p.id} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-md px-2 hover:bg-tint">
+                    <input type="checkbox" className="size-5 accent-navy" checked={selectedProperties.includes(p.id)} onChange={(e) => setPropertyIds(e.target.checked ? [...selectedProperties, p.id] : selectedProperties.filter((id) => id !== p.id))} />
+                    <span>{p.name}<PropertyAddress property={p} /></span>
+                  </label>
+                ))}
+                {!available.length && <p className="m-0 p-2 text-sm text-muted">{orgRole && !organizationId ? "Choose an organization to see its properties." : "No active properties available."}</p>}
+              </div>
+            )}
+            {errors.propertyIds && <p role="alert" className="mt-2 text-sm text-danger">{errors.propertyIds}</p>}
+          </fieldset>
+        )}
+        {elevated && (
+          <>
+            <label className="flex items-start gap-3 text-sm">
+              <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-navy" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} disabled={save.isPending} />
+              <span>I understand this replaces {who}’s {ROLE_LABELS[user.role]} role with {ROLE_LABELS[role]}.</span>
+            </label>
+            <StepUpField stepUp={stepUp} code={code} onCode={setCode} notice="This role change is recorded in activity." />
+          </>
+        )}
+        {scope.error && <Alert>{errorMessage(scope.error)}</Alert>}
+        {orgRole && organizations.error && <Alert>{errorMessage(organizations.error)}</Alert>}
+        {showProperties && properties.error && <Alert>{errorMessage(properties.error)}</Alert>}
+        {save.error && <Alert>{errorMessage(save.error)}</Alert>}
+      </div>
+    </Modal>
+  );
+}

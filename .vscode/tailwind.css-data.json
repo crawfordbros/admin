@@ -1,0 +1,25 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Define Tailwind CSS theme variables used to generate utilities.",
+      "references": [
+        {
+          "name": "Tailwind CSS: @theme",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#theme-directive"
+        }
+      ]
+    },
+    {
+      "name": "@apply",
+      "description": "Inline existing Tailwind CSS utilities into custom CSS rules.",
+      "references": [
+        {
+          "name": "Tailwind CSS: @apply",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply-directive"
+        }
+      ]
+    }
+  ]
+}

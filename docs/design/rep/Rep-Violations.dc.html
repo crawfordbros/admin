@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Property Portal – Violations</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1500px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="RepSidebar" role="rep" active="violations" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="RepTopbar" role="rep" crumb="Violations" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 18px;">
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;">
+<div>
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Violations</h1>
+<p style="margin: 6px 0 0; font-size: 14.5px; color: #4A4C63;">Logged by CBES valets and reviewed by CBES before they reach you. Send residents a courtesy notice, then mark it resolved.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 700; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Export CSV</button>
+<a href="Rep-Reports.dc.html" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 10px; border: 2px solid #272B84; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 14px; text-decoration: none;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>Reports</a>
+</div>
+</div>
+
+<div role="tablist" aria-label="Violation status" style="display: flex; gap: 4px; border-bottom: 1px solid #E4E4EC;">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3"><button type="button" role="tab" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}}<span style="{{t.countStyle}}">{{t.count}}</span></button></sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+<sc-for list="{{selects}}" as="s" hint-placeholder-count="4"><label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 13.5px;"><span style="color: #4A4C63; font-weight: 600;">{{s.label}}</span><select style="border: none; outline: none; background: transparent; font-size: 13.5px; font-weight: 700; color: #1A1C3D;"><option>{{s.value}}</option></select></label></sc-for>
+<label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 13.5px; flex: 1 1 200px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A4C63" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input type="search" aria-label="Search by unit or violation ID" placeholder="Unit, building or V-number" style="flex: 1; min-width: 0; border: none; outline: none; font-size: 13.5px;"></label>
+<label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: #FFFFFF; border: 1px solid #C9CAD6; font-size: 13.5px; font-weight: 600;"><input type="checkbox" style="width: 16px; height: 16px; accent-color: #272B84;">Repeat units only</label>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; background: #1A1C5E; color: #FFFFFF; border-radius: 12px; padding: 10px 14px;">
+<span style="font-weight: 700; font-size: 14px; flex: 1 1 140px;">2 selected</span>
+<button type="button" style="height: 36px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 9px; border: none; background: #FFFFFF; color: #1A1C5E; font-weight: 700; font-size: 13px;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Mark resolved</button>
+<button type="button" style="height: 36px; padding: 0 14px; border-radius: 9px; border: 1px solid #4A4FB0; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13px;">Download courtesy notices</button>
+<button type="button" style="height: 36px; padding: 0 10px; border: none; background: none; color: #C9CAF0; font-weight: 700; font-size: 13px;">Clear</button>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 16px; overflow: hidden;">
+<table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px; background: #FAFAFD;">
+<th scope="col" style="padding: 12px 8px 12px 18px; width: 24px;"><input type="checkbox" aria-label="Select all" style="width: 16px; height: 16px; accent-color: #272B84;"></th>
+<th scope="col" style="padding: 12px 8px; font-weight: 700;">Violation</th>
+<th scope="col" style="padding: 12px 8px; font-weight: 700;">Property</th>
+<th scope="col" style="padding: 12px 8px; font-weight: 700;">Where</th>
+<th scope="col" style="padding: 12px 8px; font-weight: 700;">Logged</th>
+<th scope="col" style="padding: 12px 8px; font-weight: 700;">Unit, 30 days</th>
+<th scope="col" style="padding: 12px 8px; font-weight: 700;">Status</th>
+<th scope="col" style="padding: 12px 18px 12px 8px;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Open</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<tr style="{{r.rowStyle}}">
+<td style="padding: 10px 8px 10px 18px;"><input type="checkbox" checked="{{r.sel}}" aria-label="{{r.selLabel}}" style="width: 16px; height: 16px; accent-color: #272B84;"></td>
+<td style="padding: 10px 8px;"><span style="display: flex; gap: 12px; align-items: center;"><span aria-hidden="true" style="flex: none; width: 52px; height: 40px; border-radius: 8px; background: #DCDDEB; display: flex; align-items: center; justify-content: center; color: #6E72C4;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span><span><span style="display: block; font-weight: 700;">{{r.type}}</span><span style="display: block; font-size: 12px; color: #4A4C63;">{{r.id}} · {{r.photos}} photos</span></span></span></td>
+<td style="padding: 10px 8px;">{{r.prop}}</td>
+<td style="padding: 10px 8px; color: #4A4C63;">{{r.where}}</td>
+<td style="padding: 10px 8px; color: #4A4C63; white-space: nowrap;">{{r.when}}</td>
+<td style="padding: 10px 8px;"><span style="{{r.repStyle}}">{{r.rep}}</span></td>
+<td style="padding: 10px 8px;"><span style="{{r.stStyle}}">{{r.st}}</span></td>
+<td style="padding: 10px 18px 10px 8px; text-align: right;"><a href="Rep-ViolationDetail.dc.html" aria-label="{{r.openLabel}}" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E4E4EC; display: inline-flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"></path></svg></a></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px; border-top: 1px solid #F0F0F5; font-size: 13px; color: #4A4C63;">
+<span>Showing 1–10 of 58 in the last 30 days</span>
+<span style="display: flex; gap: 6px;"><button type="button" style="height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 700; color: #A9ABC9;" disabled>Previous</button><button type="button" style="height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 700; color: #272B84;">Next</button></span>
+</div>
+</section>
+
+<p style="margin: 0; display: flex; gap: 8px; align-items: center; font-size: 13px; color: #4A4C63;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8v.01"></path></svg>CBES never contacts residents about violations. Courtesy notices always come from your office.</p>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tOn = 'display: flex; align-items: center; gap: 6px; padding: 12px 14px; border: none; border-bottom: 3px solid #272B84; background: transparent; color: #1A1C5E; font-weight: 700; font-size: 14px; white-space: nowrap;';
+    const tOff = 'display: flex; align-items: center; gap: 6px; padding: 12px 14px; border: none; border-bottom: 3px solid transparent; background: transparent; color: #4A4C63; font-weight: 600; font-size: 14px; white-space: nowrap;';
+    const tabs = [['To review', 5, 0], ['Resolved', 53, 0], ['All', 58, 1]].map(t => ({ label: t[0], count: t[1], sel: t[2] ? 'true' : 'false', style: t[2] ? tOn : tOff, countStyle: 'font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: ' + (t[2] ? '#272B84; color: #FFFFFF;' : '#F0F0F4; color: #4A4C63;') }));
+    const selects = [['Property', 'All 6 properties'], ['Type', 'All types'], ['Dates', 'Last 30 days']].map(s => ({ label: s[0], value: s[1] }));
+    const tag = (bg, fg) => 'font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: ' + bg + '; color: ' + fg + ';';
+    const rows = [
+      ['V-2041', 'Bag not tied', 2, 'The Oaks at Decatur', 'Bldg 4 · Unit 412', 'Mon 9:14 PM', 3, 'To review', 1],
+      ['V-2038', 'Out after 8 PM', 1, 'Brookhaven Terrace', 'Bldg B · Unit 214', 'Mon 8:41 PM', 1, 'To review', 1],
+      ['V-2035', 'Overflowing container', 3, 'Decatur Station Lofts', 'Floor 6 · Unit 611', 'Sun 9:02 PM', 2, 'To review', 0],
+      ['V-2034', 'Out on wrong night', 1, 'Scottdale Gardens', 'Bldg C · Unit 330', 'Sun 8:20 PM', 1, 'To review', 0],
+      ['V-2033', 'Loose trash in bin', 2, 'The Oaks at Decatur', 'Bldg 1 · Unit 108', 'Sat 8:47 PM', 1, 'To review', 0],
+      ['V-2029', 'Bag not tied', 1, 'The Oaks at Decatur', 'Bldg 4 · Unit 412', 'Oct 22', 3, 'Resolved', 0],
+      ['V-2027', 'Bulk item, no pickup request', 2, 'Clarkston Commons', 'Bldg 2 · Unit 205', 'Oct 21', 1, 'Resolved', 0],
+      ['V-2024', 'Overflowing container', 2, 'The Oaks at Decatur', 'Bldg 1 · Unit 118', 'Oct 20', 3, 'Resolved', 0],
+      ['V-2019', 'Out after 8 PM', 1, 'Brookhaven Terrace', 'Bldg A · Unit 102', 'Oct 18', 1, 'Resolved', 0],
+      ['V-2016', 'Container not provided', 1, 'Decatur Station Lofts', 'Floor 3 · Unit 309', 'Oct 17', 1, 'Resolved', 0],
+    ].map(r => ({
+      id: r[0], selLabel: 'Select ' + r[0], openLabel: 'Open ' + r[0], type: r[1], photos: r[2], prop: r[3], where: r[4], when: r[5],
+      rep: r[6] >= 3 ? r[6] + ' · repeat' : String(r[6]), repStyle: r[6] >= 3 ? tag('#FDECEA', '#B42318') : 'font-size: 13px; color: #4A4C63;',
+      st: r[7], stStyle: r[7] === 'Resolved' ? tag('#E3F2E8', '#1F6B3A') : tag('#FFF4DB', '#7A4B00'),
+      sel: !!r[8], rowStyle: 'border-top: 1px solid #F0F0F5;' + (r[8] ? ' background: #F5F6FC;' : ''),
+    }));
+    return { tabs, selects, rows };
+  }
+}
+</script>
+</body>
+</html>

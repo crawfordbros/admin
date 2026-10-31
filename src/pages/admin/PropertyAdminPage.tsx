@@ -1,49 +1,24 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ApiError, errorMessage, useApi, type AdminPropertyDetail, type Property } from "../../lib/api";
+import { propertyAddressText } from "../../lib/propertyAddress";
+import { PropertyAddress } from "../../components/PropertyAddress";
+import { invalidateProperties } from "../../lib/invalidateProperties";
+import { useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, Navigate, useParams } from "react-router-dom";
+import { errorMessage, useApi, type AdminPropertyDetail, type Property } from "../../lib/api";
 import { CONTRACT_LABELS, PROPERTY_ROLE_LABELS } from "../../lib/format";
-import { Alert, Button, ButtonLink, Card, Loading, SelectField, TextField } from "../../components/ui";
+import { Alert, Button, ButtonLink, Card, Loading } from "../../components/ui";
+import { PageHeader } from "../../components/display";
+import { useAdminPage } from "../../components/admin/adminPage";
 import { PropertyForm } from "./PropertyForm";
 import { propertyPayload } from "./propertyPayload";
-
-export function NewPropertyPage() {
-  const api = useApi();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    document.title = "Add a property | CBES Admin";
-  }, []);
-
-  return (
-    <div className="mx-auto max-w-3xl">
-      <p className="mt-0 mb-2 text-[15px]">
-        <Link to="/admin/properties">Properties</Link>
-      </p>
-      <h1 className="mt-0 mb-6 text-3xl font-bold text-navy">Add a property</h1>
-      <Card>
-        <PropertyForm
-          submitLabel="Add property"
-          onSubmit={async (values) => {
-            const { property } = await api<{ property: Property }>("/admin/properties", {
-              method: "POST",
-              body: JSON.stringify(propertyPayload(values)),
-            });
-            await queryClient.invalidateQueries({ queryKey: ["admin", "properties"] });
-            navigate(`/admin/properties/${property.id}`);
-          }}
-        />
-      </Card>
-    </div>
-  );
-}
+import { propertyPath } from "./paths";
 
 function Details({ property }: { property: Property }) {
-  const rows: [string, string | number | null | undefined][] = [
+  const rows: [string, ReactNode][] = [
+    ["Organization", property.organizationId && <Link to={`/admin/organizations/${property.organizationId}`}>{property.organizationName}</Link>],
     ["Address", [property.address, property.city].filter(Boolean).join(", ")],
     ["County", property.county],
     ["Units", property.unitCount],
-    ["Management company", property.managementCompany],
     ["Service start", property.serviceStartDate],
     ["Contract", property.contractType ? CONTRACT_LABELS[property.contractType] : null],
     ["Connecteam job", property.connecteamJobId],
@@ -61,65 +36,9 @@ function Details({ property }: { property: Property }) {
   );
 }
 
-function InviteForm({ propertyId, onDone }: { propertyId: string; onDone: (message: string) => void }) {
-  const api = useApi();
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const values = Object.fromEntries(new FormData(form));
-    setSaving(true);
-    setErrors({});
-    setFormError(null);
-    try {
-      const res = await api<{ status: "invited" | "added" }>(`/admin/properties/${propertyId}/invitations`, {
-        method: "POST",
-        body: JSON.stringify(values),
-      });
-      form.reset();
-      onDone(
-        res.status === "added"
-          ? `${values.email} already has an account, so they can see this property now.`
-          : `Invitation sent to ${values.email}. They'll see this property after they accept it and sign in.`,
-      );
-    } catch (err) {
-      if (err instanceof ApiError && Object.keys(err.fieldErrors).length) setErrors(err.fieldErrors);
-      else setFormError(errorMessage(err));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <form onSubmit={submit} noValidate className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <TextField label="Email" name="email" type="email" autoComplete="off" required error={errors.email} />
-      <TextField label="Name" name="name" optional autoComplete="off" error={errors.name} />
-      <SelectField label="Role" name="role" defaultValue="manager" error={errors.role}>
-        {Object.entries(PROPERTY_ROLE_LABELS).map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </SelectField>
-      <div className="flex items-end">
-        <Button type="submit" disabled={saving} className="w-full">
-          {saving ? "Sending…" : "Send invitation"}
-        </Button>
-      </div>
-      {formError && (
-        <div className="sm:col-span-2">
-          <Alert>{formError}</Alert>
-        </div>
-      )}
-    </form>
-  );
-}
-
+/** /admin/organizations/:orgId/properties/:propertyId (orgId is "unassigned" until it has one). */
 export function PropertyAdminPage() {
-  const { id = "" } = useParams();
+  const { orgId, propertyId: id = "" } = useParams();
   const api = useApi();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -127,38 +46,40 @@ export function PropertyAdminPage() {
   const key = ["admin", "property", id];
   const { data, error, isPending } = useQuery({ queryKey: key, queryFn: () => api<AdminPropertyDetail>(`/admin/properties/${id}`) });
 
-  const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: key }),
-      queryClient.invalidateQueries({ queryKey: ["admin", "properties"] }),
-    ]);
+  const refresh = () => invalidateProperties(queryClient);
 
-  const remove = useMutation({
-    mutationFn: (path: string) => api(path, { method: "DELETE" }),
-    onSuccess: refresh,
-  });
-
-  useEffect(() => {
-    if (data) document.title = `${data.property.name} | CBES Admin`;
-  }, [data]);
+  const p = data?.property;
+  useAdminPage(
+    p?.name ?? null,
+    p && [
+      { label: "Organizations", to: "/admin/organizations" },
+      p.organizationId ? { label: p.organizationName ?? "Organization", to: `/admin/organizations/${p.organizationId}` } : { label: "Unassigned", to: "/admin/organizations?unassigned=1" },
+      { label: p.name, description: propertyAddressText(p) },
+    ],
+  );
 
   if (isPending) return <Loading />;
   if (error) return <Alert>{errorMessage(error)}</Alert>;
   const { property, members, invitations } = data;
+  // An old link, or the property just moved to another organization.
+  if ((orgId === "unassigned" ? null : orgId) !== property.organizationId) return <Navigate to={propertyPath(property.organizationId, property.id)} replace />;
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-5">
-      <div>
-        <p className="mt-0 mb-2 text-[15px]">
-          <Link to="/admin/properties">Properties</Link>
-        </p>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="m-0 text-3xl font-bold text-navy">{property.name}</h1>
-          <ButtonLink to={`/portal/properties/${property.id}`} variant="outline" className="w-full sm:w-auto">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
+      <PageHeader
+        title={property.name}
+        description={<PropertyAddress property={property} />}
+        back={
+          property.organizationId
+            ? { to: `/admin/organizations/${property.organizationId}`, label: property.organizationName ?? "Organization" }
+            : { to: "/admin/organizations?unassigned=1", label: "Unassigned properties" }
+        }
+        actions={
+          <ButtonLink to={`/portal/properties/${property.id}`} variant="secondary" className="w-full sm:w-auto">
             See what managers see
           </ButtonLink>
-        </div>
-      </div>
+        }
+      />
 
       {notice && <Alert tone="success">{notice}</Alert>}
 
@@ -188,71 +109,39 @@ export function PropertyAdminPage() {
         )}
       </Card>
 
-      <Card title="Property managers">
-        {members.length === 0 && invitations.length === 0 && (
-          <p className="mt-0 mb-4 text-muted">Nobody can see this property yet. Invite its manager below.</p>
-        )}
-        {(members.length > 0 || invitations.length > 0) && (
-          <ul className="m-0 mb-6 flex list-none flex-col divide-y divide-line p-0">
+      <Card title="Who can see it">
+        {members.length === 0 && invitations.length === 0 ? (
+          <p className="mt-0 mb-4 text-muted">No property managers yet.</p>
+        ) : (
+          <ul className="m-0 mb-4 flex list-none flex-col divide-y divide-line p-0">
             {members.map((m) => (
-              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="m-0 font-semibold break-words">{m.name ?? m.email}</p>
-                  <p className="m-0 text-[14px] break-words text-muted">
-                    {m.name ? `${m.email} · ` : ""}
-                    {PROPERTY_ROLE_LABELS[m.role]}
-                  </p>
-                </div>
-                <Button
-                  variant="danger"
-                  disabled={remove.isPending}
-                  onClick={() => {
-                    if (window.confirm(`Remove ${m.name ?? m.email}'s access to ${property.name}?`)) {
-                      setNotice(null);
-                      remove.mutate(`/admin/properties/${property.id}/members/${m.id}`);
-                    }
-                  }}
-                >
-                  Remove access
-                </Button>
+              <li key={m.id} className="py-3">
+                <p className="m-0 font-semibold break-words">{m.name ?? m.email}</p>
+                <p className="m-0 text-[14px] break-words text-muted">{[m.name ? m.email : null, PROPERTY_ROLE_LABELS[m.role]].filter(Boolean).join(", ")}</p>
               </li>
             ))}
             {invitations.map((i) => (
-              <li key={i.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="m-0 font-semibold break-words">{i.name ?? i.email}</p>
-                  <p className="m-0 text-[14px] break-words text-muted">
-                    {i.name ? `${i.email} · ` : ""}
-                    {PROPERTY_ROLE_LABELS[i.role]} · <span className="font-semibold text-gold-text">Invitation sent</span>
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  disabled={remove.isPending}
-                  onClick={() => {
-                    setNotice(null);
-                    remove.mutate(`/admin/properties/${property.id}/invitations/${i.id}`);
-                  }}
-                >
-                  Cancel invitation
-                </Button>
+              <li key={i.id} className="py-3">
+                <p className="m-0 font-semibold break-words">{i.name ?? i.email}</p>
+                <p className="m-0 text-[14px] break-words text-muted">
+                  {[i.name ? i.email : null, PROPERTY_ROLE_LABELS[i.role]].filter(Boolean).join(", ")}.{" "}
+                  <span className="font-semibold text-gold-text">Invitation sent</span>
+                </p>
               </li>
             ))}
           </ul>
         )}
-        {remove.error && (
-          <div className="mb-4">
-            <Alert>{errorMessage(remove.error)}</Alert>
-          </div>
+        {property.organizationId ? (
+          <p className="m-0">
+            Invite or remove people from{" "}
+            <Link to={`/admin/organizations/${property.organizationId}`} className="font-semibold">
+              {property.organizationName}
+            </Link>
+            . Its representatives also see this property.
+          </p>
+        ) : (
+          <p className="m-0 font-semibold text-gold-text">Assign an organization (Edit, above) to invite people to this property.</p>
         )}
-        <h3 className="mt-0 mb-3 text-lg">Invite a manager</h3>
-        <InviteForm
-          propertyId={property.id}
-          onDone={async (message) => {
-            setNotice(message);
-            await refresh();
-          }}
-        />
       </Card>
     </div>
   );

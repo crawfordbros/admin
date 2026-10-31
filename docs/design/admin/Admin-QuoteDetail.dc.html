@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Quote: Harbor Pointe Apartments</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1500px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="quotes" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Quotes / Harbor Pointe Apartments" hint-size="100%,64px"></dc-import>
+<main style="padding: 24px 32px 56px; display: flex; flex-direction: column; gap: 18px;">
+
+<a href="Admin-Quotes.dc.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; text-decoration: none;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"></path></svg>Quotes pipeline</a>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: center;">
+<div><h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 28px; color: #1A1C5E;">Harbor Pointe Apartments</h1><p style="margin: 4px 0 0; font-size: 14px; color: #4A4C63;">Harbor Point Management · 220 units · Sandy Springs · requested Oct 26, 6:12 PM</p></div>
+<ol aria-label="Quote stage" style="margin: 0; padding: 4px; list-style: none; display: flex; gap: 4px; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 12px; flex-wrap: wrap;">
+<sc-for list="{{stages}}" as="s" hint-placeholder-count="6"><li style="{{s.style}}">{{s.label}}</li></sc-for>
+</ol>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start;">
+
+<aside style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<h2 style="margin: 0 0 12px; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Contact</h2>
+<div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;"><span style="width: 40px; height: 40px; border-radius: 50%; background: #1F6B3A; color: #FFFFFF; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center;">DW</span><span><strong style="display: block;">Devon Walsh</strong><span style="font-size: 12.5px; color: #4A4C63;">Regional Manager</span></span></div>
+<p style="margin: 0; font-size: 13.5px; line-height: 1.7;">devon.walsh@harborpointmgmt.com<br>(404) 555-0148</p>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<h2 style="margin: 0 0 12px; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Request</h2>
+<dl style="margin: 0; display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 8px 10px; font-size: 13.5px;">
+<dt style="color: #4A4C63;">Address</dt><dd style="margin: 0;">6100 Roswell Rd, Sandy Springs</dd>
+<dt style="color: #4A4C63;">Type</dt><dd style="margin: 0;">Mid-rise, 4 buildings</dd>
+<dt style="color: #4A4C63;">Start</dt><dd style="margin: 0;">January 2027</dd>
+<dt style="color: #4A4C63;">Current</dt><dd style="margin: 0;">Another valet provider</dd>
+<dt style="color: #4A4C63;">Services</dt><dd style="margin: 0; display: flex; gap: 4px; flex-wrap: wrap;"><span style="font-size: 11.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: #EEEFF8; color: #272B84;">Valet trash</span><span style="font-size: 11.5px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: #EEEFF8; color: #272B84;">Spot washing</span></dd>
+</dl>
+<p style="margin: 12px 0 0; padding: 10px; border-radius: 10px; background: #F8F8FB; font-size: 13px; line-height: 1.5;">"Our current provider misses pickups weekly and nobody calls back. Need someone reliable by January."</p>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<h2 style="margin: 0 0 10px; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Internal notes</h2>
+<p style="margin: 0 0 10px; font-size: 13px; line-height: 1.5; background: #FFF9EC; padding: 10px; border-radius: 10px;"><strong>Nigel:</strong> Sandy Springs needs a hauler permit for bulk. Quote valet + washing only for now.</p>
+<label style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);" for="inote">Add internal note</label>
+<input id="inote" type="text" placeholder="Add a note for the team" style="width: 100%; box-sizing: border-box; height: 40px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 13.5px;">
+</section>
+</aside>
+
+<section style="flex: 2 1 480px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; display: flex; flex-direction: column;">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #E4E4EC;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Email conversation</h2><span style="font-size: 12.5px; color: #4A4C63;">Replies to quotes@ land here automatically</span></div>
+<ol style="margin: 0; padding: 18px; list-style: none; display: flex; flex-direction: column; gap: 14px;">
+<sc-for list="{{thread}}" as="m" hint-placeholder-count="3">
+<li style="{{m.wrap}}"><div style="{{m.bubble}}"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 700; color: {{m.metaColor}};">{{m.from}} · {{m.when}}</p><p style="margin: 0; font-size: 14px; line-height: 1.55; white-space: pre-line;">{{m.body}}</p><sc-if value="{{m.file}}" hint-placeholder-val="{{ false }}"><span style="margin-top: 10px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 9px; background: #FFFFFF; border: 1px solid #E4E4EC; font-size: 12.5px; font-weight: 700; color: #1A1C3D;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7zM14 3v4h4"></path></svg>{{m.file}}</span></sc-if></div></li>
+</sc-for>
+</ol>
+<div style="margin: 0 18px 18px; border: 1.5px solid #272B84; border-radius: 12px; overflow: hidden;">
+<div style="display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 10px 12px; background: #F8F8FD; border-bottom: 1px solid #E4E4EC; font-size: 13px;">
+<span><span style="color: #4A4C63;">From</span> <strong>quotes@cbenvironments.com</strong> <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4A4C63" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg></span>
+<span><span style="color: #4A4C63;">To</span> <strong>Devon Walsh</strong></span>
+<label style="margin-left: auto; display: flex; align-items: center; gap: 6px;"><span style="color: #4A4C63;">Template</span><select style="height: 30px; border-radius: 8px; border: 1px solid #C9CAD6; font-size: 12.5px; background: #FFFFFF;"><option>Send quote</option><option>Schedule site visit</option><option>Send contract</option><option>Follow up</option></select></label>
+</div>
+<label style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);" for="reply">Reply</label>
+<textarea id="reply" rows="5" style="width: 100%; box-sizing: border-box; border: none; outline: none; resize: vertical; padding: 12px; font-family: inherit; font-size: 14px; line-height: 1.55;">Hi Devon, thanks for walking the property with Nick on Thursday. Attached is our quote for doorstep valet trash 5 nights a week plus annual spot pressure washing for all 220 units. Happy to answer any questions. – Nigel</textarea>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 10px 12px; border-top: 1px solid #F0F0F5;">
+<span style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 9px; background: #F4F5FA; font-size: 12.5px; font-weight: 700;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7zM14 3v4h4"></path></svg>CBES Quote – Harbor Pointe.pdf</span>
+<span style="display: flex; gap: 8px;"><button type="button" aria-label="Attach file" style="width: 38px; height: 38px; border-radius: 9px; border: 1px solid #C9CAD6; background: #FFFFFF; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12l-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"></path></svg></button><button type="button" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border-radius: 9px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 13.5px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"></path></svg>Send quote</button></span>
+</div>
+</div>
+</section>
+
+<aside style="flex: 1 1 290px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<h2 style="margin: 0 0 12px; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Quote</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600;">Per unit / month<input type="text" value="$[ ]" style="height: 40px; border-radius: 9px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px;"></label>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600;">Units<input type="text" value="220" style="height: 40px; border-radius: 9px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px;"></label>
+<label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600;">Term<select style="height: 40px; border-radius: 9px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px; background: #FFFFFF;"><option>12-month, auto-renew</option><option>36-month</option><option>Month-to-month</option></select></label>
+</div>
+<p style="margin: 12px 0 0; display: flex; justify-content: space-between; font-size: 14px;"><span style="color: #4A4C63;">Monthly total</span><strong>$[ ]</strong></p>
+<button type="button" style="margin-top: 12px; width: 100%; height: 40px; border-radius: 10px; border: 1.5px solid #272B84; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13.5px;">Generate quote PDF</button>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px;">
+<h2 style="margin: 0 0 4px; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Contract</h2>
+<p style="margin: 0 0 12px; font-size: 12.5px; color: #4A4C63;">Start from a template, upload the filled-in agreement, then send it for signature.</p>
+<label style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 600; margin-bottom: 10px;">Template<select style="height: 40px; border-radius: 9px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 13.5px; background: #FFFFFF;"><option>Vendor Agreement – 12-Month Auto-Renew</option><option>Vendor Agreement – 36-Month Term</option><option>Vendor Agreement – Month-to-Month</option></select></label>
+<button type="button" style="width: 100%; min-height: 96px; border-radius: 12px; border: 2px dashed #A9ABC9; background: #FAFAFD; color: #272B84; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 13px; font-weight: 700;"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"></path></svg>Upload contract<span style="font-weight: 600; color: #4A4C63;">PDF or Word, up to 20 MB</span></button>
+<ul style="margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px;">
+<sc-for list="{{docs}}" as="d" hint-placeholder-count="2"><li style="display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; background: #F8F8FB;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#272B84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M14 3H6v18h12V7zM14 3v4h4"></path></svg><span style="flex: 1; min-width: 0;"><strong style="display: block; font-size: 13px;">{{d.name}}</strong><span style="font-size: 11.5px; color: #4A4C63;">{{d.meta}}</span></span><span style="{{d.style}}">{{d.status}}</span></li></sc-for>
+</ul>
+<button type="button" style="margin-top: 12px; width: 100%; height: 42px; border-radius: 10px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 13.5px;">Send contract from quotes@</button>
+</section>
+</aside>
+</div>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const base = 'padding: 8px 12px; border-radius: 9px; font-size: 12.5px; font-weight: 700;';
+    const stages = [['New', 'done'], ['In conversation', 'now'], ['Quote sent', ''], ['Contract sent', ''], ['Won', ''], ['Lost', '']].map(s => ({ label: (s[1] === 'done' ? '✓ ' : '') + s[0], style: base + (s[1] === 'now' ? ' background: #272B84; color: #FFFFFF;' : s[1] === 'done' ? ' background: #E3F2E8; color: #1F6B3A;' : ' color: #4A4C63;') }));
+    const them = { wrap: 'display: flex; justify-content: flex-start;', bubble: 'max-width: 82%; padding: 12px 14px; border-radius: 14px 14px 14px 4px; background: #F4F5FA;', metaColor: '#4A4C63' };
+    const us = { wrap: 'display: flex; justify-content: flex-end;', bubble: 'max-width: 82%; padding: 12px 14px; border-radius: 14px 14px 4px 14px; background: #EEEFF8; border: 1px solid #DADCF2;', metaColor: '#272B84' };
+    const thread = [
+      { ...them, from: 'Devon Walsh (website form)', when: 'Oct 26, 6:12 PM', body: 'Looking for valet trash for 220 units starting January. Our current provider misses pickups weekly.', file: '' },
+      { ...us, from: 'Nick Crawford via quotes@', when: 'Oct 26, 8:40 PM', body: 'Hi Devon, thanks for reaching out. Could we walk the property this week to see the buildings and trash areas? Thursday at 10 AM works for us.', file: '' },
+      { ...them, from: 'Devon Walsh', when: 'Oct 27, 9:05 AM', body: 'Thursday at 10 works. Ask for me at the leasing office.', file: '' },
+    ];
+    const pill = (c) => 'font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: ' + c[0] + '; color: ' + c[1] + ';';
+    const docs = [['Harbor Pointe – 12-Month Agreement.docx', 'Uploaded by Nigel · draft', 'Draft', ['#F0F0F4', '#3A3C50']], ['CBES Certificate of Insurance.pdf', 'Attached to every contract', 'Ready', ['#E3F2E8', '#1F6B3A']]].map(d => ({ name: d[0], meta: d[1], status: d[2], style: pill(d[3]) }));
+    return { stages, thread, docs };
+  }
+}
+</script>
+</body>
+</html>

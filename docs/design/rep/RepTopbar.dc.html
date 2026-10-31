@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Portal top bar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<header style="min-height: 64px; box-sizing: border-box; background: #FFFFFF; border-bottom: 1px solid #E4E4EC; padding: 10px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<p style="margin: 0; font-size: 14px; color: #4A4C63; flex: 1 1 200px;">{{root}} <span aria-hidden="true" style="color: #A9ABC9; margin: 0 6px;">/</span> <strong style="color: #1A1C3D;">{{crumb}}</strong></p>
+<label style="flex: 0 1 360px; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 10px; background: #F4F5FA; border: 1px solid #E4E4EC; color: #4A4C63; font-size: 14px;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search</span>
+<input type="search" placeholder="{{placeholder}}" style="flex: 1; min-width: 0; border: none; background: transparent; font-size: 14px; color: #1A1C3D; outline: none;">
+</label>
+<span style="font-size: 12px; font-weight: 700; color: #6B4A00; background: #FFF3D6; border-radius: 999px; padding: 4px 10px;">Sample data</span>
+<button type="button" aria-label="Notifications, 2 unread" style="position: relative; width: 40px; height: 40px; border-radius: 10px; border: 1px solid #E4E4EC; background: #FFFFFF; color: #1A1C3D; display: flex; align-items: center; justify-content: center;">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"></path></svg>
+<span style="position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: #E04F3A; border: 2px solid #FFFFFF;"></span>
+</button>
+<div style="display: flex; align-items: center; gap: 10px;">
+<span aria-hidden="true" style="{{avStyle}}">{{initials}}</span>
+<span style="display: flex; flex-direction: column; line-height: 1.2;"><span style="font-size: 14px; font-weight: 700;">{{name}}</span><span style="font-size: 12px; color: #7A6A50; font-weight: 600;">{{title}}</span></span>
+</div>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"crumb":{"editor":"text","default":"Dashboard"},"role":{"editor":"enum","options":["rep","manager"],"default":"rep"},"$preview":{"width":1192,"height":64}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rep = (this.props.role ?? 'rep') === 'rep';
+    return {
+      crumb: this.props.crumb ?? 'Dashboard',
+      root: rep ? 'Peachtree Residential' : 'The Oaks at Decatur',
+      placeholder: rep ? 'Search properties, units, violation IDs…' : 'Search units, violation IDs, issues…',
+      initials: rep ? 'LK' : 'CP',
+      name: rep ? 'Lauren Kim' : 'Chris Patel',
+      title: rep ? 'Representative' : 'Property manager',
+      avStyle: 'width: 38px; height: 38px; border-radius: 50%; background: ' + (rep ? '#928064' : '#7A6A50') + '; color: #FFFFFF; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;',
+    };
+  }
+}
+</script>
+</body>
+</html>

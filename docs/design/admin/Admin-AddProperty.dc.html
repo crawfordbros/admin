@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add a property</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1500px; box-sizing: border-box; background: #3B3D63; font-family: 'Open Sans', sans-serif; color: #1A1C3D; padding: 40px 0; display: flex; justify-content: center; align-items: flex-start;">
+<div role="dialog" aria-modal="true" aria-labelledby="add-title" style="width: 900px; background: #FFFFFF; border-radius: 20px; box-shadow: 0 24px 60px rgba(10,12,40,0.45); display: flex; flex-direction: column; overflow: hidden;">
+
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 24px 28px 18px; border-bottom: 1px solid #E4E4EC;">
+<div style="display: flex; gap: 14px; align-items: center;">
+<span style="flex: none; width: 44px; height: 44px; border-radius: 12px; background: #272B84; color: #FFFFFF; font-weight: 700; display: flex; align-items: center; justify-content: center;">PR</span>
+<div><p style="margin: 0; font-size: 13px; font-weight: 600; color: #4A4C63;">Peachtree Residential · 6 of 100 properties</p><h1 id="add-title" style="margin: 2px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 24px; color: #1A1C5E;">Add a property</h1></div>
+</div>
+<a href="Admin-OrgDetail.dc.html" aria-label="Close" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #E4E4EC; display: flex; align-items: center; justify-content: center; color: #1A1C3D;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+</div>
+
+<div style="padding: 24px 28px; display: flex; flex-direction: column; gap: 28px;">
+
+<section style="display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; display: flex; align-items: center; gap: 10px; font-family: 'Fira Sans', sans-serif; font-size: 17px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #272B84; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center;">1</span>Location</h2>
+<div style="position: relative;">
+<label for="addr" style="display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px;">Street address</label>
+<div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 10px; border: 2px solid #272B84; box-shadow: 0 0 0 4px #E3E4F6;">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#272B84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+<input id="addr" type="text" role="combobox" aria-expanded="true" aria-controls="addr-list" value="1450 N Druid Hi" style="flex: 1; border: none; outline: none; font-size: 15px; color: #1A1C3D;">
+<span style="font-size: 12px; color: #4A4C63;">Searching…</span>
+</div>
+<ul id="addr-list" role="listbox" style="position: absolute; z-index: 2; left: 0; right: 0; top: 80px; margin: 0; padding: 6px; list-style: none; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 12px; box-shadow: 0 12px 32px rgba(26,28,94,0.16);">
+<sc-for list="{{places}}" as="p" hint-placeholder-count="3">
+<li role="option" aria-selected="{{p.sel}}" style="{{p.style}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A4C63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"></path></svg><span><span style="display: block; font-weight: 700; font-size: 14px;">{{p.main}}</span><span style="display: block; font-size: 12.5px; color: #4A4C63;">{{p.sub}}</span></span></li>
+</sc-for>
+<li style="padding: 8px 12px 4px; font-size: 11.5px; color: #4A4C63; text-align: right; border-top: 1px solid #F0F0F5; margin-top: 4px;">Address suggestions powered by Google</li>
+</ul>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; margin-top: 196px;">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-content: start;">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">City<input type="text" value="Brookhaven" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px; background: #F8F8FB;"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">County<input type="text" value="DeKalb" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px; background: #F8F8FB;"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">ZIP<input type="text" value="30329" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px; background: #F8F8FB;"></label>
+<p style="grid-column: 1 / -1; margin: 0; font-size: 12.5px; color: #1F6B3A; font-weight: 600; display: flex; gap: 6px; align-items: center;"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Filled in from the address. Edit if anything is off.</p>
+</div>
+<div aria-hidden="true" style="height: 130px; border-radius: 12px; background: #EEF0F6; border: 1px dashed #A9ABC9; display: flex; align-items: center; justify-content: center; font-size: 12.5px; color: #4A4C63;">Map preview with pin</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; display: flex; align-items: center; gap: 10px; font-family: 'Fira Sans', sans-serif; font-size: 17px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #272B84; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center;">2</span>Profile</h2>
+<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+<div style="flex: none; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+<button type="button" aria-label="Upload property photo or logo" style="width: 132px; height: 132px; border-radius: 18px; border: 2px dashed #A9ABC9; background: #FAFAFD; color: #272B84; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px; font-weight: 700;"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Add photo<span style="font-weight: 600; color: #4A4C63;">or logo</span></button>
+<span style="font-size: 11.5px; color: #4A4C63; text-align: center; width: 132px;">PNG or JPG, up to 5 MB. Cropped to a square.</span>
+</div>
+<div style="flex: 1 1 400px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+<label style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Property name<input type="text" value="North Druid Flats" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px;"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Units<input type="number" value="360" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px;"></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Buildings<input type="number" value="8" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px;"></label>
+<fieldset style="grid-column: 1 / -1; border: none; margin: 0; padding: 0;"><legend style="font-size: 13.5px; font-weight: 600; margin-bottom: 6px;">Property type</legend>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;"><label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 2px solid #272B84; background: #EEEFF8; font-size: 13.5px; font-weight: 700;"><input type="radio" name="ptype" checked style="accent-color: #272B84;">Garden</label><label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; font-size: 13.5px; font-weight: 600;"><input type="radio" name="ptype">Mid-rise</label><label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; font-size: 13.5px; font-weight: 600;"><input type="radio" name="ptype">High-rise</label></div>
+</fieldset>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; display: flex; align-items: center; gap: 10px; font-family: 'Fira Sans', sans-serif; font-size: 17px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #272B84; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center;">3</span>Service</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Service start date<input type="date" value="2026-11-09" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px;"></label>
+<fieldset style="border: none; margin: 0; padding: 0;"><legend style="font-size: 13.5px; font-weight: 600; margin-bottom: 6px;">Contract</legend>
+<div role="radiogroup" style="display: flex; background: #F4F5FA; border-radius: 10px; padding: 3px;"><label style="flex: 1; text-align: center; padding: 9px 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #4A4C63;"><input type="radio" name="ct" style="position: absolute; opacity: 0;">12-month</label><label style="flex: 1; text-align: center; padding: 9px 4px; border-radius: 8px; font-size: 13px; font-weight: 700; background: #FFFFFF; color: #1A1C5E; box-shadow: 0 1px 2px rgba(26,28,94,0.15);"><input type="radio" name="ct" checked style="position: absolute; opacity: 0;">36-month</label><label style="flex: 1; text-align: center; padding: 9px 4px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #4A4C63;"><input type="radio" name="ct" style="position: absolute; opacity: 0;">Month-to-month</label></div>
+</fieldset>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Resident report web address<span style="display: flex; align-items: center; height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; overflow: hidden; font-size: 14px;"><span style="padding: 0 10px; height: 100%; display: flex; align-items: center; background: #F4F5FA; color: #4A4C63; font-weight: 600; border-right: 1px solid #C9CAD6;">/report?p=</span><input type="text" value="north-druid-flats" style="flex: 1; border: none; outline: none; padding: 0 10px; font-size: 14px;"></span><span style="font-size: 12px; font-weight: 400; color: #4A4C63;">Printed in the QR code on every container.</span></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;"><span style="display: flex; align-items: center; gap: 6px;">Connecteam job ID <span style="font-size: 11px; font-weight: 700; background: #F4F1EC; color: #7A6A50; padding: 2px 7px; border-radius: 999px;">CBES admins only</span></span><input type="text" placeholder="e.g. 48213" style="height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px;"><span style="font-size: 12px; font-weight: 400; color: #4A4C63;">Links valet clock-ins to this property's weekly report.</span></label>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 14px;">
+<h2 style="margin: 0; display: flex; align-items: center; gap: 10px; font-family: 'Fira Sans', sans-serif; font-size: 17px;"><span style="width: 26px; height: 26px; border-radius: 50%; background: #272B84; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center;">4</span>People</h2>
+<p style="margin: -6px 0 0; font-size: 13px; color: #4A4C63;">Invite the property's team. They set a password and two-step verification from the invitation email. Representatives of Peachtree already see this property.</p>
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<sc-for list="{{invites}}" as="v" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) 40px; gap: 10px; align-items: center;">
+<label style="display: flex; align-items: center; gap: 8px; height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Email</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A4C63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4zM4 7l8 6 8-6"></path></svg><input type="email" value="{{v.email}}" style="flex: 1; min-width: 0; border: none; outline: none; font-size: 14px;"></label>
+<label><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Name</span><input type="text" value="{{v.name}}" placeholder="Name (optional)" style="width: 100%; box-sizing: border-box; height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 12px; font-size: 14px;"></label>
+<label><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Role</span><select style="width: 100%; height: 44px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 14px; background: #FFFFFF;"><option selected="{{v.pm}}">Property manager</option><option selected="{{v.md}}">Management Director</option></select></label>
+<button type="button" aria-label="Remove" style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid #E4E4EC; background: #FFFFFF; color: #4A4C63; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path></svg></button>
+</div>
+</sc-for>
+<button type="button" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 10px; border: 1px dashed #A9ABC9; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add another person</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; background: #F8F8FB; border-radius: 12px; padding: 12px 14px;">
+<span style="flex: none; width: 38px; height: 38px; border-radius: 50%; background: #1A1C5E; color: #FFFFFF; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center;">DB</span>
+<span style="flex: 1 1 200px;"><span style="display: block; font-size: 13px; color: #4A4C63; font-weight: 600;">CBES Steward for this property</span><span style="display: block; font-weight: 700;">Dana Brooks · 4 properties</span></span>
+<label style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Change Steward</span><select style="height: 40px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; font-size: 13.5px; background: #FFFFFF;"><option>Dana Brooks</option><option>Andre Lewis</option></select></label>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 28px; border-top: 1px solid #E4E4EC; background: #FAFAFD;">
+<span style="font-size: 13px; color: #4A4C63; display: flex; align-items: center; gap: 10px;"><span style="width: 120px; height: 6px; border-radius: 999px; background: #E4E4EC; overflow: hidden;"><span style="display: block; width: 7%; height: 100%; background: #272B84;"></span></span>This will be property 7 of 100</span>
+<div style="display: flex; gap: 8px;"><a href="Admin-OrgDetail.dc.html" style="height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 600; font-size: 14px; text-decoration: none;">Cancel</a><a href="Admin-PropertyDetail.dc.html" style="height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; border-radius: 10px; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px; text-decoration: none;">Add property and send 2 invites</a></div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const on = 'display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 9px; background: #EEEFF8;';
+    const off = 'display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 9px;';
+    const places = [
+      ['1450 N Druid Hills Rd NE', 'Brookhaven, GA 30329, USA', true],
+      ['1450 N Druid Hills Rd', 'Atlanta, GA 30329, USA', false],
+      ['1450 Druid Hills Way', 'Decatur, GA 30033, USA', false],
+    ].map(p => ({ main: p[0], sub: p[1], sel: p[2] ? 'true' : 'false', style: p[2] ? on : off }));
+    const invites = [
+      { email: 'k.james@peachtreeres.com', name: 'Keisha James', pm: true, md: false },
+      { email: 't.reyes@peachtreeres.com', name: 'Tom Reyes', pm: false, md: true },
+    ];
+    return { places, invites };
+  }
+}
+</script>
+</body>
+</html>

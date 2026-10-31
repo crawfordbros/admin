@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Users</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 1400px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="users" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Users" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Users</h1>
+<p style="margin: 6px 0 0; font-size: 15px; color: #4A4C63; max-width: 760px;">Everyone with a portal account. Accounts are by invitation only and need two-step verification. Residents don't have accounts: their details stay on the tickets they send.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 600; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 8v6M22 11h-6"></path></svg>Invite CBES staff</button>
+<a href="Admin-AddAdmin.dc.html" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 10px; background: #1A1C5E; color: #FFFFFF; font-weight: 700; font-size: 14px; text-decoration: none;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C8BBA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg>Add admin<span style="font-size: 11px; font-weight: 700; background: #928064; padding: 2px 7px; border-radius: 999px;">Super Admin</span></a>
+</div>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 18px 20px;">
+<h2 style="margin: 0 0 14px; font-family: 'Fira Sans', sans-serif; font-size: 16px;">Roles</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 24px;">
+<div style="flex: 1 1 420px;">
+<p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #7A6A50;">CBES TEAM</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px;"><sc-for list="{{cbes}}" as="r" hint-placeholder-count="4"><span style="{{r.style}}"><span style="font-family: 'Fira Sans', sans-serif; font-size: 18px; font-weight: 700;">{{r.n}}</span><span><span style="display: block; font-size: 13px; font-weight: 700;">{{r.label}}</span><span style="display: block; font-size: 11.5px; color: #4A4C63;">{{r.note}}</span></span></span></sc-for></div>
+</div>
+<div style="flex: 1 1 420px;">
+<p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #7A6A50;">ORGANIZATIONS</p>
+<div style="display: flex; flex-wrap: wrap; gap: 8px;"><sc-for list="{{orgRoles}}" as="r" hint-placeholder-count="3"><span style="{{r.style}}"><span style="font-family: 'Fira Sans', sans-serif; font-size: 18px; font-weight: 700;">{{r.n}}</span><span><span style="display: block; font-size: 13px; font-weight: 700;">{{r.label}}</span><span style="display: block; font-size: 11.5px; color: #4A4C63;">{{r.note}}</span></span></span></sc-for></div>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px;">
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #E4E4EC;">
+<div role="tablist" aria-label="User groups" style="display: flex; flex-wrap: wrap; gap: 6px;"><sc-for list="{{tabs}}" as="t" hint-placeholder-count="4"><button type="button" role="tab" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}} <span style="{{t.cStyle}}">{{t.count}}</span></button></sc-for></div>
+<label style="flex: 1 1 220px; margin-left: auto; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 10px; background: #F4F5FA; border: 1px solid #E4E4EC; font-size: 14px; color: #4A4C63; max-width: 340px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input type="search" aria-label="Search users" placeholder="Name or email" style="flex: 1; border: none; outline: none; background: transparent; font-size: 14px;"></label>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">Role<select style="height: 38px; border-radius: 10px; border: 1px solid #C9CAD6; padding: 0 10px; background: #FFFFFF; font-size: 13px;"><option>All roles</option><option>Admin</option><option>Steward</option><option>Valet</option><option>Representative</option><option>Management Director</option><option>Property manager</option></select></label>
+</div>
+<div style="overflow-x: auto; position: relative;">
+<table style="width: 100%; min-width: 1040px; border-collapse: collapse; font-size: 14px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px; background: #FAFAFD;"><th style="padding: 10px 16px;">Person</th><th style="padding: 10px 8px;">Role</th><th style="padding: 10px 8px;">Access</th><th style="padding: 10px 8px;">Two-step</th><th style="padding: 10px 8px;">Last active</th><th style="padding: 10px 8px;">Status</th><th style="padding: 10px 16px 10px 8px;"></th></tr></thead>
+<tbody>
+<sc-for list="{{users}}" as="u" hint-placeholder-count="9">
+<tr style="border-top: 1px solid #F0F0F5;">
+<td style="padding: 10px 16px;"><span style="display: flex; gap: 10px; align-items: center;"><span style="{{u.av}}">{{u.i}}</span><span><strong style="display: block;">{{u.name}}</strong><span style="font-size: 12px; color: #4A4C63;">{{u.email}}</span></span></span></td>
+<td style="padding: 10px 8px;"><span style="{{u.roleStyle}}">{{u.role}}</span></td>
+<td style="padding: 10px 8px; font-size: 13px;">{{u.scope}}</td>
+<td style="padding: 10px 8px;"><span style="{{u.mfaStyle}}">{{u.mfa}}</span></td>
+<td style="padding: 10px 8px; font-size: 13px; color: #4A4C63;">{{u.last}}</td>
+<td style="padding: 10px 8px;"><span style="{{u.statusStyle}}">{{u.status}}</span></td>
+<td style="padding: 10px 16px 10px 8px; position: relative;"><button type="button" aria-label="More actions" aria-haspopup="menu" aria-expanded="{{u.menu}}" style="{{u.menuBtn}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+<sc-if value="{{u.open}}" hint-placeholder-val="{{ false }}">
+<ul role="menu" style="position: absolute; z-index: 3; right: 16px; top: 52px; width: 270px; margin: 0; padding: 6px; list-style: none; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 12px; box-shadow: 0 14px 34px rgba(26,28,94,0.18); text-align: left;">
+<li role="menuitem" style="display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 8px; background: #F4F1EC;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7A6A50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg><span><span style="display: block; font-weight: 700; font-size: 13.5px;">Upgrade to Admin</span><span style="display: block; font-size: 11.5px; color: #7A6A50;">Super Admin only</span></span></li>
+<li role="menuitem" style="padding: 10px; font-size: 13.5px; font-weight: 600;">Change role or access</li>
+<li role="menuitem" style="padding: 10px; font-size: 13.5px; font-weight: 600;">Reset two-step verification</li>
+<li role="menuitem" style="padding: 10px; font-size: 13.5px; font-weight: 600;">View activity</li>
+<li role="menuitem" style="padding: 10px; font-size: 13.5px; font-weight: 700; color: #B42318; border-top: 1px solid #F0F0F5;">Remove access</li>
+</ul>
+</sc-if>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="padding: 12px 16px; border-top: 1px solid #E4E4EC; font-size: 13px; color: #4A4C63;">Showing 9 of 31 people</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const box = (bg) => 'display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: ' + bg + '; color: #1A1C3D;';
+    const cbes = [[1, 'Super Admin', 'Nick only. Adds admins.', '#F4F1EC'], [1, 'Admin', 'Nigel. Everything else.', '#EEEFF8'], [2, 'Stewards', 'Lead valets on site', '#F4F5FA'], [9, 'Valets', 'Log violations', '#F4F5FA']].map(r => ({ n: r[0], label: r[1], note: r[2], style: box(r[3]) }));
+    const orgRoles = [[9, 'Representatives', 'Run an organization', '#F4F5FA'], [5, 'Management Directors', 'Get weekly reports', '#F4F5FA'], [4, 'Property managers', 'Run one property', '#F4F5FA']].map(r => ({ n: r[0], label: r[1], note: r[2], style: box(r[3]) }));
+    const tOn = 'height: 36px; padding: 0 12px; border-radius: 9px; border: none; background: #1A1C5E; color: #FFFFFF; font-weight: 700; font-size: 13px;';
+    const tOff = 'height: 36px; padding: 0 12px; border-radius: 9px; border: none; background: #F4F5FA; color: #1A1C3D; font-weight: 600; font-size: 13px;';
+    const tabs = [['Everyone', 31, 1], ['CBES team', 13, 0], ['Organizations', 18, 0], ['Invited', 4, 0]].map(t => ({ label: t[0], count: t[1], sel: t[2] ? 'true' : 'false', style: t[2] ? tOn : tOff, cStyle: 'margin-left: 4px; font-size: 11px; padding: 1px 6px; border-radius: 999px; ' + (t[2] ? 'background: #FFFFFF; color: #1A1C5E;' : 'background: #E4E4EC; color: #4A4C63;') }));
+    const av = (c) => 'flex: none; width: 36px; height: 36px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const R = { 'Super Admin': ['#1A1C5E', '#FFFFFF'], 'Admin': ['#272B84', '#FFFFFF'], 'Steward': ['#EEEFF8', '#272B84'], 'Valet': ['#F0F0F4', '#3A3C50'], 'Representative': ['#F4F1EC', '#7A6A50'], 'Management Director': ['#E6F0FF', '#1C4FA0'], 'Property manager': ['#E3F2E8', '#1F6B3A'] };
+    const pill = (c) => 'font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: ' + c[0] + '; color: ' + c[1] + ';';
+    const users = [
+      ['Nick Crawford', 'NC', 'nickc@cbenvironments.com', '#272B84', 'Super Admin', 'Everything', 'Passkey', 'Now', 'Active', false],
+      ['Nigel Crawford', 'NG', 'nigel@cbenvironments.com', '#3A3E99', 'Admin', 'Everything except adding admins', 'Passkey', '12 min ago', 'Active', false],
+      ['Dana Brooks', 'DB', 'dana@cbenvironments.com', '#1A1C5E', 'Steward', '4 properties · 5 valets', 'Authenticator', 'Tonight', 'Active', true],
+      ['Marcus Hill', 'MH', 'marcus@cbenvironments.com', '#3A3E99', 'Valet', 'The Oaks, Clarkston Commons', 'Passkey', 'Tonight', 'Active', false],
+      ['Lauren Kim', 'LK', 'lauren.kim@peachtreeres.com', '#928064', 'Representative', 'Peachtree Residential (6)', 'Authenticator', 'Yesterday', 'Active', false],
+      ['Tom Reyes', 'TR', 't.reyes@peachtreeres.com', '#3A3E99', 'Management Director', 'The Oaks at Decatur', 'Passkey', 'Mon', 'Active', false],
+      ['Chris Patel', 'CP', 'c.patel@peachtreeres.com', '#7A6A50', 'Property manager', 'The Oaks, Clarkston Commons', 'Authenticator', 'Today', 'Active', false],
+      ['Marcus Bell', 'MB', 'mbell@magnolialiving.com', '#272B84', 'Representative', 'Magnolia Living (4)', 'Authenticator', 'Oct 22', 'Active', false],
+      ['m.ortega@peachtreeres.com', '…', 'Invited 9 days ago', '#A9ABC9', 'Property manager', 'Clarkston Commons', 'Not set up', '—', 'Invited', false],
+    ].map(u => ({
+      name: u[0], i: u[1], email: u[2], av: av(u[3]), role: u[4], roleStyle: pill(R[u[4]]), scope: u[5], mfa: u[6], last: u[7], status: u[8], open: u[9], menu: u[9] ? 'true' : 'false',
+      mfaStyle: pill(u[6] === 'Not set up' ? ['#FFF4DB', '#7A4B00'] : ['#E3F2E8', '#1F6B3A']),
+      statusStyle: pill(u[8] === 'Invited' ? ['#FFF4DB', '#7A4B00'] : ['#F0F0F4', '#3A3C50']),
+      menuBtn: 'width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #1A1C3D; ' + (u[9] ? 'border: 1.5px solid #272B84; background: #EEEFF8;' : 'border: 1px solid #E4E4EC; background: #FFFFFF;'),
+    }));
+    return { cbes, orgRoles, tabs, users };
+  }
+}
+</script>
+</body>
+</html>

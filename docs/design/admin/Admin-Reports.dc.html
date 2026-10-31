@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal – Reports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#272B84}a:hover{color:#1A1C5E}
+</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 2100px; background: #F4F5FA; font-family: 'Open Sans', sans-serif; color: #1A1C3D;">
+<div style="flex: 1 1 248px; max-width: 100%; background: #1A1C5E;"><dc-import name="AdminSidebar" active="reports" hint-size="248px,960px"></dc-import></div>
+<div style="flex: 999 1 640px; min-width: 0;">
+<dc-import name="AdminTopbar" crumb="Reports" hint-size="100%,64px"></dc-import>
+<main style="padding: 28px 32px 56px; display: flex; flex-direction: column; gap: 20px;">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;">
+<div>
+<h1 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 30px; color: #1A1C5E;">Resident reports</h1>
+<p style="margin: 6px 0 0; font-size: 15px; color: #4A4C63;">Every issue residents report, across all organizations and properties. Each one gets a reply within 24 hours.</p>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-weight: 600; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>Export CSV</button>
+<button type="button" style="height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 10px; border: none; background: #272B84; color: #FFFFFF; font-weight: 700; font-size: 14px;"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Log a phone report</button>
+</div>
+</div>
+
+<section aria-label="Filters" style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="7">
+<button type="button" style="{{f.style}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{f.icon}}"></path></svg><span style="color: #4A4C63; font-weight: 600;">{{f.label}}</span><span style="font-weight: 700;">{{f.value}}</span><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+</sc-for>
+<span style="flex: 1;"></span>
+<button type="button" style="height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px dashed #A9ABC9; background: #FFFFFF; color: #272B84; font-weight: 700; font-size: 13px;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>Save view</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px;">
+<span style="color: #4A4C63; font-weight: 600;">Active:</span>
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="3"><span style="display: inline-flex; align-items: center; gap: 6px; background: #EEEFF8; color: #272B84; font-weight: 700; padding: 5px 6px 5px 10px; border-radius: 999px;">{{c}}<button type="button" aria-label="Remove filter" style="width: 20px; height: 20px; border-radius: 50%; border: none; background: #FFFFFF; color: #272B84; display: flex; align-items: center; justify-content: center; padding: 0;"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span></sc-for>
+<button type="button" style="border: none; background: none; color: #272B84; font-weight: 700; font-size: 13px; text-decoration: underline;">Clear all</button>
+<span style="margin-left: auto; color: #4A4C63;">Saved views: <strong style="color: #1A1C3D;">Over 20h, no reply</strong> · <strong style="color: #1A1C3D;">Peachtree weekly</strong></span>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px;">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+<div style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 16px;">
+<p style="margin: 0; font-size: 13px; font-weight: 600; color: #4A4C63;">{{k.label}}</p>
+<p style="margin: 6px 0 2px; font-family: 'Fira Sans', sans-serif; font-size: 30px; font-weight: 700; color: #1A1C5E;">{{k.value}}</p>
+<p style="{{k.subStyle}}">{{k.sub}}</p>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+<section style="flex: 2 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 10px;">
+<div><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 18px;">Reports by week</h2><p style="margin: 2px 0 0; font-size: 13px; color: #4A4C63;">Stacked by current status, last 12 weeks</p></div>
+<div style="display: flex; gap: 14px; font-size: 12.5px; color: #4A4C63; align-items: center;"><span style="display: flex; gap: 6px; align-items: center;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #1F6B3A;"></span>Resolved</span><span style="display: flex; gap: 6px; align-items: center;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #272B84;"></span>In progress</span><span style="display: flex; gap: 6px; align-items: center;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #C8BBA5;"></span>New</span></div>
+</div>
+<svg role="img" aria-label="Reports per week, stacked by status, last 12 weeks" viewBox="0 0 660 230" style="width: 100%; height: auto; display: block;">
+<sc-for list="{{grid}}" as="g" hint-placeholder-count="5"><line x1="34" x2="652" y1="{{g.y}}" y2="{{g.y}}" stroke="#EEEEF4"></line><text x="26" y="{{g.ty}}" text-anchor="end" font-size="11" fill="#4A4C63">{{g.label}}</text></sc-for>
+<sc-for list="{{weeks}}" as="w" hint-placeholder-count="12">
+<rect x="{{w.x}}" y="{{w.yR}}" width="30" height="{{w.hR}}" fill="#1F6B3A"></rect>
+<rect x="{{w.x}}" y="{{w.yP}}" width="30" height="{{w.hP}}" fill="#272B84"></rect>
+<rect x="{{w.x}}" y="{{w.yN}}" width="30" height="{{w.hN}}" rx="4" fill="#C8BBA5"></rect>
+<text x="{{w.lx}}" y="222" text-anchor="middle" font-size="10.5" fill="#4A4C63">{{w.label}}</text>
+</sc-for>
+</svg>
+</section>
+
+<section style="flex: 1 1 300px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 18px;">24-hour reply promise</h2>
+<p style="margin: 2px 0 12px; font-size: 13px; color: #4A4C63;">Share of reports with a first reply within 24 hours, last 30 days</p>
+<div style="display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+<svg role="img" aria-label="94 percent replied within 24 hours" viewBox="0 0 120 120" style="width: 140px; height: 140px;">
+<circle cx="60" cy="60" r="48" fill="none" stroke="#EEEFF8" stroke-width="14"></circle>
+<circle cx="60" cy="60" r="48" fill="none" stroke="#1F6B3A" stroke-width="14" stroke-linecap="round" stroke-dasharray="283.5 301.6" transform="rotate(-90 60 60)"></circle>
+<text x="60" y="58" text-anchor="middle" font-size="24" font-weight="700" fill="#1A1C5E" font-family="Fira Sans, sans-serif">94%</text>
+<text x="60" y="76" text-anchor="middle" font-size="10" fill="#4A4C63">on time</text>
+</svg>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; flex: 1; min-width: 140px;">
+<li style="display: flex; justify-content: space-between;"><span>Under 4 hours</span><strong>58%</strong></li>
+<li style="display: flex; justify-content: space-between;"><span>4 to 12 hours</span><strong>27%</strong></li>
+<li style="display: flex; justify-content: space-between;"><span>12 to 24 hours</span><strong>9%</strong></li>
+<li style="display: flex; justify-content: space-between; color: #B42318;"><span>Over 24 hours</span><strong>6%</strong></li>
+</ul>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+<section style="flex: 1 1 380px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<h2 style="margin: 0 0 14px; font-family: 'Fira Sans', sans-serif; font-size: 18px;">By issue type</h2>
+<div style="display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 36px; gap: 10px; align-items: center;"><span>{{t.label}}</span><span style="height: 12px; background: #EEEFF8; border-radius: 6px; overflow: hidden;"><span style="{{t.bar}}"></span></span><strong style="text-align: right;">{{t.n}}</strong></div>
+</sc-for>
+</div>
+</section>
+
+<section style="flex: 1.4 1 480px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; padding: 20px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"><h2 style="margin: 0; font-family: 'Fira Sans', sans-serif; font-size: 18px;">By property</h2><span style="font-size: 12.5px; color: #4A4C63;">Reports per 100 units, last 30 days</span></div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; min-width: 480px; border-collapse: collapse; font-size: 13.5px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px;"><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Property</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Reports</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Per 100 units</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Avg reply</th><th style="padding: 8px 6px; border-bottom: 1px solid #E4E4EC;">Trend</th></tr></thead>
+<tbody>
+<sc-for list="{{props}}" as="p" hint-placeholder-count="5">
+<tr><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;"><strong style="display: block;">{{p.name}}</strong><span style="font-size: 12px; color: #4A4C63;">{{p.org}}</span></td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;">{{p.n}}</td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;"><span style="display: flex; align-items: center; gap: 8px;"><span style="width: 60px; height: 8px; background: #EEEFF8; border-radius: 4px; overflow: hidden;"><span style="{{p.bar}}"></span></span>{{p.rate}}</span></td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;">{{p.reply}}</td><td style="padding: 10px 6px; border-bottom: 1px solid #F0F0F5;"><svg aria-hidden="true" width="70" height="22" viewBox="0 0 70 22"><path d="{{p.spark}}" fill="none" stroke="#272B84" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 14px; overflow: hidden;">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E4E4EC;">
+<div role="tablist" aria-label="Status" style="display: flex; flex-wrap: wrap; gap: 6px;">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5"><button type="button" role="tab" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}} <span style="{{t.countStyle}}">{{t.count}}</span></button></sc-for>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: #4A4C63;"><span>2 selected</span><button type="button" style="height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 600; font-size: 13px; color: #1A1C3D;">Assign</button><button type="button" style="height: 36px; padding: 0 12px; border-radius: 9px; border: 1px solid #C9CAD6; background: #FFFFFF; font-weight: 600; font-size: 13px; color: #1A1C3D;">Change status</button></div>
+</div>
+<div style="overflow-x: auto;">
+<table style="width: 100%; min-width: 980px; border-collapse: collapse; font-size: 14px;">
+<thead><tr style="text-align: left; color: #4A4C63; font-size: 12px; background: #FAFAFD;"><th style="padding: 10px 12px; width: 32px;"><input type="checkbox" aria-label="Select all"></th><th style="padding: 10px 8px;">Report</th><th style="padding: 10px 8px;">Organization · Property</th><th style="padding: 10px 8px;">Unit</th><th style="padding: 10px 8px;">Source</th><th style="padding: 10px 8px;">Reply clock</th><th style="padding: 10px 8px;">Assigned</th><th style="padding: 10px 8px;">Status</th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+<tr style="border-top: 1px solid #F0F0F5;">
+<td style="padding: 12px;"><input type="checkbox" aria-label="Select report" checked="{{r.checked}}"></td>
+<td style="padding: 12px 8px;"><span style="display: flex; align-items: center; gap: 10px;"><span style="{{r.iconStyle}}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{r.icon}}"></path></svg></span><span><strong style="display: block;">{{r.type}}</strong><span style="font-size: 12px; color: #4A4C63;">#{{r.ref}} · {{r.when}}</span></span></span></td>
+<td style="padding: 12px 8px;"><span style="display: block; font-weight: 600;">{{r.property}}</span><span style="font-size: 12px; color: #4A4C63;">{{r.org}}</span></td>
+<td style="padding: 12px 8px;">{{r.unit}}</td>
+<td style="padding: 12px 8px;"><span style="font-size: 12px; font-weight: 700; color: #4A4C63; background: #F0F0F4; padding: 3px 8px; border-radius: 6px;">{{r.source}}</span></td>
+<td style="padding: 12px 8px;"><span style="{{r.clockStyle}}">{{r.clock}}</span></td>
+<td style="padding: 12px 8px;"><span style="display: flex; align-items: center; gap: 8px;"><span style="{{r.avStyle}}">{{r.av}}</span>{{r.assignee}}</span></td>
+<td style="padding: 12px 8px;"><span style="{{r.statusStyle}}">{{r.status}}</span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-top: 1px solid #E4E4EC; font-size: 13px; color: #4A4C63;"><span>Showing 1–7 of 63</span><span style="display: flex; gap: 6px;"><button type="button" style="height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CAD6; background: #FFFFFF;">Previous</button><button type="button" style="height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #C9CAD6; background: #FFFFFF;">Next</button></span></div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const fbtn = 'height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1px solid #C9CAD6; background: #FFFFFF; color: #1A1C3D; font-size: 13px;';
+    const fon = 'height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border-radius: 10px; border: 1.5px solid #272B84; background: #EEEFF8; color: #1A1C3D; font-size: 13px;';
+    const filters = [
+      ['Organization', 'Peachtree, Magnolia', 'M3 21h18M5 21V7l7-4 7 4v14', 1],
+      ['Property', 'All 10', 'M3 12l9-8 9 8M5 10v10h14V10', 0],
+      ['Dates', 'Last 30 days', 'M4 5h16v15H4zM4 9h16M9 3v4M15 3v4', 1],
+      ['Issue type', 'All', 'M4 6h16M4 12h10M4 18h6', 0],
+      ['Status', 'Open', 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 1],
+      ['Source', 'Web, QR, Phone', 'M5 3h14v18H5zM9 17h6', 0],
+      ['Assigned to', 'Anyone', 'M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 0],
+    ].map(f => ({ label: f[0] + ':', value: f[1], icon: f[2], style: f[3] ? fon : fbtn }));
+    const chips = ['Peachtree Residential', 'Magnolia Living', 'Last 30 days', 'Status: Open'];
+    const sub = (c) => 'margin: 0; font-size: 12.5px; font-weight: 700; color: ' + c + ';';
+    const kpis = [
+      { label: 'Reports', value: '63', sub: '+8% vs previous 30 days', c: '#4A4C63' },
+      { label: 'Open now', value: '7', sub: '3 nearing 24 hours', c: '#B42318' },
+      { label: 'Avg first reply', value: '5.8h', sub: 'Goal: under 24h', c: '#1F6B3A' },
+      { label: 'Avg time to resolve', value: '1.6d', sub: '0.4 days faster', c: '#1F6B3A' },
+      { label: 'Missed pickups', value: '19', sub: '30% of all reports', c: '#4A4C63' },
+    ].map(k => ({ ...k, subStyle: sub(k.c) }));
+
+    const data = [[9, 1, 0], [11, 2, 0], [8, 1, 0], [12, 1, 0], [10, 2, 0], [13, 1, 0], [9, 2, 0], [14, 1, 0], [12, 2, 0], [15, 2, 1], [11, 3, 1], [9, 3, 2]];
+    const labels = ['Aug 9', 'Aug 16', 'Aug 23', 'Aug 30', 'Sep 6', 'Sep 13', 'Sep 20', 'Sep 27', 'Oct 4', 'Oct 11', 'Oct 18', 'Oct 25'];
+    const H = 190, top = 14, max = 20, sc = v => (v / max) * H, base = top + H;
+    const weeks = data.map((d, i) => { const x = 48 + i * 50; const hR = sc(d[0]), hP = sc(d[1]), hN = sc(d[2]); return { x, lx: x + 15, label: labels[i], yR: base - hR, hR, yP: base - hR - hP, hP, yN: base - hR - hP - hN, hN }; });
+    const grid = [0, 5, 10, 15, 20].map(v => ({ y: base - sc(v), ty: base - sc(v) + 4, label: String(v) }));
+
+    const types = [['Missed pickup', 19], ['Trash in hallway', 13], ['Spill or mess', 10], ['Container damaged or missing', 8], ['Bulk pickup request', 7], ['Valet conduct or noise', 4], ['Item taken by mistake', 2]]
+      .map(t => ({ label: t[0], n: t[1], bar: 'display: block; height: 100%; width: ' + Math.round(t[1] / 19 * 100) + '%; background: #272B84; border-radius: 6px;' }));
+
+    const spark = (vals) => { const max = Math.max(...vals), min = Math.min(...vals); return vals.map((v, i) => (i ? 'L' : 'M') + (2 + i * (66 / (vals.length - 1))).toFixed(1) + ' ' + (20 - ((v - min) / ((max - min) || 1)) * 18).toFixed(1)).join(' '); };
+    const props = [
+      ['The Oaks at Decatur', 'Peachtree Residential', 14, 4.4, '4.1h', [3, 5, 4, 2]],
+      ['Lakeside Crossing', 'Magnolia Living', 11, 4.1, '7.2h', [1, 2, 4, 4]],
+      ['Brookhaven Terrace', 'Peachtree Residential', 9, 2.8, '3.9h', [3, 2, 2, 2]],
+      ['Tucker Station', 'Magnolia Living', 8, 2.5, '6.0h', [2, 3, 1, 2]],
+      ['Clarkston Commons', 'Peachtree Residential', 6, 2.1, '5.5h', [2, 1, 2, 1]],
+    ].map(p => ({ name: p[0], org: p[1], n: p[2], rate: p[3].toFixed(1), reply: p[4], spark: spark(p[5]), bar: 'display: block; height: 100%; width: ' + Math.round(p[3] / 4.4 * 100) + '%; background: #928064;' }));
+
+    const tabOn = 'height: 36px; padding: 0 12px; border-radius: 9px; border: none; background: #1A1C5E; color: #FFFFFF; font-weight: 700; font-size: 13px;';
+    const tabOff = 'height: 36px; padding: 0 12px; border-radius: 9px; border: none; background: #F4F5FA; color: #1A1C3D; font-weight: 600; font-size: 13px;';
+    const tabs = [['Open', 7, 1], ['New', 2, 0], ['In progress', 5, 0], ['Resolved', 54, 0], ['Closed', 2, 0]].map(t => ({ label: t[0], count: t[1], sel: t[2] ? 'true' : 'false', style: t[2] ? tabOn : tabOff, countStyle: 'margin-left: 4px; font-size: 11px; padding: 1px 6px; border-radius: 999px; ' + (t[2] ? 'background: #FFFFFF; color: #1A1C5E;' : 'background: #E4E4EC; color: #4A4C63;') }));
+
+    const ico = { 'Missed pickup': 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14', 'Trash in hallway': 'M3 21h18M6 21V8h12v13', 'Spill or mess': 'M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z', 'Container damaged or missing': 'M4 7h16l-2 13H6zM9 4h6', 'Bulk pickup request': 'M1 16V6h13v10M14 9h4l3 4v3h-7', 'Valet conduct or noise': 'M11 5L6 9H2v6h4l5 4zM16 9a5 5 0 0 1 0 6' };
+    const iconStyle = 'flex: none; width: 32px; height: 32px; border-radius: 9px; background: #EEEFF8; color: #272B84; display: flex; align-items: center; justify-content: center;';
+    const status = { 'New': ['#F0F0F4', '#3A3C50'], 'In progress': ['#EEEFF8', '#272B84'], 'Assigned': ['#E6F0FF', '#1C4FA0'], 'Resolved': ['#E3F2E8', '#1F6B3A'] };
+    const clock = (h) => h >= 20 ? ['#FDECEA', '#B42318'] : h >= 12 ? ['#FFF4DB', '#7A4B00'] : ['#E3F2E8', '#1F6B3A'];
+    const pill = (c) => 'font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: ' + c[0] + '; color: ' + c[1] + ';';
+    const av = (c) => 'flex: none; width: 28px; height: 28px; border-radius: 50%; background: ' + c + '; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;';
+    const rows = [
+      [1042, 'Missed pickup', '21h ago', 'The Oaks at Decatur', 'Peachtree Residential', 'Bldg 3 · 305', 'Web', 21, '3h left', 'Dana Brooks', 'DB', '#7A6A50', 'In progress', true],
+      [1041, 'Trash in hallway', '14h ago', 'Lakeside Crossing', 'Magnolia Living', 'Bldg 1 · 118', 'QR', 14, '10h left', 'Nigel Crawford', 'NC', '#272B84', 'Assigned', true],
+      [1040, 'Spill or mess', '9h ago', 'Brookhaven Terrace', 'Peachtree Residential', 'Bldg 2 · 2207', 'QR', 9, 'Replied in 2h', 'Andre Lewis', 'AL', '#3A3E99', 'In progress', false],
+      [1039, 'Bulk pickup request', '6h ago', 'Tucker Station', 'Magnolia Living', '1104', 'Web', 6, '18h left', 'Unassigned', '—', '#A9ABC9', 'New', false],
+      [1038, 'Container damaged or missing', '5h ago', 'Marietta Pines', 'Summit Ridge Communities', '412', 'Phone', 5, '19h left', 'Unassigned', '—', '#A9ABC9', 'New', false],
+      [1036, 'Valet conduct or noise', '1d ago', 'Clarkston Commons', 'Peachtree Residential', 'Bldg 5 · 503', 'Web', 3, 'Replied in 3h', 'Nigel Crawford', 'NC', '#272B84', 'In progress', false],
+      [1033, 'Missed pickup', '2d ago', 'Lakeside Crossing', 'Magnolia Living', 'Bldg 2 · 221', 'QR', 1, 'Replied in 1h', 'Dana Brooks', 'DB', '#7A6A50', 'Resolved', false],
+    ].map(r => ({ ref: r[0], type: r[1], when: r[2], property: r[3], org: r[4], unit: r[5], source: r[6], clock: r[8], assignee: r[9], av: r[10], avStyle: av(r[11]), status: r[12], checked: r[13], icon: ico[r[1]], iconStyle, statusStyle: pill(status[r[12]]), clockStyle: pill(r[8].startsWith('Replied') ? ['#F0F0F4', '#3A3C50'] : clock(r[7])) }));
+
+    return { filters, chips, kpis, weeks, grid, types, props, tabs, rows };
+  }
+}
+</script>
+</body>
+</html>

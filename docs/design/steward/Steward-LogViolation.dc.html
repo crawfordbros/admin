@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Steward – Log a violation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8BBA5}a:hover{color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #12143F; color: #FFFFFF; font-family: 'Open Sans', sans-serif; display: flex; flex-direction: column;">
+<header style="padding: 16px 20px 10px; display: flex; align-items: center; gap: 12px;">
+<a href="Steward-Home.dc.html" aria-label="Close" style="flex: none; width: 44px; height: 44px; border-radius: 12px; background: #1C1F5A; display: flex; align-items: center; justify-content: center; color: #FFFFFF;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+<div style="flex: 1;"><p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: #C8BBA5;">THE OAKS AT DECATUR</p><h1 style="margin: 2px 0 0; font-family: 'Fira Sans', sans-serif; font-size: 22px;">Log a violation</h1></div>
+</header>
+
+<div style="padding: 0 20px; display: flex; flex-direction: column; gap: 14px; flex: 1; overflow: hidden;">
+<div>
+<div style="display: flex; gap: 10px;">
+<span role="img" aria-label="Photo 1" style="flex: none; width: 108px; height: 108px; border-radius: 14px; background: #2E3290; position: relative; display: flex; align-items: center; justify-content: center; color: #6E72C4;"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg><button type="button" aria-label="Remove photo 1" style="position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(12,14,48,0.85); color: #FFFFFF; display: flex; align-items: center; justify-content: center;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></span>
+<span role="img" aria-label="Photo 2" style="flex: none; width: 108px; height: 108px; border-radius: 14px; background: #262A6E; display: flex; align-items: center; justify-content: center; color: #6E72C4;"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span>
+<button type="button" style="flex: 1; height: 108px; border-radius: 14px; border: 2px dashed #6E72C4; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Add photo<span style="font-weight: 600; font-size: 11.5px; color: #9FA2D6;">2 of 4</span></button>
+</div>
+<p style="margin: 6px 0 0; font-size: 12.5px; color: #9FA2D6;">Photograph the trash and doorway, never people.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px;">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Building<select style="height: 54px; border-radius: 12px; border: 1px solid #4A4E9E; background: #23266B; color: #FFFFFF; padding: 0 12px; font-size: 16px; font-weight: 700;"><option selected>Bldg 1</option><option>Bldg 2</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Unit<input type="text" inputmode="numeric" value="118" style="height: 54px; border-radius: 12px; border: 2px solid #FFFFFF; background: #23266B; color: #FFFFFF; padding: 0 12px; font-size: 18px; font-weight: 700;"></label>
+</div>
+<div style="display: flex; gap: 8px; align-items: center; margin-top: -4px;"><span style="font-size: 12px; color: #9FA2D6;">Recent:</span><sc-for list="{{recent}}" as="u" hint-placeholder-count="3"><button type="button" style="height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #4A4E9E; background: transparent; color: #FFFFFF; font-weight: 700; font-size: 13px;">{{u}}</button></sc-for></div>
+<p role="status" style="margin: -4px 0 0; display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 10px; background: #3F3215; color: #F5C26B; font-size: 12.5px; font-weight: 700;"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3zM12 10v4M12 17.5v.01"></path></svg>Unit 118 has 2 violations in 30 days. This makes 3.</p>
+
+<fieldset style="border: none; margin: 0; padding: 0;"><legend style="font-size: 14px; font-weight: 600; margin-bottom: 8px; padding: 0;">What's wrong?</legend>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="6"><button type="button" aria-pressed="{{t.pressed}}" style="{{t.style}}">{{t.label}}</button></sc-for>
+</div>
+</fieldset>
+
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600;">Note (optional)<input type="text" value="Container full, three bags beside it" style="height: 50px; border-radius: 12px; border: 1px solid #4A4E9E; background: #23266B; color: #FFFFFF; padding: 0 12px; font-size: 15px;"></label>
+</div>
+
+<div style="padding: 12px 20px 22px; display: flex; flex-direction: column; gap: 8px;">
+<p style="margin: 0; display: flex; justify-content: center; gap: 14px; font-size: 12.5px; color: #C9CAF0;"><span>Wed 9:14 PM</span><span style="color: #4CC38A; font-weight: 700;">GPS ±6 m</span><span>Saves offline</span></p>
+<a href="Steward-Violations.dc.html" style="height: 60px; border-radius: 16px; background: #FFFFFF; color: #1A1C5E; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none;">Save violation</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const on = 'min-height: 52px; border-radius: 12px; border: 2px solid #FFFFFF; background: #FFFFFF; color: #1A1C5E; font-size: 14.5px; font-weight: 700;';
+    const off = 'min-height: 52px; border-radius: 12px; border: 2px solid #4A4E9E; background: transparent; color: #FFFFFF; font-size: 14.5px; font-weight: 600;';
+    const types = [['Bag not tied', 0], ['Outside container', 0], ['Over-filled', 1], ['After 8 PM', 0], ['Prohibited item', 0], ['Bulk item at door', 0]].map(t => ({ label: t[0], pressed: t[1] ? 'true' : 'false', style: t[1] ? on : off }));
+    return { types, recent: ['108', '214', '122'] };
+  }
+}
+</script>
+</body>
+</html>

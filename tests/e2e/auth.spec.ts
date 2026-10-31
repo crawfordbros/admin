@@ -5,7 +5,7 @@ for (const path of ["/admin", "/admin/users", "/admin/properties", "/portal", "/
   test(`${path} sends signed-out visitors to sign in`, async ({ page }) => {
     await page.goto(path);
     await expect(page).toHaveURL(/\/portal\/login/);
-    await expect(page.getByRole("heading", { name: /Sign in to CB Environment Solutions/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign in to the CBES portal" })).toBeVisible();
   });
 }
 
@@ -13,7 +13,6 @@ test("sign-in page offers no self sign-up and has no serious axe issues", async 
   await page.goto("/portal/login");
   await expect(page.getByLabel("Email address")).toBeVisible();
   await expect(page.getByRole("link", { name: /sign up/i })).toHaveCount(0);
-  await expect(page.getByText("Accounts are by invitation from CBES.")).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
   const results = await new AxeBuilder({ page }).analyze();

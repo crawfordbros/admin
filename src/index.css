@@ -19,6 +19,32 @@
   --color-success: #1f6b3a;
   --color-danger: #b42318;
 
+  /* Admin Portal (ADMIN_PORTAL_SPEC section 4.1). */
+  --color-navy-ink: #1a1c5e;
+  --color-canvas: #f4f5fa;
+  --color-subtle: #fafafd;
+  --color-tint-2: #eeeff8;
+  --color-gold-tint: #f4f1ec;
+  --color-warning: #7a4b00;
+  --color-warning-bg: #fff4db;
+  --color-danger-bg: #fdecea;
+  --color-success-bg: #e3f2e8;
+  --color-info: #1c4fa0;
+  --color-info-bg: #e6f0ff;
+  --color-neutral: #3a3c50;
+  --color-neutral-bg: #f0f0f4;
+  --color-alert-dot: #e04f3a;
+  /* Sidebar details: group labels, dividers, the muted "Phase 2" pill. */
+  --color-nav-label: #9fa2d6;
+  --color-nav-line: #2e3290;
+  --color-nav-pill: #c9caf0;
+  /* Property Portal sidebar: the context switcher and the "Need CBES?" card. */
+  --color-nav-card: #23266f;
+  /* Light navy bars: past nights in "Violations this week", "Resolved by property" in Reports. */
+  --color-navy-light: #9396d6;
+  --color-row-line: #f0f0f5;
+  --color-placeholder: #a9abc9;
+
   --font-heading: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
 }
@@ -55,4 +81,209 @@
   [id] {
     scroll-margin-top: 1rem;
   }
+}
+
+/* Sign-in screens: the archer settles forward along the line of the arrow once, on load. */
+@keyframes archer-in {
+  from {
+    opacity: 0;
+    translate: -14px 12px;
+  }
+}
+.auth-archer {
+  animation: archer-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-archer {
+    animation: none;
+  }
+}
+
+/* Drawers and modals slide or fade in once when opened. */
+@keyframes drawer-in {
+  from {
+    translate: 100% 0;
+  }
+}
+@keyframes sheet-in {
+  from {
+    translate: -100% 0;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.anim-drawer {
+  animation: drawer-in 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.anim-sheet {
+  animation: sheet-in 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.anim-fade {
+  animation: fade-in 160ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-drawer,
+  .anim-sheet,
+  .anim-fade {
+    animation: none;
+  }
+}
+
+/* Native selects: swap the browser arrow (which hugs the right edge) for the
+   app's chevron-down, inset to match the control's horizontal padding.
+   Deliberately unlayered so it outranks per-select px-* utilities. */
+select:not([multiple]):not([size]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a4c63' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.875rem;
+  padding-right: 2.25rem;
+}
+/* Steward crew app (docs/STEWARD_APP_SPEC.md). Dark is the navy night palette from docs/design/steward;
+   light is the same layout for daylight. StewardRoot sets data-st-theme on <html> while the app is open,
+   so dialogs and the page background follow the theme too. */
+html[data-st-theme="dark"] {
+  color-scheme: dark;
+  --st-bg: #12143f;
+  --st-chrome: #0c0e30;
+  --st-surface: #1c1f5a;
+  --st-raised: #23266b;
+  --st-track: #2e3290;
+  --st-border: #4a4e9e;
+  --st-text: #ffffff;
+  --st-text-2: #c9caf0;
+  --st-text-3: #9fa2d6;
+  --st-accent: #c8bba5;
+  --st-cta: #ffffff;
+  --st-on-cta: #1a1c5e;
+  --st-avatar: #3a3e99;
+  --st-avatar-ink: #6e72c4;
+  --st-ok: #4cc38a;
+  --st-ok-bg: #143d2e;
+  --st-go: #4cc38a;
+  --st-on-go: #0c2a1d;
+  --st-warn: #f5c26b;
+  --st-warn-bg: #3f3215;
+  --st-bad: #ff8a7a;
+  --st-bad-bg: #4a1d25;
+  --st-info: #8db4ff;
+  --st-info-bg: #1b2e5c;
+  --st-badge: #d93a25;
+  --st-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+html[data-st-theme="light"] {
+  color-scheme: light;
+  --st-bg: #edeef8;
+  --st-chrome: #ffffff;
+  --st-surface: #ffffff;
+  --st-raised: #e4e6f5;
+  --st-track: #d3d6ee;
+  --st-border: #8487c2;
+  --st-text: #12143f;
+  --st-text-2: #3d4180;
+  --st-text-3: #575b95;
+  --st-accent: #7a6a50;
+  --st-cta: #272b84;
+  --st-on-cta: #ffffff;
+  --st-avatar: #d3d6ee;
+  --st-avatar-ink: #6e72c4;
+  --st-ok: #0f6b41;
+  --st-ok-bg: #ddf3e8;
+  --st-go: #0f6b41;
+  --st-on-go: #ffffff;
+  --st-warn: #8a5300;
+  --st-warn-bg: #fcefd3;
+  --st-bad: #b42318;
+  --st-bad-bg: #fdecea;
+  --st-info: #1c4fa0;
+  --st-info-bg: #e3ecfc;
+  --st-badge: #d93a25;
+  --st-shadow: 0 8px 24px rgb(18 20 63 / 0.18);
+}
+html[data-st-theme] body {
+  background: var(--st-bg);
+  color: var(--st-text);
+}
+
+@theme inline {
+  --color-st-bg: var(--st-bg);
+  --color-st-chrome: var(--st-chrome);
+  --color-st-surface: var(--st-surface);
+  --color-st-raised: var(--st-raised);
+  --color-st-track: var(--st-track);
+  --color-st-border: var(--st-border);
+  --color-st-text: var(--st-text);
+  --color-st-text-2: var(--st-text-2);
+  --color-st-text-3: var(--st-text-3);
+  --color-st-accent: var(--st-accent);
+  --color-st-cta: var(--st-cta);
+  --color-st-on-cta: var(--st-on-cta);
+  --color-st-avatar: var(--st-avatar);
+  --color-st-avatar-ink: var(--st-avatar-ink);
+  --color-st-ok: var(--st-ok);
+  --color-st-ok-bg: var(--st-ok-bg);
+  /* The "it's done" button: Fixed, Send and resolve. */
+  --color-st-go: var(--st-go);
+  --color-st-on-go: var(--st-on-go);
+  --color-st-warn: var(--st-warn);
+  --color-st-warn-bg: var(--st-warn-bg);
+  --color-st-bad: var(--st-bad);
+  --color-st-bad-bg: var(--st-bad-bg);
+  --color-st-info: var(--st-info);
+  --color-st-info-bg: var(--st-info-bg);
+  --color-st-badge: var(--st-badge);
+  --shadow-st: var(--st-shadow);
+}
+
+/* Links and focus inside the Steward app. Gold on navy at night; the darker gold text color by day. */
+@layer base {
+  .steward a {
+    color: var(--st-accent);
+  }
+  .steward a:hover {
+    color: var(--st-text);
+  }
+  .steward :focus-visible {
+    outline-color: var(--st-accent);
+  }
+}
+
+/* The shared sign-in and two-step screens (LoginPage, SetupMfaStep) inside the Steward app. Their controls
+   use the admin tokens; here those tokens point at the Steward palette, so in the dark theme "white" fields
+   become raised navy and the primary button turns white with navy text, as in the designs. */
+.steward-skin {
+  --color-white: var(--st-raised);
+  --color-ink: var(--st-text);
+  --color-muted: var(--st-text-2);
+  --color-line: var(--st-track);
+  --color-field: var(--st-border);
+  --color-tint: var(--st-surface);
+  --color-canvas: var(--st-surface);
+  --color-navy: var(--st-cta);
+  --color-navy-dark: var(--st-cta);
+  --color-navy-ink: var(--st-text);
+  --color-danger: var(--st-bad);
+  --color-success: var(--st-ok);
+}
+.steward-skin .bg-navy,
+.steward-skin button.bg-navy {
+  color: var(--st-on-cta);
+}
+html[data-st-theme="light"] .steward-skin {
+  --color-white: #ffffff;
+}
+/* 56 px fields and buttons with the designs' 14 px corners; the secondary (Google) button is the quiet navy outline. */
+.steward-skin .min-h-11 {
+  min-height: 3.5rem;
+  border-radius: 14px;
+}
+.steward-skin .border-2.border-navy {
+  border-width: 1px;
+  border-color: var(--st-border);
+  background: var(--st-surface);
+  color: var(--st-text);
 }
