@@ -7,9 +7,10 @@ dist
 # Keep local values private; track only the key template.
 /.env
 /.env.*
-/.env.example
-# Docs stay local, except the project docs in docs/ (spec, brief, design notes) so agents and clones can read them
+.env.example
+# Track the public README and project docs; keep other Markdown notes local.
 *.md
+!/README.md
 !docs/**/*.md
 /claude.md
 *.tsbuildinfo
